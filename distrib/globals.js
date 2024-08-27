@@ -19,35 +19,55 @@ const KEYBOARD_IRQ = 1;
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
-//
-var _CPU; // Utilize TypeScript's type annotation system to ensure that _CPU is an instance of the Cpu class.
-var _OSclock = 0; // Page 23.
-var _Mode = 0; // (currently unused)  0 = Kernel Mode, 1 = User Mode.  See page 21.
-var _Canvas; // Initialized in Control.hostInit().
-var _DrawingContext; // = _Canvas.getContext("2d");  // Assigned here for type safety, but re-initialized in Control.hostInit() for OCD and logic.
-var _DefaultFontFamily = "sans"; // Ignored, I think. The was just a place-holder in 2008, but the HTML canvas may have use for it.
-var _DefaultFontSize = 13;
-var _FontHeightMargin = 4; // Additional space added to font size when advancing a line.
-var _Trace = true; // Default the OS trace to be on.
+var neOSVars = {
+    CPU: null,
+    OSclock: 0,
+    Mode: 0,
+    Canvas: null,
+    DrawingContext: null,
+    DefaultFontFamily: 'sans',
+    DefaultFontSize: 13,
+    FontHeightMargin: 4,
+    Trace: true,
+    Kernel: null,
+    KernelInterruptQueue: null,
+    KernelInputQueue: null,
+    KernelBuffers: [],
+    StdIn: null,
+    StdOut: null,
+    Console: null,
+    OsShell: null,
+    SarcasticMode: false,
+    krnKeyboardDriver: null,
+    hardwareClockID: null,
+    GLaDOS: null,
+    onDocumentLoad: function () {
+        TSOS.Control.hostInit();
+    }
+};
+var neOSVars, DefaultFontFamily = "sans"; // Ignored, I think. The was just a place-holder in 2008, but the HTML canvas may have use for it.
+var neOSVars, DefaultFontSize = 13;
+var neOSVars, FontHeightMargin = 4; // Additional space added to font size when advancing a line.
+var neOSVars, Trace = true; // Default the OS trace to be on.
 // The OS Kernel and its queues.
-var _Kernel;
-var _KernelInterruptQueue = null;
-var _KernelInputQueue = null;
-var _KernelBuffers = null;
+var neOSVars, Kernel;
+var neOSVars, KernelInterruptQueue = null;
+var neOSVars, KernelInputQueue = null;
+var neOSVars, KernelBuffers = null;
 // Standard input and output
-var _StdIn = null;
-var _StdOut = null;
+var neOSVars, StdIn = null;
+var neOSVars, StdOut = null;
 // UI
-var _Console;
-var _OsShell;
+var neOSVars, Console;
+var neOSVars, OsShell;
 // At least this OS is not trying to kill you. (Yet.)
-var _SarcasticMode = false;
+var neOSVars, SarcasticMode = false;
 // Global Device Driver Objects - page 12
-var _krnKeyboardDriver = null;
-var _hardwareClockID = null;
+var neOSVars, krnKeyboardDriver = null;
+var neOSVars, hardwareClockID = null;
 // For testing (and enrichment)...
 var Glados = null; // This is the function Glados() in glados-ip*.js http://alanclasses.github.io/TSOS/test/ .
-var _GLaDOS = null; // If the above is linked in, this is the instantiated instance of Glados.
+var neOSVars, GLaDOS = null; // If the above is linked in, this is the instantiated instance of Glados.
 var onDocumentLoad = function () {
     TSOS.Control.hostInit();
 };

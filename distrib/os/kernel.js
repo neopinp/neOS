@@ -13,22 +13,22 @@ var TSOS;
         // OS Startup and Shutdown Routines
         //
         krnBootstrap() {
-            TSOS.Control.hostLog("bootstrap", "host"); // Use hostLog because we ALWAYS want this, even if _Trace is off.
+            TSOS.Control.hostLog("bootstrap", "host"); // Use hostLog because we ALWAYS want this, even if neOSVars.Trace is off.
             // Initialize our global queues.
-            _KernelInterruptQueue = new TSOS.Queue(); // A (currently) non-priority queue for interrupt requests (IRQs).
-            _KernelBuffers = new Array(); // Buffers... for the kernel.
-            _KernelInputQueue = new TSOS.Queue(); // Where device input lands before being processed out somewhere.
+            neOSVars.KernelInterruptQueue = new TSOS.Queue(); // A (currently) non-priority queue for interrupt requests (IRQs).
+            neOSVars.KernelBuffers = new Array(); // Buffers... for the kernel.
+            neOSVars.KernelInputQueue = new TSOS.Queue(); // Where device input lands before being processed out somewhere.
             // Initialize the console.
-            _Console = new TSOS.Console(); // The command line interface / console I/O device.
-            _Console.init();
-            // Initialize standard input and output to the _Console.
-            _StdIn = _Console;
-            _StdOut = _Console;
+            neOSVars.Console = new TSOS.Console(); // The command line interface / console I/O device.
+            neOSVars.Console.init();
+            // Initialize standard input and output to the neOSVars.Console.
+            neOSVars.StdIn = neOSVars.Console;
+            neOSVars.StdOut = neOSVars.Console;
             // Load the Keyboard Device Driver
             this.krnTrace("Loading the keyboard device driver.");
-            _krnKeyboardDriver = new TSOS.DeviceDriverKeyboard(); // Construct it.
-            _krnKeyboardDriver.driverEntry(); // Call the driverEntry() initialization routine.
-            this.krnTrace(_krnKeyboardDriver.status);
+            neOSVars.krnKeyboardDriver = new TSOS.DeviceDriverKeyboard(); // Construct it.
+            neOSVars.krnKeyboardDriver.driverEntry(); // Call the driverEntry() initialization routine.
+            this.krnTrace(neOSVars.krnKeyboardDriver.status);
             //
             // ... more?
             //
@@ -37,11 +37,11 @@ var TSOS;
             this.krnEnableInterrupts();
             // Launch the shell.
             this.krnTrace("Creating and Launching the shell.");
-            _OsShell = new TSOS.Shell();
-            _OsShell.init();
+            neOSVars.OsShell = new TSOS.Shell();
+            neOSVars.OsShell.init();
             // Finally, initiate student testing protocol.
-            if (_GLaDOS) {
-                _GLaDOS.afterStartup();
+            if (neOSVars.GLaDOS) {
+                neOSVars.GLaDOS.afterStartup();
             }
         }
         krnShutdown() {
@@ -63,14 +63,14 @@ var TSOS;
                that it has to look for interrupts and process them if it finds any.
             */
             // Check for an interrupt, if there are any. Page 560
-            if (_KernelInterruptQueue.getSize() > 0) {
+            if (neOSVars.KernelInterruptQueue.getSize() > 0) {
                 // Process the first interrupt on the interrupt queue.
                 // TODO (maybe): Implement a priority queue based on the IRQ number/id to enforce interrupt priority.
-                var interrupt = _KernelInterruptQueue.dequeue();
+                var interrupt = neOSVars.KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
             }
-            else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
-                _CPU.cycle();
+            else if (neOSVars.CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
+                neOSVars.CPU.cycle();
             }
             else { // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
@@ -102,8 +102,8 @@ var TSOS;
                     this.krnTimerISR(); // Kernel built-in routine for timers (not the clock).
                     break;
                 case KEYBOARD_IRQ:
-                    _krnKeyboardDriver.isr(params); // Kernel mode device driver
-                    _StdIn.handleInput();
+                    neOSVars.krnKeyboardDriver.isr(params); // Kernel mode device driver
+                    neOSVars.StdIn.handleInput();
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
@@ -133,10 +133,10 @@ var TSOS;
         //
         krnTrace(msg) {
             // Check globals to see if trace is set ON.  If so, then (maybe) log the message.
-            if (_Trace) {
+            if (neOSVars.Trace) {
                 if (msg === "Idle") {
                     // We can't log every idle clock pulse because it would quickly lag the browser quickly.
-                    if (_OSclock % 10 == 0) {
+                    if (neOSVars.OSclock % 10 == 0) {
                         // Check the CPU_CLOCK_INTERVAL in globals.ts for an
                         // idea of the tick rate and adjust this line accordingly.
                         TSOS.Control.hostLog(msg, "OS");

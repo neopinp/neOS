@@ -18,16 +18,16 @@ var TSOS;
 (function (TSOS) {
     class Devices {
         constructor() {
-            _hardwareClockID = -1;
+            neOSVars.hardwareClockID = -1;
         }
         //
         // Hardware/Host Clock Pulse
         //
         static hostClockPulse() {
             // Increment the hardware (host) clock.
-            _OSclock++;
+            neOSVars.OSclock++;
             // Call the kernel clock pulse event handler.
-            _Kernel.krnOnCPUClockPulse();
+            neOSVars.Kernel.krnOnCPUClockPulse();
         }
         //
         // Keyboard Interrupt, a HARDWARE Interrupt Request. (See pages 560-561 in our text book.)
@@ -49,7 +49,7 @@ var TSOS;
                 // Note the pressed key code in the params (Mozilla-specific).
                 var params = new Array(event.which, event.shiftKey);
                 // Enqueue this interrupt on the kernel interrupt queue so that it gets to the Interrupt handler.
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(KEYBOARD_IRQ, params));
+                neOSVars.KernelInterruptQueue.enqueue(new TSOS.Interrupt(KEYBOARD_IRQ, params));
             }
         }
     }

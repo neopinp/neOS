@@ -26,13 +26,13 @@ module TSOS {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
 
             // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
-            _Canvas = <HTMLCanvasElement>document.getElementById('display');
+            neOSVars.Canvas = <HTMLCanvasElement>document.getElementById('display');
 
             // Get a global reference to the drawing context.
-            _DrawingContext = _Canvas.getContext("2d");
+            neOSVars.DrawingContext = neOSVars.Canvas.getContext("2d");
 
             // Enable the added-in canvas text functions (see canvastext.ts for provenance and details).
-            CanvasTextFunctions.enable(_DrawingContext);   // Text functionality is now built in to the HTML5 canvas. But this is old-school, and fun, so we'll keep it.
+            CanvasTextFunctions.enable(neOSVars.DrawingContext);   // Text functionality is now built in to the HTML5 canvas. But this is old-school, and fun, so we'll keep it.
 
             // Clear the log text box.
             // Use the TypeScript cast to HTMLInputElement
@@ -46,15 +46,15 @@ module TSOS {
             // may be referenced here (from index.html) as function Glados().
             if (typeof Glados === "function") {
                 // function Glados() is here, so instantiate Her into
-                // the global (and properly capitalized) _GLaDOS variable.
-                _GLaDOS = new Glados();
-                _GLaDOS.init();
+                // the global (and properly capitalized) neOSVars.GLaDOS variable.
+                neOSVars.GLaDOS = new Glados();
+                neOSVars.GLaDOS.init();
             }
         }
 
         public static hostLog(msg: string, source: string = "?"): void {
             // Note the OS CLOCK.
-            var clock: number = _OSclock;
+            var clock: number = neOSVars.OSclock;
 
             // Note the REAL clock in milliseconds since January 1, 1970.
             var now: number = new Date().getTime();
@@ -85,23 +85,23 @@ module TSOS {
             document.getElementById("display").focus();
 
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
-            _CPU = new Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
-            _CPU.init();       //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+            neOSVars.CPU = new Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
+            neOSVars.CPU.init();       //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
 
             // ... then set the host clock pulse ...
-            _hardwareClockID = setInterval(Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
+            neOSVars.hardwareClockID = setInterval(Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
             // .. and call the OS Kernel Bootstrap routine.
-            _Kernel = new Kernel();
-            _Kernel.krnBootstrap();  // _GLaDOS.afterStartup() will get called in there, if configured.
+            neOSVars.Kernel = new Kernel();
+            neOSVars.Kernel.krnBootstrap();  // neOSVars.GLaDOS.afterStartup() will get called in there, if configured.
         }
 
         public static hostBtnHaltOS_click(btn): void {
             Control.hostLog("Emergency halt", "host");
             Control.hostLog("Attempting Kernel shutdown.", "host");
             // Call the OS shutdown routine.
-            _Kernel.krnShutdown();
+            neOSVars.Kernel.krnShutdown();
             // Stop the interval that's simulating our clock pulse.
-            clearInterval(_hardwareClockID);
+            clearInterval(neOSVars.hardwareClockID);
             // TODO: Is there anything else we need to do here?
         }
 

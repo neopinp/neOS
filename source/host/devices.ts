@@ -20,7 +20,7 @@ module TSOS {
     export class Devices {
 
         constructor() {
-            _hardwareClockID = -1;
+            neOSVars.hardwareClockID = -1;
         }
 
         //
@@ -28,9 +28,9 @@ module TSOS {
         //
         public static hostClockPulse(): void {
             // Increment the hardware (host) clock.
-            _OSclock++;
+            neOSVars.OSclock++;
             // Call the kernel clock pulse event handler.
-            _Kernel.krnOnCPUClockPulse();
+            neOSVars.Kernel.krnOnCPUClockPulse();
         }
 
         //
@@ -55,7 +55,7 @@ module TSOS {
                 // Note the pressed key code in the params (Mozilla-specific).
                 var params = new Array(event.which, event.shiftKey);
                 // Enqueue this interrupt on the kernel interrupt queue so that it gets to the Interrupt handler.
-                _KernelInterruptQueue.enqueue(new Interrupt(KEYBOARD_IRQ, params));
+                neOSVars.KernelInterruptQueue.enqueue(new Interrupt(KEYBOARD_IRQ, params));
             }
         }
     }
