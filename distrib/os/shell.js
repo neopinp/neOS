@@ -45,10 +45,13 @@ var TSOS;
             // prompt <string>
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes and their IDS <string>.");
+            // new 
             // ps  - list the running processes and their IDs
+            sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id <string>.");
+            //new 
             // kill <id> - kills the specified process id.
-            // Display the initial prompt.
-            this.putPrompt();
+            this.putPrompt(); // Display the initial prompt.
         }
         putPrompt() {
             neOS.StdOut.putText(this.promptStr);
