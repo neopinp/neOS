@@ -47,10 +47,12 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes and their IDS <string>.");
             // new 
-            // ps  - list the running processes and their IDs
+            // ps  - list the running processes and their IDs 
+            // new shell command 
             sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id <string>.");
             //new 
             // kill <id> - kills the specified process id.
+            // new shell command 
             this.putPrompt(); // Display the initial prompt.
         }
         putPrompt() {
@@ -246,6 +248,12 @@ var TSOS;
             else {
                 neOS.StdOut.putText("Usage: prompt <string>  Please supply a string.");
             }
+        }
+        shellList(args) {
+            // add new shell command functionalities 
+        }
+        shellKill(args) {
+            // add new shell command functionalities 
         }
     }
     TSOS.Shell = Shell;

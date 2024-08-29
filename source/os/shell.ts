@@ -76,14 +76,16 @@ namespace TSOS {
             sc = new ShellCommand(this.shellList,
                 "list",
                 "<string> - List running processes and their IDS <string>.");
-                // new 
-            // ps  - list the running processes and their IDs
+            // new 
+            // ps  - list the running processes and their IDs 
+            // new shell command 
 
             sc = new ShellCommand(this.shellKill,
                 "kill",
                 "<string> - Kills the specificed process id <string>.");
-                //new 
+            //new 
             // kill <id> - kills the specified process id.
+            // new shell command 
 
             this.putPrompt(); // Display the initial prompt.
 
@@ -293,7 +295,16 @@ namespace TSOS {
             }
         }
 
-        
+        public shellList(args: string[]) {
+            // add new shell command functionalities 
+
+        }
+
+        public shellKill(args: string[]) {
+            // add new shell command functionalities 
+        }
+
+
 
     }
 }
