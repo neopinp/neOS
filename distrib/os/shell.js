@@ -9,15 +9,43 @@
 // TODO: Write a base class / prototype for system services and let Shell inherit from it.
 var TSOS;
 (function (TSOS) {
-    class Shell {
+    class SystemService {
+        name;
+        status;
+        constructor(name) {
+            this.name = name;
+            this.status = "stopped";
+        }
+        start() {
+            this.status = 'running';
+            neOS.StdOut.putText(`${this.name} service started.`);
+        }
+        stop() {
+            this.status = 'stopped';
+            neOS.StdOut.putText(`${this.name} service stopped.`);
+        }
+        log(msg) {
+            neOS.StdOut.putText(`${this.name}: ${msg}`);
+        }
+        handleError(msg) {
+            neOS.StdOut.putText(`Error in ${this.name}: ${msg}`);
+            this.stop();
+        }
+    }
+    TSOS.SystemService = SystemService;
+})(TSOS || (TSOS = {}));
+(function (TSOS) {
+    class Shell extends TSOS.SystemService {
         // Properties
         promptStr = ">";
         commandList = [];
         curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
         apologies = "[sorry]";
         constructor() {
+            super("Shell");
         }
         init() {
+            this.start();
             var sc;
             //
             // Load the command list.
@@ -46,10 +74,11 @@ var TSOS;
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes and their IDS <string>.");
-            // new 
-            // ps  - list the running processes and their IDs 
-            // new shell command 
-            sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id <string>.");
+            this.
+                // new 
+                // ps  - list the running processes and their IDs 
+                // new shell command 
+                sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id <string>.");
             //new 
             // kill <id> - kills the specified process id.
             // new shell command 

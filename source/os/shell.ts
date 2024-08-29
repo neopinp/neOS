@@ -9,8 +9,36 @@
 
 // TODO: Write a base class / prototype for system services and let Shell inherit from it.
 
+
 namespace TSOS {
-    export class Shell {
+    export class SystemService {
+        public name: string;
+        public status: string;
+
+        constructor(name: string) {
+            this.name = name;
+            this.status = "stopped";
+        }
+        public start(): void {
+            this.status = 'running';
+            neOS.StdOut.putText(`${this.name} service started.`);
+        }
+        public stop(): void {
+            this.status = 'stopped';
+            neOS.StdOut.putText(`${this.name} service stopped.`)
+        }
+        public log(msg: string): void {
+            neOS.StdOut.putText(`${this.name}: ${msg}`);
+        }
+        public handleError(msg: string): void {
+            neOS.StdOut.putText(`Error in ${this.name}: ${msg}`)
+            this.stop();
+        }
+    }
+}
+
+namespace TSOS {
+    export class Shell extends SystemService {
         // Properties
         public promptStr = ">";
         public commandList = [];
@@ -18,9 +46,11 @@ namespace TSOS {
         public apologies = "[sorry]";
 
         constructor() {
+            super("Shell");
         }
 
         public init() {
+            this.start();
             var sc: ShellCommand;
             //
             // Load the command list.
@@ -76,6 +106,7 @@ namespace TSOS {
             sc = new ShellCommand(this.shellList,
                 "list",
                 "<string> - List running processes and their IDS <string>.");
+            this.
             // new 
             // ps  - list the running processes and their IDs 
             // new shell command 
