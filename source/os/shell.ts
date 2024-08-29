@@ -27,57 +27,66 @@ namespace TSOS {
 
             // ver
             sc = new ShellCommand(this.shellVer,
-                                  "ver",
-                                  "- Displays the current version data.");
+                "ver",
+                "- Displays the current version data.");
             this.commandList[this.commandList.length] = sc;
 
             // help
             sc = new ShellCommand(this.shellHelp,
-                                  "help",
-                                  "- This is the help command. Seek help.");
+                "help",
+                "- This is the help command. Seek help.");
             this.commandList[this.commandList.length] = sc;
 
             // shutdown
             sc = new ShellCommand(this.shellShutdown,
-                                  "shutdown",
-                                  "- Shuts down the virtual OS but leaves the underlying host / hardware simulation running.");
+                "shutdown",
+                "- Shuts down the virtual OS but leaves the underlying host / hardware simulation running.");
             this.commandList[this.commandList.length] = sc;
 
             // cls
             sc = new ShellCommand(this.shellCls,
-                                  "cls",
-                                  "- Clears the screen and resets the cursor position.");
+                "cls",
+                "- Clears the screen and resets the cursor position.");
             this.commandList[this.commandList.length] = sc;
 
             // man <topic>
             sc = new ShellCommand(this.shellMan,
-                                  "man",
-                                  "<topic> - Displays the MANual page for <topic>.");
+                "man",
+                "<topic> - Displays the MANual page for <topic>.");
             this.commandList[this.commandList.length] = sc;
 
             // trace <on | off>
             sc = new ShellCommand(this.shellTrace,
-                                  "trace",
-                                  "<on | off> - Turns the OS trace on or off.");
+                "trace",
+                "<on | off> - Turns the OS trace on or off.");
             this.commandList[this.commandList.length] = sc;
 
             // rot13 <string>
             sc = new ShellCommand(this.shellRot13,
-                                  "rot13",
-                                  "<string> - Does rot13 obfuscation on <string>.");
+                "rot13",
+                "<string> - Does rot13 obfuscation on <string>.");
             this.commandList[this.commandList.length] = sc;
 
             // prompt <string>
             sc = new ShellCommand(this.shellPrompt,
-                                  "prompt",
-                                  "<string> - Sets the prompt.");
+                "prompt",
+                "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
 
+            sc = new ShellCommand(this.shellList,
+                "list",
+                "<string> - List running processes and their IDS <string>.");
+                // new 
             // ps  - list the running processes and their IDs
+
+            sc = new ShellCommand(this.shellKill,
+                "kill",
+                "<string> - Kills the specificed process id <string>.");
+                //new 
             // kill <id> - kills the specified process id.
 
-            // Display the initial prompt.
-            this.putPrompt();
+            this.putPrompt(); // Display the initial prompt.
+
         }
 
         public putPrompt() {
@@ -190,14 +199,14 @@ namespace TSOS {
         }
 
         public shellApology() {
-           if (neOS.SarcasticMode) {
-              neOS.StdOut.putText("I think we can put our differences behind us.");
-              neOS.StdOut.advanceLine();
-              neOS.StdOut.putText("For science . . . You monster.");
-              neOS.SarcasticMode = false;
-           } else {
-              neOS.StdOut.putText("For what?");
-           }
+            if (neOS.SarcasticMode) {
+                neOS.StdOut.putText("I think we can put our differences behind us.");
+                neOS.StdOut.advanceLine();
+                neOS.StdOut.putText("For science . . . You monster.");
+                neOS.SarcasticMode = false;
+            } else {
+                neOS.StdOut.putText("For what?");
+            }
         }
 
         // Although args is unused in some of these functions, it is always provided in the 
@@ -216,14 +225,14 @@ namespace TSOS {
         }
 
         public shellShutdown(args: string[]) {
-             neOS.StdOut.putText("Shutting down...");
-             // Call Kernel shutdown routine.
+            neOS.StdOut.putText("Shutting down...");
+            // Call Kernel shutdown routine.
             neOS.Kernel.krnShutdown();
             // TODO: Stop the final prompt from being displayed. If possible. Not a high priority. (Damn OCD!)
         }
 
-        public shellCls(args: string[]) {         
-            neOS.StdOut.clearScreen();     
+        public shellCls(args: string[]) {
+            neOS.StdOut.clearScreen();
             neOS.StdOut.resetXY();
         }
 
@@ -270,7 +279,7 @@ namespace TSOS {
         public shellRot13(args: string[]) {
             if (args.length > 0) {
                 // Requires Utils.ts for rot13() function.
-                neOS.StdOut.putText(args.join(' ') + " = '" + Utils.rot13(args.join(' ')) +"'");
+                neOS.StdOut.putText(args.join(' ') + " = '" + Utils.rot13(args.join(' ')) + "'");
             } else {
                 neOS.StdOut.putText("Usage: rot13 <string>  Please supply a string.");
             }
@@ -283,6 +292,8 @@ namespace TSOS {
                 neOS.StdOut.putText("Usage: prompt <string>  Please supply a string.");
             }
         }
+
+        
 
     }
 }
