@@ -12,7 +12,7 @@ var TSOS;
         currentXPosition;
         currentYPosition;
         buffer;
-        constructor(currentFont = neOSVars.DefaultFontFamily, currentFontSize = neOSVars.DefaultFontSize, currentXPosition = 0, currentYPosition = neOSVars.DefaultFontSize, buffer = "") {
+        constructor(currentFont = neOS.DefaultFontFamily, currentFontSize = neOS.DefaultFontSize, currentXPosition = 0, currentYPosition = neOS.DefaultFontSize, buffer = "") {
             this.currentFont = currentFont;
             this.currentFontSize = currentFontSize;
             this.currentXPosition = currentXPosition;
@@ -24,21 +24,21 @@ var TSOS;
             this.resetXY();
         }
         clearScreen() {
-            neOSVars.DrawingContext.clearRect(0, 0, neOSVars.Canvas.width, neOSVars.Canvas.height);
+            neOS.DrawingContext.clearRect(0, 0, neOS.Canvas.width, neOS.Canvas.height);
         }
         resetXY() {
             this.currentXPosition = 0;
             this.currentYPosition = this.currentFontSize;
         }
         handleInput() {
-            while (neOSVars.KernelInputQueue.getSize() > 0) {
+            while (neOS.KernelInputQueue.getSize() > 0) {
                 // Get the next character from the kernel input queue.
-                var chr = neOSVars.KernelInputQueue.dequeue();
+                var chr = neOS.KernelInputQueue.dequeue();
                 // Check to see if it's "special" (enter or ctrl-c) or "normal" (anything else that the keyboard device driver gave us).
                 if (chr === String.fromCharCode(13)) { // the Enter key
                     // The enter key marks the end of a console command, so ...
                     // ... tell the shell ...
-                    neOSVars.OsShell.handleInput(this.buffer);
+                    neOS.OsShell.handleInput(this.buffer);
                     // ... and reset our buffer.
                     this.buffer = "";
                 }
@@ -62,9 +62,9 @@ var TSOS;
             */
             if (text !== "") {
                 // Draw the text at the current X and Y coordinates.
-                neOSVars.DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
+                neOS.DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
                 // Move the current X position.
-                var offset = neOSVars.DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
+                var offset = neOS.DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
                 this.currentXPosition = this.currentXPosition + offset;
             }
         }
@@ -75,9 +75,9 @@ var TSOS;
              * Font descent measures from the baseline to the lowest point in the font.
              * Font height margin is extra spacing between the lines.
              */
-            this.currentYPosition += neOSVars.DefaultFontSize +
-                neOSVars.DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
-                neOSVars.FontHeightMargin;
+            this.currentYPosition += neOS.DefaultFontSize +
+                neOS.DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
+                neOS.FontHeightMargin;
             // TODO: Handle scrolling. (iProject 1)
         }
     }

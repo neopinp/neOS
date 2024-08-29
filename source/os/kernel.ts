@@ -7,33 +7,33 @@
      Operating System Concepts 8th edition by Silberschatz, Galvin, and Gagne.  ISBN 978-0-470-12872-5
      ------------ */
 
-module TSOS {
+namespace TSOS {
 
     export class Kernel {
         //
         // OS Startup and Shutdown Routines
         //
         public krnBootstrap() {      // Page 8. {
-            Control.hostLog("bootstrap", "host");  // Use hostLog because we ALWAYS want this, even if neOSVars.Trace is off.
+            Control.hostLog("bootstrap", "host");  // Use hostLog because we ALWAYS want this, even if neOS.Trace is off.
 
             // Initialize our global queues.
-            neOSVars.KernelInterruptQueue = new Queue();  // A (currently) non-priority queue for interrupt requests (IRQs).
-            neOSVars.KernelBuffers = new Array();         // Buffers... for the kernel.
-            neOSVars.KernelInputQueue = new Queue();      // Where device input lands before being processed out somewhere.
+            neOS.KernelInterruptQueue = new Queue();  // A (currently) non-priority queue for interrupt requests (IRQs).
+            neOS.KernelBuffers = new Array();         // Buffers... for the kernel.
+            neOS.KernelInputQueue = new Queue();      // Where device input lands before being processed out somewhere.
 
             // Initialize the console.
-            neOSVars.Console = new Console();             // The command line interface / console I/O device.
-            neOSVars.Console.init();
+            neOS.Console = new Console();             // The command line interface / console I/O device.
+            neOS.Console.init();
 
-            // Initialize standard input and output to the neOSVars.Console.
-            neOSVars.StdIn  = neOSVars.Console;
-            neOSVars.StdOut = neOSVars.Console;
+            // Initialize standard input and output to the neOS.Console.
+            neOS.StdIn  = neOS.Console;
+            neOS.StdOut = neOS.Console;
 
             // Load the Keyboard Device Driver
             this.krnTrace("Loading the keyboard device driver.");
-            neOSVars.krnKeyboardDriver = new DeviceDriverKeyboard();     // Construct it.
-            neOSVars.krnKeyboardDriver.driverEntry();                    // Call the driverEntry() initialization routine.
-            this.krnTrace(neOSVars.krnKeyboardDriver.status);
+            neOS.krnKeyboardDriver = new DeviceDriverKeyboard();     // Construct it.
+            neOS.krnKeyboardDriver.driverEntry();                    // Call the driverEntry() initialization routine.
+            this.krnTrace(neOS.krnKeyboardDriver.status);
 
             //
             // ... more?
@@ -45,12 +45,12 @@ module TSOS {
 
             // Launch the shell.
             this.krnTrace("Creating and Launching the shell.");
-            neOSVars.OsShell = new Shell();
-            neOSVars.OsShell.init();
+            neOS.OsShell = new Shell();
+            neOS.OsShell.init();
 
             // Finally, initiate student testing protocol.
-            if (neOSVars.GLaDOS) {
-                neOSVars.GLaDOS.afterStartup();
+            if (neOS.GLaDOS) {
+                neOS.GLaDOS.afterStartup();
             }
         }
 
@@ -76,13 +76,13 @@ module TSOS {
             */
 
             // Check for an interrupt, if there are any. Page 560
-            if (neOSVars.KernelInterruptQueue.getSize() > 0) {
+            if (neOS.KernelInterruptQueue.getSize() > 0) {
                 // Process the first interrupt on the interrupt queue.
                 // TODO (maybe): Implement a priority queue based on the IRQ number/id to enforce interrupt priority.
-                var interrupt = neOSVars.KernelInterruptQueue.dequeue();
+                var interrupt = neOS.KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
-            } else if (neOSVars.CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
-                neOSVars.CPU.cycle();
+            } else if (neOS.CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
+                neOS.CPU.cycle();
             } else {                       // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
             }
@@ -118,8 +118,8 @@ module TSOS {
                     this.krnTimerISR();               // Kernel built-in routine for timers (not the clock).
                     break;
                 case KEYBOARD_IRQ:
-                    neOSVars.krnKeyboardDriver.isr(params);   // Kernel mode device driver
-                    neOSVars.StdIn.handleInput();
+                    neOS.krnKeyboardDriver.isr(params);   // Kernel mode device driver
+                    neOS.StdIn.handleInput();
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
@@ -153,10 +153,10 @@ module TSOS {
         //
         public krnTrace(msg: string) {
              // Check globals to see if trace is set ON.  If so, then (maybe) log the message.
-             if (neOSVars.Trace) {
+             if (neOS.Trace) {
                 if (msg === "Idle") {
                     // We can't log every idle clock pulse because it would quickly lag the browser quickly.
-                    if (neOSVars.OSclock % 10 == 0) {
+                    if (neOS.OSclock % 10 == 0) {
                         // Check the CPU_CLOCK_INTERVAL in globals.ts for an
                         // idea of the tick rate and adjust this line accordingly.
                         Control.hostLog(msg, "OS");

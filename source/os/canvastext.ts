@@ -21,7 +21,7 @@
  * 
  *  * ----------------- */
 
-module TSOS {
+namespace TSOS {
 
     export class CanvasTextFunctions {
 

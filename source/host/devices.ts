@@ -15,12 +15,12 @@
      Operating System Concepts 8th edition by Silberschatz, Galvin, and Gagne.  ISBN 978-0-470-12872-5
      ------------ */
 
-module TSOS {
+namespace TSOS {
 
     export class Devices {
 
         constructor() {
-            neOSVars.hardwareClockID = -1;
+            neOS.hardwareClockID = -1;
         }
 
         //
@@ -28,9 +28,9 @@ module TSOS {
         //
         public static hostClockPulse(): void {
             // Increment the hardware (host) clock.
-            neOSVars.OSclock++;
+            neOS.OSclock++;
             // Call the kernel clock pulse event handler.
-            neOSVars.Kernel.krnOnCPUClockPulse();
+            neOS.Kernel.krnOnCPUClockPulse();
         }
 
         //
@@ -55,7 +55,7 @@ module TSOS {
                 // Note the pressed key code in the params (Mozilla-specific).
                 var params = new Array(event.which, event.shiftKey);
                 // Enqueue this interrupt on the kernel interrupt queue so that it gets to the Interrupt handler.
-                neOSVars.KernelInterruptQueue.enqueue(new Interrupt(KEYBOARD_IRQ, params));
+                neOS.KernelInterruptQueue.enqueue(new Interrupt(KEYBOARD_IRQ, params));
             }
         }
     }

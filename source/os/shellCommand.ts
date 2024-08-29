@@ -1,4 +1,4 @@
-module TSOS {
+namespace TSOS {
     export class ShellCommand {
         constructor(public func: any,
                     public command: string = "",

@@ -24,12 +24,12 @@ const KEYBOARD_IRQ: number = 1;
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
-var neOSVars = {
+var neOS = {
    CPU: null as TSOS.Cpu,
    OSclock: 0,
    Mode: 0,
    Canvas: null as HTMLCanvasElement,
-   DrawingContext: null as CanvasRenderingContext2D,
+   DrawingContext: null as any,
    DefaultFontFamily: 'sans',
    DefaultFontSize: 13,
    FontHeightMargin: 4,
@@ -45,6 +45,7 @@ var neOSVars = {
    SarcasticMode: false,
    krnKeyboardDriver: null as TSOS.DeviceDriverKeyboard,
    hardwareClockID: null as number,
+   Glados: null as any,
    GLaDOS: null as any,
    onDocumentLoad: function() {
       TSOS.Control.hostInit();
@@ -53,39 +54,3 @@ var neOSVars = {
 
 
 
-
-var neOSVars.DefaultFontFamily: string = "sans"; // Ignored, I think. The was just a place-holder in 2008, but the HTML canvas may have use for it.
-var neOSVars.DefaultFontSize: number = 13;
-var neOSVars.FontHeightMargin: number = 4;       // Additional space added to font size when advancing a line.
-
-var neOSVars.Trace: boolean = true;              // Default the OS trace to be on.
-
-// The OS Kernel and its queues.
-var neOSVars.Kernel: TSOS.Kernel;
-var neOSVars.KernelInterruptQueue: TSOS.Queue = null;
-var neOSVars.KernelInputQueue: TSOS.Queue = null; 
-var neOSVars.KernelBuffers = null; 
-
-// Standard input and output
-var neOSVars.StdIn:  TSOS.Console = null; 
-var neOSVars.StdOut: TSOS.Console = null;
-
-// UI
-var neOSVars.Console: TSOS.Console;
-var neOSVars.OsShell: TSOS.Shell;
-
-// At least this OS is not trying to kill you. (Yet.)
-var neOSVars.SarcasticMode: boolean = false;
-
-// Global Device Driver Objects - page 12
-var neOSVars.krnKeyboardDriver: TSOS.DeviceDriverKeyboard  = null;
-
-var neOSVars.hardwareClockID: number = null;
-
-// For testing (and enrichment)...
-var Glados: any = null;  // This is the function Glados() in glados-ip*.js http://alanclasses.github.io/TSOS/test/ .
-var neOSVars.GLaDOS: any = null; // If the above is linked in, this is the instantiated instance of Glados.
-
-var onDocumentLoad = function() {
-	TSOS.Control.hostInit();
-};

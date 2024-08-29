@@ -18,7 +18,8 @@
 //
 // Control Services
 //
-module TSOS {
+declare var Glados: any;
+namespace TSOS {
 
     export class Control {
 
@@ -26,13 +27,13 @@ module TSOS {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
 
             // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
-            neOSVars.Canvas = <HTMLCanvasElement>document.getElementById('display');
+            neOS.Canvas = <HTMLCanvasElement>document.getElementById('display');
 
             // Get a global reference to the drawing context.
-            neOSVars.DrawingContext = neOSVars.Canvas.getContext("2d");
+            neOS.DrawingContext = neOS.Canvas.getContext("2d");
 
             // Enable the added-in canvas text functions (see canvastext.ts for provenance and details).
-            CanvasTextFunctions.enable(neOSVars.DrawingContext);   // Text functionality is now built in to the HTML5 canvas. But this is old-school, and fun, so we'll keep it.
+            CanvasTextFunctions.enable(neOS.DrawingContext);   // Text functionality is now built in to the HTML5 canvas. But this is old-school, and fun, so we'll keep it.
 
             // Clear the log text box.
             // Use the TypeScript cast to HTMLInputElement
@@ -46,15 +47,15 @@ module TSOS {
             // may be referenced here (from index.html) as function Glados().
             if (typeof Glados === "function") {
                 // function Glados() is here, so instantiate Her into
-                // the global (and properly capitalized) neOSVars.GLaDOS variable.
-                neOSVars.GLaDOS = new Glados();
-                neOSVars.GLaDOS.init();
+                // the global (and properly capitalized) neOS.GLaDOS variable.
+                neOS.GLaDOS = new Glados();
+                neOS.GLaDOS.init();
             }
         }
 
         public static hostLog(msg: string, source: string = "?"): void {
             // Note the OS CLOCK.
-            var clock: number = neOSVars.OSclock;
+            var clock: number = neOS.OSclock;
 
             // Note the REAL clock in milliseconds since January 1, 1970.
             var now: number = new Date().getTime();
@@ -85,23 +86,23 @@ module TSOS {
             document.getElementById("display").focus();
 
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
-            neOSVars.CPU = new Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
-            neOSVars.CPU.init();       //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+            neOS.CPU = new Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
+            neOS.CPU.init();       //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
 
             // ... then set the host clock pulse ...
-            neOSVars.hardwareClockID = setInterval(Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
+            neOS.hardwareClockID = setInterval(Devices.hostClockPulse, CPU_CLOCK_INTERVAL) as unknown as number;
             // .. and call the OS Kernel Bootstrap routine.
-            neOSVars.Kernel = new Kernel();
-            neOSVars.Kernel.krnBootstrap();  // neOSVars.GLaDOS.afterStartup() will get called in there, if configured.
+            neOS.Kernel = new Kernel();
+            neOS.Kernel.krnBootstrap();  // neOS.GLaDOS.afterStartup() will get called in there, if configured.
         }
 
         public static hostBtnHaltOS_click(btn): void {
             Control.hostLog("Emergency halt", "host");
             Control.hostLog("Attempting Kernel shutdown.", "host");
             // Call the OS shutdown routine.
-            neOSVars.Kernel.krnShutdown();
+            neOS.Kernel.krnShutdown();
             // Stop the interval that's simulating our clock pulse.
-            clearInterval(neOSVars.hardwareClockID);
+            clearInterval(neOS.hardwareClockID);
             // TODO: Is there anything else we need to do here?
         }
 

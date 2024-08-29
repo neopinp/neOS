@@ -19,7 +19,7 @@ const KEYBOARD_IRQ = 1;
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
-var neOSVars = {
+var neOS = {
     CPU: null,
     OSclock: 0,
     Mode: 0,
@@ -40,35 +40,10 @@ var neOSVars = {
     SarcasticMode: false,
     krnKeyboardDriver: null,
     hardwareClockID: null,
+    Glados: null,
     GLaDOS: null,
     onDocumentLoad: function () {
         TSOS.Control.hostInit();
     }
-};
-var neOSVars, DefaultFontFamily = "sans"; // Ignored, I think. The was just a place-holder in 2008, but the HTML canvas may have use for it.
-var neOSVars, DefaultFontSize = 13;
-var neOSVars, FontHeightMargin = 4; // Additional space added to font size when advancing a line.
-var neOSVars, Trace = true; // Default the OS trace to be on.
-// The OS Kernel and its queues.
-var neOSVars, Kernel;
-var neOSVars, KernelInterruptQueue = null;
-var neOSVars, KernelInputQueue = null;
-var neOSVars, KernelBuffers = null;
-// Standard input and output
-var neOSVars, StdIn = null;
-var neOSVars, StdOut = null;
-// UI
-var neOSVars, Console;
-var neOSVars, OsShell;
-// At least this OS is not trying to kill you. (Yet.)
-var neOSVars, SarcasticMode = false;
-// Global Device Driver Objects - page 12
-var neOSVars, krnKeyboardDriver = null;
-var neOSVars, hardwareClockID = null;
-// For testing (and enrichment)...
-var Glados = null; // This is the function Glados() in glados-ip*.js http://alanclasses.github.io/TSOS/test/ .
-var neOSVars, GLaDOS = null; // If the above is linked in, this is the instantiated instance of Glados.
-var onDocumentLoad = function () {
-    TSOS.Control.hostInit();
 };
 //# sourceMappingURL=globals.js.map

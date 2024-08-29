@@ -9,7 +9,7 @@
 
 // TODO: Write a base class / prototype for system services and let Shell inherit from it.
 
-module TSOS {
+namespace TSOS {
     export class Shell {
         // Properties
         public promptStr = ">";
@@ -81,11 +81,11 @@ module TSOS {
         }
 
         public putPrompt() {
-            neOSVars.StdOut.putText(this.promptStr);
+            neOS.StdOut.putText(this.promptStr);
         }
 
         public handleInput(buffer) {
-            neOSVars.Kernel.krnTrace("Shell Command~" + buffer);
+            neOS.Kernel.krnTrace("Shell Command~" + buffer);
             //
             // Parse the input...
             //
@@ -127,12 +127,12 @@ module TSOS {
         // Note: args is an optional parameter, ergo the ? which allows TypeScript to understand that.
         public execute(fn, args?) {
             // We just got a command, so advance the line...
-            neOSVars.StdOut.advanceLine();
+            neOS.StdOut.advanceLine();
             // ... call the command function passing in the args with some über-cool functional programming ...
             fn(args);
             // Check to see if we need to advance the line again
-            if (neOSVars.StdOut.currentXPosition > 0) {
-                neOSVars.StdOut.advanceLine();
+            if (neOS.StdOut.currentXPosition > 0) {
+                neOS.StdOut.advanceLine();
             }
             // ... and finally write the prompt again.
             this.putPrompt();
@@ -172,31 +172,31 @@ module TSOS {
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
         public shellInvalidCommand() {
-            neOSVars.StdOut.putText("Invalid Command. ");
-            if (neOSVars.SarcasticMode) {
-                neOSVars.StdOut.putText("Unbelievable. You, [subject name here],");
-                neOSVars.StdOut.advanceLine();
-                neOSVars.StdOut.putText("must be the pride of [subject hometown here].");
+            neOS.StdOut.putText("Invalid Command. ");
+            if (neOS.SarcasticMode) {
+                neOS.StdOut.putText("Unbelievable. You, [subject name here],");
+                neOS.StdOut.advanceLine();
+                neOS.StdOut.putText("must be the pride of [subject hometown here].");
             } else {
-                neOSVars.StdOut.putText("Type 'help' for, well... help.");
+                neOS.StdOut.putText("Type 'help' for, well... help.");
             }
         }
 
         public shellCurse() {
-            neOSVars.StdOut.putText("Oh, so that's how it's going to be, eh? Fine.");
-            neOSVars.StdOut.advanceLine();
-            neOSVars.StdOut.putText("Bitch.");
-            neOSVars.SarcasticMode = true;
+            neOS.StdOut.putText("Oh, so that's how it's going to be, eh? Fine.");
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText("Bitch.");
+            neOS.SarcasticMode = true;
         }
 
         public shellApology() {
-           if (neOSVars.SarcasticMode) {
-              neOSVars.StdOut.putText("I think we can put our differences behind us.");
-              neOSVars.StdOut.advanceLine();
-              neOSVars.StdOut.putText("For science . . . You monster.");
-              neOSVars.SarcasticMode = false;
+           if (neOS.SarcasticMode) {
+              neOS.StdOut.putText("I think we can put our differences behind us.");
+              neOS.StdOut.advanceLine();
+              neOS.StdOut.putText("For science . . . You monster.");
+              neOS.SarcasticMode = false;
            } else {
-              neOSVars.StdOut.putText("For what?");
+              neOS.StdOut.putText("For what?");
            }
         }
 
@@ -204,27 +204,27 @@ module TSOS {
         // actual parameter list when this function is called, so I feel like we need it.
 
         public shellVer(args: string[]) {
-            neOSVars.StdOut.putText(APP_NAME + " version " + APP_VERSION);
+            neOS.StdOut.putText(APP_NAME + " version " + APP_VERSION);
         }
 
         public shellHelp(args: string[]) {
-            neOSVars.StdOut.putText("Commands:");
-            for (var i in neOSVars.OsShell.commandList) {
-                neOSVars.StdOut.advanceLine();
-                neOSVars.StdOut.putText("  " + neOSVars.OsShell.commandList[i].command + " " + neOSVars.OsShell.commandList[i].description);
+            neOS.StdOut.putText("Commands:");
+            for (var i in neOS.OsShell.commandList) {
+                neOS.StdOut.advanceLine();
+                neOS.StdOut.putText("  " + neOS.OsShell.commandList[i].command + " " + neOS.OsShell.commandList[i].description);
             }
         }
 
         public shellShutdown(args: string[]) {
-             neOSVars.StdOut.putText("Shutting down...");
+             neOS.StdOut.putText("Shutting down...");
              // Call Kernel shutdown routine.
-            neOSVars.Kernel.krnShutdown();
+            neOS.Kernel.krnShutdown();
             // TODO: Stop the final prompt from being displayed. If possible. Not a high priority. (Damn OCD!)
         }
 
         public shellCls(args: string[]) {         
-            neOSVars.StdOut.clearScreen();     
-            neOSVars.StdOut.resetXY();
+            neOS.StdOut.clearScreen();     
+            neOS.StdOut.resetXY();
         }
 
         public shellMan(args: string[]) {
@@ -232,14 +232,14 @@ module TSOS {
                 var topic = args[0];
                 switch (topic) {
                     case "help":
-                        neOSVars.StdOut.putText("Help displays a list of (hopefully) valid commands.");
+                        neOS.StdOut.putText("Help displays a list of (hopefully) valid commands.");
                         break;
                     // TODO: Make descriptive MANual page entries for the the rest of the shell commands here.
                     default:
-                        neOSVars.StdOut.putText("No manual entry for " + args[0] + ".");
+                        neOS.StdOut.putText("No manual entry for " + args[0] + ".");
                 }
             } else {
-                neOSVars.StdOut.putText("Usage: man <topic>  Please supply a topic.");
+                neOS.StdOut.putText("Usage: man <topic>  Please supply a topic.");
             }
         }
 
@@ -248,39 +248,39 @@ module TSOS {
                 var setting = args[0];
                 switch (setting) {
                     case "on":
-                        if (neOSVars.Trace && neOSVars.SarcasticMode) {
-                            neOSVars.StdOut.putText("Trace is already on, doofus.");
+                        if (neOS.Trace && neOS.SarcasticMode) {
+                            neOS.StdOut.putText("Trace is already on, doofus.");
                         } else {
-                            neOSVars.Trace = true;
-                            neOSVars.StdOut.putText("Trace ON");
+                            neOS.Trace = true;
+                            neOS.StdOut.putText("Trace ON");
                         }
                         break;
                     case "off":
-                        neOSVars.Trace = false;
-                        neOSVars.StdOut.putText("Trace OFF");
+                        neOS.Trace = false;
+                        neOS.StdOut.putText("Trace OFF");
                         break;
                     default:
-                        neOSVars.StdOut.putText("Invalid arguement.  Usage: trace <on | off>.");
+                        neOS.StdOut.putText("Invalid arguement.  Usage: trace <on | off>.");
                 }
             } else {
-                neOSVars.StdOut.putText("Usage: trace <on | off>");
+                neOS.StdOut.putText("Usage: trace <on | off>");
             }
         }
 
         public shellRot13(args: string[]) {
             if (args.length > 0) {
                 // Requires Utils.ts for rot13() function.
-                neOSVars.StdOut.putText(args.join(' ') + " = '" + Utils.rot13(args.join(' ')) +"'");
+                neOS.StdOut.putText(args.join(' ') + " = '" + Utils.rot13(args.join(' ')) +"'");
             } else {
-                neOSVars.StdOut.putText("Usage: rot13 <string>  Please supply a string.");
+                neOS.StdOut.putText("Usage: rot13 <string>  Please supply a string.");
             }
         }
 
         public shellPrompt(args: string[]) {
             if (args.length > 0) {
-                neOSVars.OsShell.promptStr = args[0];
+                neOS.OsShell.promptStr = args[0];
             } else {
-                neOSVars.StdOut.putText("Usage: prompt <string>  Please supply a string.");
+                neOS.StdOut.putText("Usage: prompt <string>  Please supply a string.");
             }
         }
 
