@@ -17,11 +17,11 @@ var TSOS;
             this.status = "stopped";
         }
         start() {
-            this.status = 'running';
+            this.status = "running";
             neOS.StdOut.putText(`${this.name} service started.`);
         }
         stop() {
-            this.status = 'stopped';
+            this.status = "stopped";
             neOS.StdOut.putText(`${this.name} service stopped.`);
         }
         log(msg) {
@@ -45,42 +45,41 @@ var TSOS;
             super("Shell");
         }
         init() {
-            this.start();
             var sc;
             //
             // Load the command list.
             // ver
-            sc = new TSOS.ShellCommand(this.shellVer, "ver", "- Displays the current version data.");
+            sc = new TSOS.ShellCommand(this.shellVer, "ver", "- Display current version.");
             this.commandList[this.commandList.length] = sc;
             // help
-            sc = new TSOS.ShellCommand(this.shellHelp, "help", "- This is the help command. Seek help.");
+            sc = new TSOS.ShellCommand(this.shellHelp, "help", "- Find help if you can.");
             this.commandList[this.commandList.length] = sc;
             // shutdown
-            sc = new TSOS.ShellCommand(this.shellShutdown, "shutdown", "- Shuts down the virtual OS but leaves the underlying host / hardware simulation running.");
+            sc = new TSOS.ShellCommand(this.shellShutdown, "shutdown", "- Shuts down the OS.");
             this.commandList[this.commandList.length] = sc;
             // cls
-            sc = new TSOS.ShellCommand(this.shellCls, "cls", "- Clears the screen and resets the cursor position.");
+            sc = new TSOS.ShellCommand(this.shellCls, "cls", "- Clears the screen.");
             this.commandList[this.commandList.length] = sc;
             // man <topic>
-            sc = new TSOS.ShellCommand(this.shellMan, "man", "<topic> - Displays the MANual page for <topic>.");
+            sc = new TSOS.ShellCommand((args) => this.shellMan(args), "man", "<topic> - Displays the MANual page for <topic>.");
             this.commandList[this.commandList.length] = sc;
             // trace <on | off>
-            sc = new TSOS.ShellCommand(this.shellTrace, "trace", "<on | off> - Turns the OS trace on or off.");
+            sc = new TSOS.ShellCommand(this.shellTrace, "trace", "Turns the OS trace on or off.");
             this.commandList[this.commandList.length] = sc;
             // rot13 <string>
-            sc = new TSOS.ShellCommand(this.shellRot13, "rot13", "<string> - Does rot13 obfuscation on <string>.");
+            sc = new TSOS.ShellCommand(this.shellRot13, "rot13", "Does rot13 obfuscation on <string>.");
             this.commandList[this.commandList.length] = sc;
             // prompt <string>
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes and their IDS <string>.");
             this.commandList[this.commandList.length] = sc;
-            // ps  - list the running processes and their IDs 
-            // new shell command 
+            // ps  - list the running processes and their IDs
+            // new shell command
             sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id <string>.");
             this.commandList[this.commandList.length] = sc;
             // kill <id> - kills the specified process id.
-            // new shell command 
+            // new shell command
             this.putPrompt(); // Display the initial prompt.
         }
         putPrompt() {
@@ -99,7 +98,7 @@ var TSOS;
             // Determine the command and execute it.
             //
             // TypeScript/JavaScript may not support associative arrays in all browsers so we have to iterate over the
-            // command list in attempt to find a match. 
+            // command list in attempt to find a match.
             // TODO: Is there a better way? Probably. Someone work it out and tell me in class.
             var index = 0;
             var found = false;
@@ -118,13 +117,16 @@ var TSOS;
             }
             else {
                 // It's not found, so check for curses and apologies before declaring the command invalid.
-                if (this.curses.indexOf("[" + TSOS.Utils.rot13(cmd) + "]") >= 0) { // Check for curses.
+                if (this.curses.indexOf("[" + TSOS.Utils.rot13(cmd) + "]") >= 0) {
+                    // Check for curses.
                     this.execute(this.shellCurse);
                 }
-                else if (this.apologies.indexOf("[" + cmd + "]") >= 0) { // Check for apologies.
+                else if (this.apologies.indexOf("[" + cmd + "]") >= 0) {
+                    // Check for apologies.
                     this.execute(this.shellApology);
                 }
-                else { // It's just a bad command. {
+                else {
+                    // It's just a bad command. {
                     this.execute(this.shellInvalidCommand);
                 }
             }
@@ -197,7 +199,7 @@ var TSOS;
                 neOS.StdOut.putText("For what?");
             }
         }
-        // Although args is unused in some of these functions, it is always provided in the 
+        // Although args is unused in some of these functions, it is always provided in the
         // actual parameter list when this function is called, so I feel like we need it.
         shellVer(args) {
             neOS.StdOut.putText(APP_NAME + " version " + APP_VERSION);
@@ -206,7 +208,10 @@ var TSOS;
             neOS.StdOut.putText("Commands:");
             for (var i in neOS.OsShell.commandList) {
                 neOS.StdOut.advanceLine();
-                neOS.StdOut.putText("  " + neOS.OsShell.commandList[i].command + " " + neOS.OsShell.commandList[i].description);
+                neOS.StdOut.putText("  " +
+                    neOS.OsShell.commandList[i].command +
+                    " " +
+                    neOS.OsShell.commandList[i].description);
             }
         }
         shellShutdown(args) {
@@ -219,20 +224,28 @@ var TSOS;
             neOS.StdOut.clearScreen();
             neOS.StdOut.resetXY();
         }
+        detailedCommands = {
+            help: "Help displays a list of all available commands",
+            ver: "Displays the current version data.",
+            shutdown: "Shuts down the virtual OS but leaves the underlying host / hardware simulation running.",
+            cls: "Clears the screen and resets the cursor position.",
+            man: "Displays the manual page for a command. Usage: man <command>",
+            trace: "Turns the OS trace on or off. Usage: trace <on | off>",
+            rot13: "Does rot13 obfuscatuion on <string>. Usage: rot13 <string>",
+            prompt: "Sets the prompt. Usage: promt <string>",
+        };
         shellMan(args) {
             if (args.length > 0) {
-                var topic = args[0];
-                switch (topic) {
-                    case "help":
-                        neOS.StdOut.putText("Help displays a list of (hopefully) valid commands.");
-                        break;
-                    // TODO: Make descriptive MANual page entries for the the rest of the shell commands here.
-                    default:
-                        neOS.StdOut.putText("No manual entry for " + args[0] + ".");
+                var topic = TSOS.Utils.trim(args[0].toLowerCase()); // Trim and lowercase the argument
+                if (this.detailedCommands[topic]) {
+                    neOS.StdOut.putText(this.detailedCommands[topic]);
+                }
+                else {
+                    neOS.StdOut.putText("No manual entry for " + topic + ".");
                 }
             }
             else {
-                neOS.StdOut.putText("Usage: man <topic>  Please supply a topic.");
+                neOS.StdOut.putText("Usage: man <topic>. Please supply a topic.");
             }
         }
         shellTrace(args) {
@@ -263,7 +276,7 @@ var TSOS;
         shellRot13(args) {
             if (args.length > 0) {
                 // Requires Utils.ts for rot13() function.
-                neOS.StdOut.putText(args.join(' ') + " = '" + TSOS.Utils.rot13(args.join(' ')) + "'");
+                neOS.StdOut.putText(args.join(" ") + " = '" + TSOS.Utils.rot13(args.join(" ")) + "'");
             }
             else {
                 neOS.StdOut.putText("Usage: rot13 <string>  Please supply a string.");
@@ -278,10 +291,10 @@ var TSOS;
             }
         }
         shellList(args) {
-            // add new shell command functionalities 
+            // add new shell command functionalities
         }
         shellKill(args) {
-            // add new shell command functionalities 
+            // add new shell command functionalities
         }
     }
     TSOS.Shell = Shell;
