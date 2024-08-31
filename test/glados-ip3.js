@@ -13,61 +13,61 @@ function Glados() {
    this.afterStartup = function() {
 
       // Force scrolling with a few 'help' commands.
-      _KernelInputQueue.enqueue('h');
-      _KernelInputQueue.enqueue('e');
-      _KernelInputQueue.enqueue('l');
-      _KernelInputQueue.enqueue('p');
+      neOS.KernelInputQueue.enqueue('h');
+      neOS.KernelInputQueue.enqueue('e');
+      neOS.KernelInputQueue.enqueue('l');
+      neOS.KernelInputQueue.enqueue('p');
       TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);
-      _KernelInputQueue.enqueue('h');
-      _KernelInputQueue.enqueue('e');
-      _KernelInputQueue.enqueue('l');
-      _KernelInputQueue.enqueue('p');
+      neOS.KernelInputQueue.enqueue('h');
+      neOS.KernelInputQueue.enqueue('e');
+      neOS.KernelInputQueue.enqueue('l');
+      neOS.KernelInputQueue.enqueue('p');
       TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);
 
       // Test the 'ver' command.
-      _KernelInputQueue.enqueue('v');
-      _KernelInputQueue.enqueue('e');
-      _KernelInputQueue.enqueue('r');
+      neOS.KernelInputQueue.enqueue('v');
+      neOS.KernelInputQueue.enqueue('e');
+      neOS.KernelInputQueue.enqueue('r');
       TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);
 
       // Test the 'date' command.
-      _KernelInputQueue.enqueue('d');
-      _KernelInputQueue.enqueue('a');
-      _KernelInputQueue.enqueue('t');
-      _KernelInputQueue.enqueue('e');
+      neOS.KernelInputQueue.enqueue('d');
+      neOS.KernelInputQueue.enqueue('a');
+      neOS.KernelInputQueue.enqueue('t');
+      neOS.KernelInputQueue.enqueue('e');
       TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);
 
       // Test the 'whereami' command.
-      _KernelInputQueue.enqueue('w');
-      _KernelInputQueue.enqueue('h');
-      _KernelInputQueue.enqueue('e');
-      _KernelInputQueue.enqueue('r');
-      _KernelInputQueue.enqueue('e');
-      _KernelInputQueue.enqueue('a');
-      _KernelInputQueue.enqueue('m');
-      _KernelInputQueue.enqueue('i');
+      neOS.KernelInputQueue.enqueue('w');
+      neOS.KernelInputQueue.enqueue('h');
+      neOS.KernelInputQueue.enqueue('e');
+      neOS.KernelInputQueue.enqueue('r');
+      neOS.KernelInputQueue.enqueue('e');
+      neOS.KernelInputQueue.enqueue('a');
+      neOS.KernelInputQueue.enqueue('m');
+      neOS.KernelInputQueue.enqueue('i');
       TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);
      
       // Test the 'status' command.
-      _KernelInputQueue.enqueue('S');
-      _KernelInputQueue.enqueue('t');
-      _KernelInputQueue.enqueue('A');
-      _KernelInputQueue.enqueue('t');
-      _KernelInputQueue.enqueue('U');
-      _KernelInputQueue.enqueue('s');
-      _KernelInputQueue.enqueue(' ');
-      _KernelInputQueue.enqueue('C');
-      _KernelInputQueue.enqueue('a');
-      _KernelInputQueue.enqueue('k');
-      _KernelInputQueue.enqueue('e');
+      neOS.KernelInputQueue.enqueue('S');
+      neOS.KernelInputQueue.enqueue('t');
+      neOS.KernelInputQueue.enqueue('A');
+      neOS.KernelInputQueue.enqueue('t');
+      neOS.KernelInputQueue.enqueue('U');
+      neOS.KernelInputQueue.enqueue('s');
+      neOS.KernelInputQueue.enqueue(' ');
+      neOS.KernelInputQueue.enqueue('C');
+      neOS.KernelInputQueue.enqueue('a');
+      neOS.KernelInputQueue.enqueue('k');
+      neOS.KernelInputQueue.enqueue('e');
       TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);
       
       // Load some invalid user program code
       document.getElementById("taProgramInput").value="This is NOT hex.";
-      _KernelInputQueue.enqueue('l');
-      _KernelInputQueue.enqueue('o');
-      _KernelInputQueue.enqueue('a');
-      _KernelInputQueue.enqueue('d');
+      neOS.KernelInputQueue.enqueue('l');
+      neOS.KernelInputQueue.enqueue('o');
+      neOS.KernelInputQueue.enqueue('a');
+      neOS.KernelInputQueue.enqueue('d');
       TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);
 
       // Load THREE (slightly different) valid user programs code and run them. The differences are . . .                                          . . .                                        here                                                        . . .                                                                                                                                   . . . and here.
@@ -83,35 +83,35 @@ function Glados() {
       */
 
 		setTimeout(function(){ document.getElementById("taProgramInput").value = code1;
-								     _KernelInputQueue.enqueue('l');
-								     _KernelInputQueue.enqueue('o');
-								     _KernelInputQueue.enqueue('a');
-								     _KernelInputQueue.enqueue('d');
+								     neOS.KernelInputQueue.enqueue('l');
+								     neOS.KernelInputQueue.enqueue('o');
+								     neOS.KernelInputQueue.enqueue('a');
+								     neOS.KernelInputQueue.enqueue('d');
 								     TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);           	   				
 									}, 1000);
 
 		setTimeout(function(){ document.getElementById("taProgramInput").value = code2;
-								     _KernelInputQueue.enqueue('l');
-								     _KernelInputQueue.enqueue('o');
-								     _KernelInputQueue.enqueue('a');
-								     _KernelInputQueue.enqueue('d');
+								     neOS.KernelInputQueue.enqueue('l');
+								     neOS.KernelInputQueue.enqueue('o');
+								     neOS.KernelInputQueue.enqueue('a');
+								     neOS.KernelInputQueue.enqueue('d');
 								     TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);           	   				
 									}, 2000);
 
 		setTimeout(function(){ document.getElementById("taProgramInput").value = code3;
-								     _KernelInputQueue.enqueue('l');
-								     _KernelInputQueue.enqueue('o');
-								     _KernelInputQueue.enqueue('a');
-								     _KernelInputQueue.enqueue('d');
+								     neOS.KernelInputQueue.enqueue('l');
+								     neOS.KernelInputQueue.enqueue('o');
+								     neOS.KernelInputQueue.enqueue('a');
+								     neOS.KernelInputQueue.enqueue('d');
 								     TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);           	   				
 									}, 3000);
 
-		setTimeout(function(){ _KernelInputQueue.enqueue('r');
-								     _KernelInputQueue.enqueue('u');
-								     _KernelInputQueue.enqueue('n');
-								     _KernelInputQueue.enqueue('a');
-								     _KernelInputQueue.enqueue('l');      
-								     _KernelInputQueue.enqueue('l');            
+		setTimeout(function(){ neOS.KernelInputQueue.enqueue('r');
+								     neOS.KernelInputQueue.enqueue('u');
+								     neOS.KernelInputQueue.enqueue('n');
+								     neOS.KernelInputQueue.enqueue('a');
+								     neOS.KernelInputQueue.enqueue('l');      
+								     neOS.KernelInputQueue.enqueue('l');            
 								     TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);		
 									}, 4000);
    /*
