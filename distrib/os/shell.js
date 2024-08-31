@@ -41,6 +41,18 @@ var TSOS;
         commandList = [];
         curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
         apologies = "[sorry]";
+        detailedCommands = {
+            help: "Help displays a list of all available commands",
+            ver: "Displays version data and personal details (name/course).",
+            shutdown: "Shuts down the virtual OS but leaves the underlying host / hardware simulation running.",
+            cls: "Clears the screen and resets the cursor position.",
+            man: "Displays the manual page for a command. Usage: man <command>",
+            trace: "Turns the OS trace on or off. Usage: trace <on | off>",
+            rot13: "Does rot13 obfuscatuion on <string>. Usage: rot13 <string>",
+            prompt: "Sets the prompt. Usage: promt <string>",
+            list: "List all the running processes and the corresponding IDS <string>.",
+            kill: "Kills the specificed process id <string>",
+        };
         constructor() {
             super("Shell");
         }
@@ -72,6 +84,12 @@ var TSOS;
             // prompt <string>
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellDate, "date", " - Displays the current date.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", " - Displays your current location.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellRiddle, "riddle", " - Displays a joke to make you chuckle.");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes and their IDS <string>.");
             this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
@@ -82,7 +100,7 @@ var TSOS;
             // new shell command
             sc = new TSOS.ShellCommand(this.shellRun, "run", "<process_name> - Starts a new process with the given name.");
             this.commandList[this.commandList.length] = sc;
-            // test new command functionalities 
+            // test new command functionalities
             // list + kill
             this.putPrompt(); // Display the initial prompt.
         }
@@ -91,6 +109,10 @@ var TSOS;
         }
         handleInput(buffer) {
             neOS.Kernel.krnTrace("Shell Command~" + buffer);
+            if (neOS.waitingForRiddleAnswer) {
+                this.checkRiddleAnswer(buffer);
+                return;
+            }
             //
             // Parse the input...
             //
@@ -208,9 +230,9 @@ var TSOS;
         shellVer(args) {
             neOS.StdOut.putText(APP_NAME + " version " + APP_VERSION);
             neOS.StdOut.advanceLine();
-            neOS.StdOut.putText('Developed by: Neo Pi');
+            neOS.StdOut.putText("Developed by: Neo Pi");
             neOS.StdOut.advanceLine();
-            neOS.StdOut.putText('Course: CMPT 424 - Operating Systems');
+            neOS.StdOut.putText("Course: CMPT 424 - Operating Systems");
         }
         shellHelp(args) {
             neOS.StdOut.putText("Commands:");
@@ -274,6 +296,40 @@ var TSOS;
                 neOS.StdOut.putText("Usage: prompt <string>  Please supply a string.");
             }
         }
+        shellDate(args) {
+            const currentDate = new Date().toLocaleString();
+            neOS.StdOut.putText("Current Date & Time: " + currentDate);
+        }
+        shellWhereAmI(args) {
+            neOS.StdIn.putText("You are stuck in the Matrix.");
+        }
+        shellRiddle(args) {
+            const riddle = "Red or Blue pill?";
+            neOS.StdOut.putText(riddle);
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText("Type your answer:");
+            neOS.StdOut.advanceLine();
+            neOS.waitingForRiddleAnswer = true;
+            neOS.correctAnswer = "red";
+        }
+        checkRiddleAnswer(answer) {
+            const trimmedAnswer = answer.toLowerCase().trim();
+            if (trimmedAnswer === "red" ||
+                trimmedAnswer === "red pill" ||
+                trimmedAnswer === "blue" ||
+                trimmedAnswer === "blue pill") {
+                neOS.StdOut.advanceLine();
+                if (trimmedAnswer === "red" || trimmedAnswer === "red pill") {
+                    neOS.StdOut.putText("Good choice...");
+                }
+                else {
+                    neOS.StdOut.putText("Wrong, wrong, and WRONG");
+                }
+            }
+            neOS.StdOut.advanceLine();
+            neOS.waitingForRiddleAnswer = false;
+            neOS.correctAnswer = "";
+        }
         shellList(args) {
             if (neOS.ProcessList.length > 0) {
                 neOS.StdOut.putText("PID \tProcess Name");
@@ -286,8 +342,7 @@ var TSOS;
             else {
                 neOS.StdOut.putText("No running Processes.");
             }
-        }
-        // add new shell command functionalities
+        } // new command
         shellKill(args) {
             // add new shell command functionalities
         }
@@ -302,18 +357,6 @@ var TSOS;
                 neOS.StdOut.putText("Usage: run <process_name>");
             }
         }
-        detailedCommands = {
-            help: "Help displays a list of all available commands",
-            ver: "Displays version data and personal details (name/course).",
-            shutdown: "Shuts down the virtual OS but leaves the underlying host / hardware simulation running.",
-            cls: "Clears the screen and resets the cursor position.",
-            man: "Displays the manual page for a command. Usage: man <command>",
-            trace: "Turns the OS trace on or off. Usage: trace <on | off>",
-            rot13: "Does rot13 obfuscatuion on <string>. Usage: rot13 <string>",
-            prompt: "Sets the prompt. Usage: promt <string>",
-            list: "List all the running processes and the corresponding IDS <string>.",
-            kill: "Kills the specificed process id <string>",
-        };
         shellMan(args) {
             if (args.length > 0) {
                 var topic = TSOS.Utils.trim(args[0].toLowerCase()); // Trim and lowercase the argument

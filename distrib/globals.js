@@ -42,6 +42,8 @@ var neOS = {
     hardwareClockID: null,
     Glados: null,
     GLaDOS: null,
+    waitingForRiddleAnswer: false,
+    correctAnswer: '',
     ProcessList: [],
     onDocumentLoad: function () {
         TSOS.Control.hostInit();

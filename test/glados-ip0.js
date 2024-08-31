@@ -20,12 +20,6 @@ function Glados() {
       neOS.KernelInputQueue.enqueue('l');
       neOS.KernelInputQueue.enqueue('p');
       TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);
-      
-      // Test the 'ver' command.
-      neOS.KernelInputQueue.enqueue('v');
-      neOS.KernelInputQueue.enqueue('e');
-      neOS.KernelInputQueue.enqueue('r');
-      TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);
 
    };
 }
