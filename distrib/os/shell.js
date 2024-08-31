@@ -74,12 +74,11 @@ var TSOS;
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes and their IDS <string>.");
-            this.
-                // new 
-                // ps  - list the running processes and their IDs 
-                // new shell command 
-                sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id <string>.");
-            //new 
+            this.commandList[this.commandList.length] = sc;
+            // ps  - list the running processes and their IDs 
+            // new shell command 
+            sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id <string>.");
+            this.commandList[this.commandList.length] = sc;
             // kill <id> - kills the specified process id.
             // new shell command 
             this.putPrompt(); // Display the initial prompt.
