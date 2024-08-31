@@ -47,10 +47,13 @@ var neOS = {
    hardwareClockID: null as number,
    Glados: null as any,
    GLaDOS: null as any,
+   ProcessList: [] as { pid: number, name: string}[],
    onDocumentLoad: function() {
       TSOS.Control.hostInit();
    }
 }
+
+
 
 
 

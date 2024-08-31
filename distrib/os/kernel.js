@@ -13,6 +13,7 @@ var TSOS;
         // OS Startup and Shutdown Routines
         //
         krnBootstrap() {
+            // Page 8. {
             TSOS.Control.hostLog("bootstrap", "host"); // Use hostLog because we ALWAYS want this, even if neOS.Trace is off.
             // Initialize our global queues.
             neOS.KernelInterruptQueue = new TSOS.Queue(); // A (currently) non-priority queue for interrupt requests (IRQs).
@@ -58,10 +59,10 @@ var TSOS;
         }
         krnOnCPUClockPulse() {
             /* This gets called from the host hardware simulation every time there is a hardware clock pulse.
-               This is NOT the same as a TIMER, which causes an interrupt and is handled like other interrupts.
-               This, on the other hand, is the clock pulse from the hardware / VM / host that tells the kernel
-               that it has to look for interrupts and process them if it finds any.
-            */
+                     This is NOT the same as a TIMER, which causes an interrupt and is handled like other interrupts.
+                     This, on the other hand, is the clock pulse from the hardware / VM / host that tells the kernel
+                     that it has to look for interrupts and process them if it finds any.
+                  */
             // Check for an interrupt, if there are any. Page 560
             if (neOS.KernelInterruptQueue.getSize() > 0) {
                 // Process the first interrupt on the interrupt queue.
@@ -69,10 +70,12 @@ var TSOS;
                 var interrupt = neOS.KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
             }
-            else if (neOS.CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed.
+            else if (neOS.CPU.isExecuting) {
+                // If there are no interrupts then run one CPU cycle if there is anything being processed.
                 neOS.CPU.cycle();
             }
-            else { // If there are no interrupts and there is nothing being executed then just be idle.
+            else {
+                // If there are no interrupts and there is nothing being executed then just be idle.
                 this.krnTrace("Idle");
             }
         }
@@ -151,6 +154,14 @@ var TSOS;
             TSOS.Control.hostLog("OS ERROR - TRAP: " + msg);
             // TODO: Display error on console, perhaps in some sort of colored screen. (Maybe blue?)
             this.krnShutdown();
+        }
+        startNewProcess(name) {
+            const pid = neOS.ProcessList.length > 0
+                ? neOS.ProcessList[neOS.ProcessList.length - 1].pid + 1
+                : 1;
+            neOS.ProcessList.push({ pid: pid, name: name });
+            neOS.StdOut.putText(`Process "${name}"
+         started with PID ${pid}.`);
         }
     }
     TSOS.Kernel = Kernel;

@@ -49,7 +49,7 @@ var TSOS;
             //
             // Load the command list.
             // ver
-            sc = new TSOS.ShellCommand(this.shellVer, "ver", "- Display current version.");
+            sc = new TSOS.ShellCommand(this.shellVer, "ver", "- Display version and details.");
             this.commandList[this.commandList.length] = sc;
             // help
             sc = new TSOS.ShellCommand(this.shellHelp, "help", "- Find help if you can.");
@@ -64,10 +64,10 @@ var TSOS;
             sc = new TSOS.ShellCommand((args) => this.shellMan(args), "man", "<topic> - Displays the MANual page for <topic>.");
             this.commandList[this.commandList.length] = sc;
             // trace <on | off>
-            sc = new TSOS.ShellCommand(this.shellTrace, "trace", "Turns the OS trace on or off.");
+            sc = new TSOS.ShellCommand(this.shellTrace, "trace", "- Turns the OS trace on or off.");
             this.commandList[this.commandList.length] = sc;
             // rot13 <string>
-            sc = new TSOS.ShellCommand(this.shellRot13, "rot13", "Does rot13 obfuscation on <string>.");
+            sc = new TSOS.ShellCommand(this.shellRot13, "rot13", "- Does rot13 obfuscation on <string>.");
             this.commandList[this.commandList.length] = sc;
             // prompt <string>
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
@@ -80,6 +80,10 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             // kill <id> - kills the specified process id.
             // new shell command
+            sc = new TSOS.ShellCommand(this.shellRun, "run", "<process_name> - Starts a new process with the given name.");
+            this.commandList[this.commandList.length] = sc;
+            // test new command functionalities 
+            // list + kill
             this.putPrompt(); // Display the initial prompt.
         }
         putPrompt() {
@@ -203,6 +207,10 @@ var TSOS;
         // actual parameter list when this function is called, so I feel like we need it.
         shellVer(args) {
             neOS.StdOut.putText(APP_NAME + " version " + APP_VERSION);
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText('Developed by: Neo Pi');
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText('Course: CMPT 424 - Operating Systems');
         }
         shellHelp(args) {
             neOS.StdOut.putText("Commands:");
@@ -223,30 +231,6 @@ var TSOS;
         shellCls(args) {
             neOS.StdOut.clearScreen();
             neOS.StdOut.resetXY();
-        }
-        detailedCommands = {
-            help: "Help displays a list of all available commands",
-            ver: "Displays the current version data.",
-            shutdown: "Shuts down the virtual OS but leaves the underlying host / hardware simulation running.",
-            cls: "Clears the screen and resets the cursor position.",
-            man: "Displays the manual page for a command. Usage: man <command>",
-            trace: "Turns the OS trace on or off. Usage: trace <on | off>",
-            rot13: "Does rot13 obfuscatuion on <string>. Usage: rot13 <string>",
-            prompt: "Sets the prompt. Usage: promt <string>",
-        };
-        shellMan(args) {
-            if (args.length > 0) {
-                var topic = TSOS.Utils.trim(args[0].toLowerCase()); // Trim and lowercase the argument
-                if (this.detailedCommands[topic]) {
-                    neOS.StdOut.putText(this.detailedCommands[topic]);
-                }
-                else {
-                    neOS.StdOut.putText("No manual entry for " + topic + ".");
-                }
-            }
-            else {
-                neOS.StdOut.putText("Usage: man <topic>. Please supply a topic.");
-            }
         }
         shellTrace(args) {
             if (args.length > 0) {
@@ -291,10 +275,58 @@ var TSOS;
             }
         }
         shellList(args) {
-            // add new shell command functionalities
+            if (neOS.ProcessList.length > 0) {
+                neOS.StdOut.putText("PID \tProcess Name");
+                neOS.StdOut.advanceLine();
+                for (let i = 0; i < neOS.ProcessList.length; i++) {
+                    neOS.StdOut.putText(neOS.ProcessList[i].pid + "   \t" + neOS.ProcessList[i].name);
+                    neOS.StdOut.advanceLine();
+                }
+            }
+            else {
+                neOS.StdOut.putText("No running Processes.");
+            }
         }
+        // add new shell command functionalities
         shellKill(args) {
             // add new shell command functionalities
+        }
+        shellRun(args) {
+            if (args.length > 0) {
+                const processName = args[0];
+                neOS.Kernel.startNewProcess(processName);
+                neOS.StdOut.advanceLine();
+                neOS.StdOut.putText(`Process "${processName}" started.`);
+            }
+            else {
+                neOS.StdOut.putText("Usage: run <process_name>");
+            }
+        }
+        detailedCommands = {
+            help: "Help displays a list of all available commands",
+            ver: "Displays version data and personal details (name/course).",
+            shutdown: "Shuts down the virtual OS but leaves the underlying host / hardware simulation running.",
+            cls: "Clears the screen and resets the cursor position.",
+            man: "Displays the manual page for a command. Usage: man <command>",
+            trace: "Turns the OS trace on or off. Usage: trace <on | off>",
+            rot13: "Does rot13 obfuscatuion on <string>. Usage: rot13 <string>",
+            prompt: "Sets the prompt. Usage: promt <string>",
+            list: "List all the running processes and the corresponding IDS <string>.",
+            kill: "Kills the specificed process id <string>",
+        };
+        shellMan(args) {
+            if (args.length > 0) {
+                var topic = TSOS.Utils.trim(args[0].toLowerCase()); // Trim and lowercase the argument
+                if (this.detailedCommands[topic]) {
+                    neOS.StdOut.putText(this.detailedCommands[topic]);
+                }
+                else {
+                    neOS.StdOut.putText("No manual entry for " + topic + ".");
+                }
+            }
+            else {
+                neOS.StdOut.putText("Usage: man <topic>. Please supply a topic.");
+            }
         }
     }
     TSOS.Shell = Shell;

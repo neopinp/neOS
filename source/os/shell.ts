@@ -55,7 +55,7 @@ namespace TSOS {
       // Load the command list.
 
       // ver
-      sc = new ShellCommand(this.shellVer, "ver", "- Display current version.");
+      sc = new ShellCommand(this.shellVer, "ver", "- Display version and details.");
       this.commandList[this.commandList.length] = sc;
 
       // help
@@ -86,7 +86,7 @@ namespace TSOS {
       sc = new ShellCommand(
         this.shellTrace,
         "trace",
-        "Turns the OS trace on or off."
+        "- Turns the OS trace on or off."
       );
       this.commandList[this.commandList.length] = sc;
 
@@ -94,7 +94,7 @@ namespace TSOS {
       sc = new ShellCommand(
         this.shellRot13,
         "rot13",
-        "Does rot13 obfuscation on <string>."
+        "- Does rot13 obfuscation on <string>."
       );
       this.commandList[this.commandList.length] = sc;
 
@@ -123,6 +123,16 @@ namespace TSOS {
       this.commandList[this.commandList.length] = sc;
       // kill <id> - kills the specified process id.
       // new shell command
+
+      sc = new ShellCommand( 
+        this.shellRun, 
+        "run", 
+        "<process_name> - Starts a new process with the given name."
+      );
+      this.commandList[this.commandList.length] = sc;
+      // test new command functionalities 
+      // list + kill
+      
 
       this.putPrompt(); // Display the initial prompt.
     }
@@ -255,6 +265,10 @@ namespace TSOS {
 
     public shellVer(args: string[]) {
       neOS.StdOut.putText(APP_NAME + " version " + APP_VERSION);
+      neOS.StdOut.advanceLine();
+      neOS.StdOut.putText('Developed by: Neo Pi');
+      neOS.StdOut.advanceLine();
+      neOS.StdOut.putText('Course: CMPT 424 - Operating Systems')
     }
 
     public shellHelp(args: string[]) {
@@ -326,15 +340,41 @@ namespace TSOS {
     }
 
     public shellList(args: string[]) {
-      // add new shell command functionalities
+      if (neOS.ProcessList.length > 0) {
+        neOS.StdOut.putText("PID \tProcess Name");
+        neOS.StdOut.advanceLine();
+        for (let i = 0; i < neOS.ProcessList.length; i++) {
+          neOS.StdOut.putText(
+            neOS.ProcessList[i].pid + "   \t" + neOS.ProcessList[i].name
+
+            
+          );
+          neOS.StdOut.advanceLine();
+        }
+      } else {
+        neOS.StdOut.putText("No running Processes.");
+      }
     }
+    // add new shell command functionalities
 
     public shellKill(args: string[]) {
       // add new shell command functionalities
     }
+
+    public shellRun(args: string[]) {
+      if (args.length > 0) {
+        const processName = args[0];
+        neOS.Kernel.startNewProcess(processName);
+        neOS.StdOut.advanceLine();
+        neOS.StdOut.putText(`Process "${processName}" started.`);
+      } else {
+        neOS.StdOut.putText("Usage: run <process_name>")
+      }
+    }
+
     public detailedCommands = {
       help: "Help displays a list of all available commands",
-      ver: "Displays the current version data.",
+      ver: "Displays version data and personal details (name/course).",
       shutdown:
         "Shuts down the virtual OS but leaves the underlying host / hardware simulation running.",
       cls: "Clears the screen and resets the cursor position.",
@@ -342,6 +382,8 @@ namespace TSOS {
       trace: "Turns the OS trace on or off. Usage: trace <on | off>",
       rot13: "Does rot13 obfuscatuion on <string>. Usage: rot13 <string>",
       prompt: "Sets the prompt. Usage: promt <string>",
+      list: "List all the running processes and the corresponding IDS <string>.",
+      kill: "Kills the specificed process id <string>",
     };
 
     public shellMan(args: string[]) {
