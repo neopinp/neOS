@@ -1,0 +1,197 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% CMPT 424N
+% Some Semester
+% Lab/Assignment/Project X
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Short Sectioned Assignment
+% LaTeX Template
+% Version 1.0 (5/5/12)
+%
+% This template has been downloaded from: http://www.LaTeXTemplates.com
+% Original author: % Frits Wenneker (http://www.howtotex.com)
+% License: CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+% Modified by Alan G. Labouseur  - alan@labouseur.com
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[letterpaper, 10pt,DIV=13]{scrartcl} 
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm,xfrac} % Math packages
+\usepackage{sectsty} % Allows customizing section commands
+\usepackage{graphicx}
+\usepackage[lined,linesnumbered,commentsnumbered]{algorithm2e}
+\usepackage{listings}
+\usepackage{parskip}
+\usepackage{lastpage}
+
+\allsectionsfont{\normalfont\scshape} % Make all section titles in default font and small caps.
+
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{page \thepage\ of \pageref{LastPage}} % Page numbering for right footer
+
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs.
+
+\binoppenalty=3000
+\relpenalty=3000
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+
+\title{	
+   \normalfont \normalsize 
+   \textsc{CMPT 424N - Fall 2024 - Dr. Labouseur} \\[10pt] % Header stuff.
+   \horrule{0.5pt} \\[0.25cm] 	% Top horizontal rule
+   \huge Labs  \\     	    % Assignment title
+   \horrule{0.5pt} \\[0.25cm] 	% Bottom horizontal rule
+}
+
+\author{Neo Pi \\ \normalsize Neo.Pi1@Marist.edu}
+
+\date{\normalsize\today} 	% Today's date.
+
+\begin{document}
+\maketitle % Print the title
+
+%----------------------------------------------------------------------------------------
+%   start PROBLEM ONE
+%----------------------------------------------------------------------------------------
+\section{Lab One}
+
+\subsection{What are the advantages and disadvantages of using the same system call interface for manipulating both files and devices?}
+The advantage of using the same system call interface for both files and devices is so that each device can be accessed as thought it was a file within the system. Since kernel already deals with devices through a file interface, adding code to support a different kind of file interface is possible. 
+The disadvantage of using the same interface is that the functionality of some devices might not be able to be accessed. Loss of functionality or performance could be a result.
+
+\subsection{Would it be possible for the user to develop a new command interpreter using the system call interface provide by the operating system? How?}
+Yes, a user can develop a new command interpreter by using the system call interface provided by the operating system.
+You can develop it by specifically using system calls to manage processes and file-related system calls for i/o operations. 
+
+
+\section{Lab Two}
+
+%----------------------------------------------------------------------------------------
+%   end PROBLEM ONE
+%----------------------------------------------------------------------------------------
+
+\pagebreak
+
+%----------------------------------------------------------------------------------------
+%   start PROBLEM TWO
+%----------------------------------------------------------------------------------------
+\section{Problem Two}
+
+%----------------------------------------------------------------------------------------
+%   end PROBLEM Two
+%----------------------------------------------------------------------------------------
+
+\pagebreak
+
+%----------------------------------------------------------------------------------------
+%   start PROBLEM Three
+%----------------------------------------------------------------------------------------
+\section{Problem Three}
+
+%----------------------------------------------------------------------------------------
+%   end PROBLEM THREE
+%----------------------------------------------------------------------------------------
+
+\pagebreak
+
+%----------------------------------------------------------------------------------------
+%   REFERENCES
+%----------------------------------------------------------------------------------------
+% The following two commands are all you need in the initial runs of your .tex file to
+% produce the bibliography for the citations in your paper.
+\bibliographystyle{abbrv}
+\bibliography{lab01} 
+% You must have a proper ".bib" file and remember to run:
+% latex bibtex latex latex
+% to resolve all references.
+
+\pagebreak
+
+%----------------------------------------------------------------------------------------
+%   Appendix
+%----------------------------------------------------------------------------------------
+
+\section{Appendix}
+
+\subsection{Some JavaScript source code listings}
+
+\lstset{numbers=left, numberstyle=\tiny, stepnumber=1, numbersep=5pt, basicstyle=\footnotesize\ttfamily}
+\begin{lstlisting}[frame=single, ]  
+var A = [5,0,5,6,6,8,45,50];
+
+function solve(A) {
+    // Base case to stop the recursion.
+    if (A.length == 1) {
+        if (A[0] % 5 == 0) {
+            var retVal = 1;
+        } else {
+            var retVal = 0;
+        }
+        return retVal;
+    } else {
+        // Divide.
+        var divPoint = Math.floor( A.length / 2);
+        var left  = A.slice(0, divPoint);
+        var right = A.slice(divPoint, A.length);
+        
+        // Conquer.
+        var left5s   = solve(left, level+1);
+        var center5s = straddle(left, right);
+        var right5s  = solve(right, level+1);             
+        
+        // Combine.
+        return Math.max(left5s, Math.max(center5s, right5s));
+    }
+}
+
+function straddle(left, right) {
+    var retVal = 0;
+    if ((left[left.length-1] % 5 == 0) && (right[0] % 5 == 0)) {
+        // Count back the 5's on the left going from right to left.
+        var leftCount = 0;
+        var index = left.length-1;
+        while ( (index >= 0) && (left[index] % 5 == 0) ) {
+            index--;
+            leftCount++;
+        }
+        // Count forward the 5's on the right going from left to right.
+        var rightCount = 0;
+        while ( (rightCount < right.length) && (right[rightCount] % 5 == 0) ) {
+            rightCount++;
+        }
+        // Return the sum of the straddling 5s on the left and right.
+        retVal = leftCount + rightCount;
+    }
+    return retVal;
+}
+\end{lstlisting}
+
+\end{document}
