@@ -48,6 +48,7 @@ var neOS = {
    Glados: null as any,
    GLaDOS: null as any,
    waitingForRiddleAnswer: false,
+   StatusMessage: '',
    correctAnswer: '',
    ProcessList: [] as { pid: number, name: string}[],
    onDocumentLoad: function() {

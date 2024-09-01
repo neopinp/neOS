@@ -43,6 +43,7 @@ var neOS = {
     Glados: null,
     GLaDOS: null,
     waitingForRiddleAnswer: false,
+    StatusMessage: '',
     correctAnswer: '',
     ProcessList: [],
     onDocumentLoad: function () {

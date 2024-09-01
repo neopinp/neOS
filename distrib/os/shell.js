@@ -88,7 +88,11 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellWhereAmI, "whereami", " - Displays your current location.");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellRiddle, "riddle", " - Displays a joke to make you chuckle.");
+            sc = new TSOS.ShellCommand(this.shellRiddle, "riddle", " - Make your choice.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellStatus, "status", " - Set status.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(() => this.shellLoad(), "load", " - Load a user program");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes and their IDS <string>.");
             this.commandList[this.commandList.length] = sc;
@@ -98,8 +102,14 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             // kill <id> - kills the specified process id.
             // new shell command
-            sc = new TSOS.ShellCommand(this.shellRun, "run", "<process_name> - Starts a new process with the given name.");
+            /*
+            sc = new ShellCommand(
+              this.shellRun,
+              "run",
+              "<process_name> - Starts a new process with the given name."
+            );
             this.commandList[this.commandList.length] = sc;
+            */
             // test new command functionalities
             // list + kill
             this.putPrompt(); // Display the initial prompt.
@@ -329,6 +339,30 @@ var TSOS;
             neOS.StdOut.advanceLine();
             neOS.waitingForRiddleAnswer = false;
             neOS.correctAnswer = "";
+        }
+        shellStatus(args) {
+            if (args.length > 0) {
+                const statusMessage = args.join(" ");
+                neOS.StatusMessage = statusMessage;
+                neOS.StdOut.putText(`Status set to: ${statusMessage}`);
+            }
+            else {
+                neOS.StdOut.putText("Usage: status <string>.");
+            }
+        }
+        shellLoad() {
+            // Assuming the input is fetched from a text area on the HTML page
+            const programInput = document.getElementById("taProgramInput").value;
+            // Validate that the input is a valid hexadecimal string
+            const isValidHex = /^[0-9a-fA-F\s]+$/.test(programInput.trim());
+            if (isValidHex) {
+                neOS.StdOut.putText("Program loaded successfully.");
+                // Here you could also implement storing the program in memory if required
+                // e.g., neOS.MemoryManager.storeProgram(programInput);
+            }
+            else {
+                neOS.StdOut.putText("Invalid program. Please enter a valid hexadecimal string.");
+            }
         }
         shellList(args) {
             if (neOS.ProcessList.length > 0) {
