@@ -48,7 +48,6 @@ namespace TSOS {
       neOS.OsShell = new Shell();
       neOS.OsShell.init();
 
-
       // Finally, initiate student testing protocol.
       if (neOS.GLaDOS) {
         neOS.GLaDOS.afterStartup();
@@ -169,9 +168,28 @@ namespace TSOS {
       }
     }
 
-    public krnTrapError(msg) {
+    public krnTrapError(msg: string) {
       Control.hostLog("OS ERROR - TRAP: " + msg);
-      // TODO: Display error on console, perhaps in some sort of colored screen. (Maybe blue?)
+
+      // Clear the screen
+      neOS.StdOut.clearScreen();
+
+      // Set the color to blue for the BSOD effect
+      neOS.DrawingContext.fillStyle = "red";
+      neOS.DrawingContext.fillRect(0, 0, neOS.Canvas.width, neOS.Canvas.height);
+
+      // Set text color to white
+      neOS.DrawingContext.fillStyle = "white";
+
+      // Display the BSOD message
+      neOS.StdOut.resetXY(); // Reset the cursor position
+      neOS.StdOut.putText("BLUE SCREEN OF DEATH");
+      neOS.StdOut.advanceLine();
+      neOS.StdOut.putText("An OS error has occurred: " + msg);
+      neOS.StdOut.advanceLine();
+      neOS.StdOut.putText("Please restart your system.");
+
+      // Then shut down the OS.
       this.krnShutdown();
     }
 

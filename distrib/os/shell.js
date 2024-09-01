@@ -50,6 +50,11 @@ var TSOS;
             trace: "Turns the OS trace on or off. Usage: trace <on | off>",
             rot13: "Does rot13 obfuscatuion on <string>. Usage: rot13 <string>",
             prompt: "Sets the prompt. Usage: promt <string>",
+            date: "Displays the current date",
+            whereami: "Dispalys your current location",
+            riddle: "Outputs a serious question. Make the right choice.",
+            status: "Set a status to be displayed",
+            load: "Load a program from user input and validate it to make sure that it only contains hex digits and spaces",
             list: "List all the running processes and the corresponding IDS <string>.",
             kill: "Kills the specificed process id <string>",
         };
@@ -94,6 +99,9 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(() => this.shellLoad(), "load", " - Load a user program");
             this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellBSOD, 'bosd', ' - triggers a BSOD for testing');
+            this.commandList[this.commandList.length] = sc;
+            this.putPrompt();
             sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes and their IDS <string>.");
             this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
@@ -363,6 +371,9 @@ var TSOS;
             else {
                 neOS.StdOut.putText("Invalid program. Please enter a valid hexadecimal string.");
             }
+        }
+        shellBSOD(args) {
+            neOS.Kernel.krnTrapError("Manual BSOD trigger.");
         }
         shellList(args) {
             if (neOS.ProcessList.length > 0) {
