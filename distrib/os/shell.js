@@ -99,7 +99,7 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(() => this.shellLoad(), "load", " - Load a user program");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellBSOD, 'bosd', ' - triggers a BSOD for testing');
+            sc = new TSOS.ShellCommand(this.shellBSOD, 'bsod', ' - triggers a BSOD for testing');
             this.commandList[this.commandList.length] = sc;
             this.putPrompt();
             sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes and their IDS <string>.");
@@ -419,4 +419,5 @@ var TSOS;
     }
     TSOS.Shell = Shell;
 })(TSOS || (TSOS = {}));
+// code tutor gpt
 //# sourceMappingURL=shell.js.map

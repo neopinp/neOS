@@ -155,7 +155,7 @@ var TSOS;
             // Clear the screen
             neOS.StdOut.clearScreen();
             // Set the color to blue for the BSOD effect
-            neOS.DrawingContext.fillStyle = "red";
+            neOS.DrawingContext.fillStyle = "blue";
             neOS.DrawingContext.fillRect(0, 0, neOS.Canvas.width, neOS.Canvas.height);
             // Set text color to white
             neOS.DrawingContext.fillStyle = "white";

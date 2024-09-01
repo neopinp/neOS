@@ -157,7 +157,7 @@ namespace TSOS {
       
       sc = new ShellCommand(
         this.shellBSOD, 
-        'bosd', 
+        'bsod', 
         ' - triggers a BSOD for testing'
       );
       this.commandList[this.commandList.length] = sc;
@@ -522,3 +522,5 @@ namespace TSOS {
     }
   }
 }
+
+// code tutor gpt
