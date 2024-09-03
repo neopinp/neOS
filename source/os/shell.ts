@@ -150,14 +150,14 @@ namespace TSOS {
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
-        () => this.shellLoad(), 
-        "load", 
+        () => this.shellLoad(),
+        "load",
         " - Load a user program");
       this.commandList[this.commandList.length] = sc;
-      
+
       sc = new ShellCommand(
-        this.shellBSOD, 
-        'bsod', 
+        this.shellBSOD,
+        'bsod',
         ' - triggers a BSOD for testing'
       );
       this.commandList[this.commandList.length] = sc;
@@ -180,7 +180,7 @@ namespace TSOS {
       );
       this.commandList[this.commandList.length] = sc;
 
-      
+
       // kill <id> - kills the specified process id.
       // new shell command
 
@@ -342,9 +342,9 @@ namespace TSOS {
         neOS.StdOut.advanceLine();
         neOS.StdOut.putText(
           "  " +
-            neOS.OsShell.commandList[i].command +
-            " " +
-            neOS.OsShell.commandList[i].description
+          neOS.OsShell.commandList[i].command +
+          " " +
+          neOS.OsShell.commandList[i].description
         );
       }
     }
@@ -446,13 +446,21 @@ namespace TSOS {
 
     public shellStatus(args: string[]) {
       if (args.length > 0) {
-        const statusMessage = args.join(" ");
-        neOS.StatusMessage = statusMessage;
-        neOS.StdOut.putText(`Status set to: ${statusMessage}`);
+          let statusMessage = args.join(" ");
+          neOS.StatusMessage = statusMessage;
+          neOS.StdOut.putText(`Status set to: ${statusMessage}`);
+          
+          // Manually update the taskbar element directly for testing
+          document.getElementById("taskbar-status").textContent = statusMessage;
       } else {
-        neOS.StdOut.putText("Usage: status <string>.");
+          neOS.StdOut.putText("Usage: status <string>. Please supply a status message.");
       }
-    }
+  }
+  
+  
+
+
+
 
     public shellLoad() {
       // Assuming the input is fetched from a text area on the HTML page

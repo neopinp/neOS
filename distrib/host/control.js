@@ -39,6 +39,7 @@ var TSOS;
                 neOS.GLaDOS = new Glados();
                 neOS.GLaDOS.init();
             }
+            setInterval(Control.updateTaskBar, 1000);
         }
         static hostLog(msg, source = "?") {
             // Note the OS CLOCK.
@@ -84,6 +85,20 @@ var TSOS;
         static hostBtnReset_click(btn) {
             // The easiest and most thorough way to do this is to reload (not refresh) the document.
             location.reload();
+        }
+        static updateTaskBar() {
+            const now = new Date();
+            const dateString = now.toLocaleDateString();
+            const timeString = now.toLocaleTimeString();
+            const dateTimeString = `${dateString} ${timeString}`;
+            const taskbarDateTimeElement = document.getElementById("taskbar-date-time");
+            const taskbarStatusElement = document.getElementById("taskbar-status");
+            if (taskbarDateTimeElement) {
+                taskbarDateTimeElement.textContent = dateTimeString;
+            }
+            if (taskbarStatusElement) {
+                taskbarStatusElement.textContent = neOS.StatusMessage; // Hardcoded test
+            }
         }
     }
     TSOS.Control = Control;

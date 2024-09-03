@@ -1,5 +1,3 @@
-/* TSOS.css */
-
 body {
   background: #909193 url(distrib/images/linen.png) repeat;
   font-family: Helvetica, Verdana, Arial, sans-serif;
@@ -45,4 +43,38 @@ h3 {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 8pt;
   text-align: center;
+}
+
+#taskbar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #333; 
+  background-image: url('matrix-code-animation-gif-free-animated-background.gif'); 
+  background-size: cover;
+  background-repeat: no-repeat; 
+  color: green; /* Ensures all text in the taskbar is green */
+  text-align: left;
+  padding: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  font-size: 12pt;
+  box-sizing: border-box; /* Ensure padding is included in width calculation */
+}
+
+#taskbar span {
+  text-shadow: 1px 1px 2px white; /* Adds a slight shadow around the text */
+  color: green; /* Ensures all span elements inherit the green color */
+}
+
+#taskbar-status {
+  margin-right: 50px;
+  white-space: nowrap; /* Prevent the text from wrapping */
+  overflow: hidden; /* Hide any overflowed text */
+  text-overflow: ellipsis; /* Add ellipsis (...) for overflowing text */
+  max-width: calc(100% - 200px); /* Adjust the max-width to ensure it fits within the available space */
+  display: inline-block;
+  color: green; /* Ensures the status text is green */
 }

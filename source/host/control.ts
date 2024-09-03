@@ -37,11 +37,11 @@ namespace TSOS {
 
             // Clear the log text box.
             // Use the TypeScript cast to HTMLInputElement
-            (<HTMLInputElement> document.getElementById("taHostLog")).value="";
+            (<HTMLInputElement>document.getElementById("taHostLog")).value = "";
 
             // Set focus on the start button.
             // Use the TypeScript cast to HTMLInputElement
-            (<HTMLInputElement> document.getElementById("btnStartOS")).focus();
+            (<HTMLInputElement>document.getElementById("btnStartOS")).focus();
 
             // Check for our testing and enrichment core, which
             // may be referenced here (from index.html) as function Glados().
@@ -51,6 +51,7 @@ namespace TSOS {
                 neOS.GLaDOS = new Glados();
                 neOS.GLaDOS.init();
             }
+            setInterval(Control.updateTaskBar, 1000);
         }
 
         public static hostLog(msg: string, source: string = "?"): void {
@@ -61,10 +62,10 @@ namespace TSOS {
             var now: number = new Date().getTime();
 
             // Build the log string.
-            var str: string = "({ clock:" + clock + ", source:" + source + ", msg:" + msg + ", now:" + now  + " })"  + "\n";
+            var str: string = "({ clock:" + clock + ", source:" + source + ", msg:" + msg + ", now:" + now + " })" + "\n";
 
             // Update the log console.
-            var taLog = <HTMLInputElement> document.getElementById("taHostLog");
+            var taLog = <HTMLInputElement>document.getElementById("taHostLog");
             taLog.value = str + taLog.value;
 
             // TODO in the future: Optionally update a log database or some streaming service.
@@ -110,5 +111,25 @@ namespace TSOS {
             // The easiest and most thorough way to do this is to reload (not refresh) the document.
             location.reload();
         }
+        public static updateTaskBar(): void {
+            const now = new Date();
+            const dateString = now.toLocaleDateString();
+            const timeString = now.toLocaleTimeString();
+            const dateTimeString = `${dateString} ${timeString}`;
+        
+            const taskbarDateTimeElement = document.getElementById("taskbar-date-time");
+            const taskbarStatusElement = document.getElementById("taskbar-status");
+        
+            if (taskbarDateTimeElement) {
+                taskbarDateTimeElement.textContent = dateTimeString;
+            }
+        
+            if (taskbarStatusElement) {
+                taskbarStatusElement.textContent = neOS.StatusMessage; // Hardcoded test
+            }
+        }
+        
+
+
     }
 }

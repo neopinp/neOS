@@ -350,12 +350,14 @@ var TSOS;
         }
         shellStatus(args) {
             if (args.length > 0) {
-                const statusMessage = args.join(" ");
+                let statusMessage = args.join(" ");
                 neOS.StatusMessage = statusMessage;
                 neOS.StdOut.putText(`Status set to: ${statusMessage}`);
+                // Manually update the taskbar element directly for testing
+                document.getElementById("taskbar-status").textContent = statusMessage;
             }
             else {
-                neOS.StdOut.putText("Usage: status <string>.");
+                neOS.StdOut.putText("Usage: status <string>. Please supply a status message.");
             }
         }
         shellLoad() {
