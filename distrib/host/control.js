@@ -97,7 +97,7 @@ var TSOS;
                 taskbarDateTimeElement.textContent = dateTimeString;
             }
             if (taskbarStatusElement) {
-                taskbarStatusElement.textContent = neOS.StatusMessage; // Hardcoded test
+                taskbarStatusElement.textContent = neOS.StatusMessage;
             }
         }
     }

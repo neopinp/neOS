@@ -8,12 +8,16 @@
 namespace TSOS {
 
     export class Console {
+        private outputBuffer: string[] = [];
+        private visibleLines: number;
 
         constructor(public currentFont = neOS.DefaultFontFamily,
-                    public currentFontSize = neOS.DefaultFontSize,
-                    public currentXPosition = 0,
-                    public currentYPosition = neOS.DefaultFontSize,
-                    public buffer = "") {
+            public currentFontSize = neOS.DefaultFontSize,
+            public currentXPosition = 0,
+            public currentYPosition = neOS.DefaultFontSize,
+            public buffer = "") {
+            this.visibleLines = Math.floor(neOS.Canvas.height / (this.currentFontSize + neOS.FontHeightMargin))
+
         }
 
         public init(): void {
@@ -39,6 +43,7 @@ namespace TSOS {
                     // The enter key marks the end of a console command, so ...
                     // ... tell the shell ...
                     neOS.OsShell.handleInput(this.buffer);
+                    this.advanceLine();
                     // ... and reset our buffer.
                     this.buffer = "";
                 } else {
@@ -52,35 +57,57 @@ namespace TSOS {
             }
         }
 
-        public putText(text): void {
-            /*  My first inclination here was to write two functions: putChar() and putString().
-                Then I remembered that JavaScript is (sadly) untyped and it won't differentiate
-                between the two. (Although TypeScript would. But we're compiling to JavaScipt anyway.)
-                So rather than be like PHP and write two (or more) functions that
-                do the same thing, thereby encouraging confusion and decreasing readability, I
-                decided to write one function and use the term "text" to connote string or char.
-            */
+        public putText(text: string): void {
             if (text !== "") {
                 // Draw the text at the current X and Y coordinates.
                 neOS.DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
                 // Move the current X position.
                 var offset = neOS.DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
-                this.currentXPosition = this.currentXPosition + offset;
+                this.currentXPosition += offset;
             }
-         }
+        }
 
         public advanceLine(): void {
-            this.currentXPosition = 0;
-            /*
-             * Font size measures from the baseline to the highest point in the font.
-             * Font descent measures from the baseline to the lowest point in the font.
-             * Font height margin is extra spacing between the lines.
-             */
-            this.currentYPosition += neOS.DefaultFontSize + 
-                                     neOS.DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
-                                     neOS.FontHeightMargin;
+            // Add the current line to the output buffer before moving to a new line
+            this.outputBuffer.push(this.buffer);
 
-            // TODO: Handle scrolling. (iProject 1)
+            // If the buffer exceeds visible lines, remove the oldest line
+            if (this.outputBuffer.length > this.visibleLines) {
+                this.outputBuffer.shift();
+            }
+
+            this.render();
+
+            this.currentXPosition = 0;
+            this.currentYPosition += this.currentFontSize +
+                neOS.DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
+                neOS.FontHeightMargin;
+
+            // If the current Y position exceeds the canvas height, scroll
+            if (this.currentYPosition > neOS.Canvas.height) {
+                this.currentYPosition = neOS.Canvas.height - (this.currentFontSize +
+                    neOS.DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
+                    neOS.FontHeightMargin);
+                this.render();
+            }
         }
+
+        private render(): void {
+            this.clearScreen();
+            this.resetXY();
+
+            for (let i = 0; i < this.outputBuffer.length; i++) {
+                const text = this.outputBuffer[i];
+                neOS.DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
+                this.advanceLineWithoutRender();
+            }
+        }
+        private advanceLineWithoutRender(): void {
+            this.currentXPosition = 0;
+            this.currentYPosition += this.currentFontSize +
+                neOS.DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
+                neOS.FontHeightMargin;
+        }
+
     }
- }
+}
