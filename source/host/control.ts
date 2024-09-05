@@ -125,10 +125,9 @@ namespace TSOS {
             }
         
             if (taskbarStatusElement) {
-                taskbarStatusElement.textContent = neOS.StatusMessage;
+                taskbarStatusElement.textContent = neOS.StatusMessage; // Hardcoded test
             }
         }
-
         
 
 
