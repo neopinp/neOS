@@ -48,15 +48,16 @@ var TSOS;
             cls: "Clears the screen and resets the cursor position.",
             man: "Displays the manual page for a command. Usage: man <command>",
             trace: "Turns the OS trace on or off. Usage: trace <on | off>",
-            rot13: "Does rot13 obfuscatuion on <string>. Usage: rot13 <string>",
-            prompt: "Sets the prompt. Usage: promt <string>",
+            rot13: "Does rot13 obfuscation on <string>. Usage: rot13 <string>",
+            prompt: "Sets the prompt. Usage: prompt <string>",
             date: "Displays the current date",
-            whereami: "Dispalys your current location",
+            whereami: "Displays your current location",
             riddle: "Outputs a serious question. Make the right choice.",
             status: "Set a status to be displayed",
             load: "Load a program from user input and validate it to make sure that it only contains hex digits and spaces",
+            bsod: "Manually trigger a blue screen that signifies an error",
             list: "List all the running processes and the corresponding IDS <string>.",
-            kill: "Kills the specificed process id <string>",
+            kill: "Kills the specified process id <string>",
         };
         constructor() {
             super("Shell");
@@ -101,12 +102,13 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellBSOD, 'bsod', ' - triggers a BSOD for testing');
             this.commandList[this.commandList.length] = sc;
-            this.putPrompt();
-            sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes and their IDS <string>.");
-            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // new shell command
-            sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id <string>.");
+            sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellList, "list", "Lists processes.");
             this.commandList[this.commandList.length] = sc;
             // kill <id> - kills the specified process id.
             // new shell command
@@ -123,6 +125,9 @@ var TSOS;
             this.putPrompt(); // Display the initial prompt.
         }
         putPrompt() {
+            if (neOS.StdOut.currentXPosition !== 0) {
+                neOS.StdOut.advanceLine(); // Only advance the line if we are not at the start
+            }
             neOS.StdOut.putText(this.promptStr);
         }
         handleInput(buffer) {
@@ -254,12 +259,17 @@ var TSOS;
         }
         shellHelp(args) {
             neOS.StdOut.putText("Commands:");
+            neOS.StdOut.advanceLine(); // Move to a new line for the list of commands.
+            // Loop through each command in the commandList and print it without any extra lines.
             for (var i in neOS.OsShell.commandList) {
+                const command = neOS.OsShell.commandList[i].command;
+                const description = neOS.OsShell.commandList[i].description;
+                // Debugging log to check if there are any unexpected characters
+                console.log(`Command: ${command} | Description: ${description}`);
+                // Combine the command and description, and print them on the same line.
+                neOS.StdOut.putText(command + " " + description);
+                // After printing the command and description, advance the line.
                 neOS.StdOut.advanceLine();
-                neOS.StdOut.putText("  " +
-                    neOS.OsShell.commandList[i].command +
-                    " " +
-                    neOS.OsShell.commandList[i].description);
             }
         }
         shellShutdown(args) {
