@@ -7,6 +7,7 @@
 namespace TSOS {
   // Extends DeviceDriver
   export class DeviceDriverKeyboard extends DeviceDriver {
+    private isCapsLockActive: boolean = false;
     constructor() {
       // Override the base method pointers.
 
@@ -27,95 +28,104 @@ namespace TSOS {
 
     public krnKbdDispatchKeyPress(params) {
       // Parse the params.  TODO: Check that the params are valid and osTrapError if not.
-      var keyCode = params[0];
-      var isShifted = params[1];
-      neOS.Kernel.krnTrace("Key code:" + keyCode + " shifted:" + isShifted);
-      var chr = "";
-      // Check to see if we even want to deal with the key that was pressed.
+      const keyCode = params[0];
+      const isShifted = params[1];
+
+      if (keyCode === 20) {
+        this.isCapsLockActive = !this.isCapsLockActive;
+        return;
+      }
+      neOS.Kernel.krnTrace(
+        "Key code:" +
+          keyCode +
+          " shifted:" +
+          isShifted +
+          " capsLock:" +
+          this.isCapsLockActive
+      );
+      let chr = "";
+
       if (keyCode >= 65 && keyCode <= 90) {
-        // letter
-        if (isShifted === true) {
-          chr = String.fromCharCode(keyCode); // Uppercase A-Z
-        } else {
-          chr = String.fromCharCode(keyCode + 32); // Lowercase a-z
-        }
-        // TODO: Check for caps-lock and handle as shifted if so.
+        chr = this.handleLetter(keyCode, isShifted);
         neOS.KernelInputQueue.enqueue(chr);
+        // TODO: Check for caps-lock and handle as shifted if so.
       } else if (
-        (keyCode >= 48 && keyCode <= 57) || // digits
-        keyCode == 32 || // space
+        (keyCode >= 48 && keyCode <= 57) ||
+        keyCode == 32 ||
         keyCode == 13
       ) {
-        // enter
-        if (isShifted === true) {
-          switch (keyCode) {
-            case 48:
-              chr = ")";
-              break;
-            case 49:
-              chr = "!";
-              break;
-            case 50:
-              chr = "@";
-              break;
-            case 51:
-              chr = "#";
-              break;
-            case 52:
-              chr = "$";
-              break;
-            case 53:
-              chr = "%";
-              break;
-            case 54:
-              chr = "^";
-              break;
-            case 55:
-              chr = "&";
-              break;
-            case 56:
-              chr = "*";
-              break;
-            case 57:
-              chr = "(";
-              break;
-          }
-        } else {
-          chr = String.fromCharCode(keyCode);
-        }
+        chr = this.handleDigitsAndSpecial(keyCode, isShifted);
         neOS.KernelInputQueue.enqueue(chr);
       } else if (keyCode == 8) {
-        neOS.KernelInputQueue.enqueue(String.fromCharCode(8));
-      }
-      else {
-        switch( keyCode ) {
-            case 190: chr = (isShifted) ? '>' : '.';
-            break;
-            case 188: chr = (isShifted) ? '<' : ',';
-            break;
-            case 191: chr = (isShifted) ? '?': '/';
-            break;
-            case 186: chr = (isShifted) ? ':' : ";";
-            break;
-            case 222: chr = (isShifted) ? '"' : "'";
-            break;
-            case 219: chr = (isShifted) ? '{' : '[';
-            break;
-            case 221: chr = (isShifted) ? '{' : ']';
-            break;
-            case 220: chr = (isShifted) ? '|': '\\';
-            break;
-            case 189: chr = (isShifted) ? '_': '-';
-            break;
-            case 187: chr = (isShifted) ? '+' : '=';
-            break;
-            case 192: chr = (isShifted) ? '~': '`';
-            break;
-        }
+        neOS.KernelInputQueue.enqueue(String.fromCharCode(8)); //
+      } else {
+        chr = this.handlePunctuationAndSpecial(keyCode, isShifted);
         if (chr) {
-            neOS.KernelInputQueue.enqueue(chr);
+          neOS.KernelInputQueue.enqueue(chr);
         }
       }
+    }
+
+    private handleLetter(keyCode: number, isShifted: boolean): string {
+      let chr = "";
+      if (this.isCapsLockActive && isShifted) {
+        chr = String.fromCharCode(keyCode + 32);
+      } else if (this.isCapsLockActive || isShifted) {
+        chr = String.fromCharCode(keyCode);
+      } else {
+        chr = String.fromCharCode(keyCode + 32);
+      }
+      return chr;
+    }
+
+    // Handles digits and special characters with their shifted counterparts.
+    private handleDigitsAndSpecial(
+      keyCode: number,
+      isShifted: boolean
+    ): string {
+      // Shifted map for digits (0-9) to special characters (!@#$%^&*())
+      const shiftedMap: { [key: number]: string } = {
+        48: ")",
+        49: "!",
+        50: "@",
+        51: "#",
+        52: "$",
+        53: "%",
+        54: "^",
+        55: "&",
+        56: "*",
+        57: "(",
+      };
+      return isShifted && shiftedMap[keyCode]
+        ? shiftedMap[keyCode]
+        : String.fromCharCode(keyCode);
+    }
+
+    private handlePunctuationAndSpecial(
+      keyCode: number,
+      isShifted: boolean
+    ): string {
+      const punctuationMap: {
+        [key: number]: { shifted: string; unshifted: string };
+      } = {
+        190: { shifted: ">", unshifted: "." },
+        188: { shifted: "<", unshifted: "," },
+        191: { shifted: "?", unshifted: "/" },
+        186: { shifted: ":", unshifted: ";" },
+        222: { shifted: '"', unshifted: "'" },
+        219: { shifted: "{", unshifted: "[" },
+        221: { shifted: "}", unshifted: "]" },
+        220: { shifted: "|", unshifted: "\\" },
+        189: { shifted: "_", unshifted: "-" },
+        187: { shifted: "+", unshifted: "=" },
+        192: { shifted: "~", unshifted: "`" },
+      };
+      if (punctuationMap[keyCode]) {
+        return isShifted
+          ? punctuationMap[keyCode].shifted
+          : punctuationMap[keyCode].unshifted;
+      }
+      return "";
     }
   }
 }

@@ -44,6 +44,7 @@ var TSOS;
                     this.buffer += chr;
                     this.putText(chr); // Display the character
                 }
+                // TODO: Add a case for Ctrl-C that would allow the user to break the current program 
             }
         }
         handleBackSpace() {

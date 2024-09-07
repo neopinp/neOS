@@ -43,6 +43,7 @@ namespace TSOS {
             this.buffer += chr;
             this.putText(chr);  // Display the character
           }
+          // TODO: Add a case for Ctrl-C that would allow the user to break the current program 
         }
       }
 
@@ -87,6 +88,8 @@ namespace TSOS {
   
       public putText(text: string): void {
         if (text !== "") {
+
+          
           const offset = neOS.DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
           
           // Handle wrapping when text exceeds the canvas width
