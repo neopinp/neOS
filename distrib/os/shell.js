@@ -351,7 +351,8 @@ var TSOS;
                     neOS.StdOut.putText("Good choice...");
                 }
                 else {
-                    neOS.StdOut.putText("Wrong, wrong, and WRONG");
+                    this.shellBSOD([]);
+                    return;
                 }
             }
             neOS.StdOut.advanceLine();
