@@ -357,6 +357,7 @@ var TSOS;
             neOS.StdOut.advanceLine();
             neOS.waitingForRiddleAnswer = false;
             neOS.correctAnswer = "";
+            this.putPrompt();
         }
         shellStatus(args) {
             if (args.length > 0) {

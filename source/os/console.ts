@@ -33,15 +33,57 @@ namespace TSOS {
         while (neOS.KernelInputQueue.getSize() > 0) {
           const chr = neOS.KernelInputQueue.dequeue();
           if (chr === String.fromCharCode(13)) { // Enter key
-            neOS.OsShell.handleInput(this.buffer);  // Execute the command
-            this.outputBuffer.push(this.buffer);  // Store the command output in buffer
+            neOS.OsShell.handleInput(this.buffer); 
+            this.outputBuffer.push(this.buffer); 
             this.buffer = "";  // Clear the buffer after command execution
-          } else {
+          } else if (chr === String.fromCharCode(8)) {
+            this.handleBackSpace();
+          }
+          else {
             this.buffer += chr;
             this.putText(chr);  // Display the character
           }
         }
       }
+
+      public handleBackSpace(): void {
+        if (this.buffer.length > 0) {
+            // Remove the last character from the buffer
+            const lastChar = this.buffer.slice(-1);
+            this.buffer = this.buffer.slice(0, -1);
+    
+            // Measure the width of the last character to calculate how much to clear
+            const charWidth = neOS.DrawingContext.measureText(this.currentFont, this.currentFontSize, lastChar);
+
+            this.currentXPosition -= charWidth;
+            const clearHeight = this.lineHeight + 6;  
+            neOS.DrawingContext.clearRect(
+                this.currentXPosition,
+                this.currentYPosition - this.lineHeight,  
+                charWidth, 
+                clearHeight 
+            );
+    
+            // Redraw the console
+            this.redrawConsoleAfterBackspace();
+        }
+    }
+    
+    public redrawConsoleAfterBackspace(): void {
+        this.currentXPosition = 0;
+    
+        this.putText(neOS.OsShell.promptStr);
+    
+    
+        const promptWidth = neOS.DrawingContext.measureText(this.currentFont, this.currentFontSize, neOS.OsShell.promptStr);
+        this.currentXPosition = promptWidth;
+    
+        this.putText(this.buffer); 
+    
+
+        const bufferWidth = neOS.DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer);
+        this.currentXPosition = promptWidth + bufferWidth; 
+    }
   
       public putText(text: string): void {
         if (text !== "") {
@@ -71,8 +113,8 @@ namespace TSOS {
       }
   
       public advanceLine(): void {
-        this.currentXPosition = 0;  // Reset X to the beginning of the next line
-        this.currentYPosition += this.lineHeight;  // Move Y down by one line height
+        this.currentXPosition = 0;  
+        this.currentYPosition += this.lineHeight;  
         
         // If the Y position exceeds the canvas height, scroll
         if (this.currentYPosition >= neOS.Canvas.height) {
@@ -91,10 +133,10 @@ namespace TSOS {
           neOS.Canvas.height - scrollAmount
         );
   
-        this.clearScreen();  // Clear the canvas to prevent text overlap
-        neOS.DrawingContext.putImageData(imageData, 0, 0);  // Display the scrolled data
+        this.clearScreen();  
+        neOS.DrawingContext.putImageData(imageData, 0, 0);  
   
-        this.currentYPosition = neOS.Canvas.height - this.lineHeight;  // Reset Y position to the last line
+        this.currentYPosition = neOS.Canvas.height - this.lineHeight;  
       }
     }
   }

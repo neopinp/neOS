@@ -29,8 +29,8 @@ h3 {
 }
 
 #display {
-  background-color:#DFDBC3;
-  border: 2px solid red;
+  background-color: #121111;
+  border: 2px solid rgb(6, 128, 0);
   cursor: default;
 }
 

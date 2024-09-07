@@ -461,6 +461,8 @@ public putPrompt() {
       neOS.StdOut.advanceLine();
       neOS.waitingForRiddleAnswer = false;
       neOS.correctAnswer = "";
+      
+      this.putPrompt();
     }
 
     public shellStatus(args: string[]) {
