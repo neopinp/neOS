@@ -38,6 +38,9 @@ var TSOS;
                 " capsLock:" +
                 this.isCapsLockActive);
             let chr = "";
+            if (keyCode === 38 || keyCode === 40) {
+                neOS.OsShell.handleArrowKeys(keyCode);
+            }
             if (keyCode >= 65 && keyCode <= 90) {
                 chr = this.handleLetter(keyCode, isShifted);
                 neOS.KernelInputQueue.enqueue(chr);

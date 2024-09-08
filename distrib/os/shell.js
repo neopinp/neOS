@@ -37,6 +37,8 @@ var TSOS;
 (function (TSOS) {
     class Shell extends TSOS.SystemService {
         // Properties
+        commandHistory = [];
+        historyPointer = -1;
         promptStr = ">";
         commandList = [];
         curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
@@ -100,7 +102,7 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(() => this.shellLoad(), "load", " - Load a user program");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellBSOD, 'bsod', ' - triggers a BSOD for testing');
+            sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", " - triggers a BSOD for testing");
             this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // new shell command
@@ -131,6 +133,10 @@ var TSOS;
             neOS.StdOut.putText(this.promptStr);
         }
         handleInput(buffer) {
+            if (buffer.trim() !== "") {
+                this.commandHistory.push(buffer);
+                this.historyPointer = this.commandHistory.length;
+            }
             neOS.Kernel.krnTrace("Shell Command~" + buffer);
             if (neOS.waitingForRiddleAnswer) {
                 this.checkRiddleAnswer(buffer);
@@ -138,7 +144,10 @@ var TSOS;
             }
             //
             // Parse the input...
-            //
+            if (buffer.trim() !== "") {
+                this.commandHistory.push(buffer);
+                this.historyPointer = this.commandHistory.length;
+            }
             var userCommand = this.parseInput(buffer);
             // ... and assign the command and args to local variables.
             var cmd = userCommand.command;
@@ -179,6 +188,33 @@ var TSOS;
                     this.execute(this.shellInvalidCommand);
                 }
             }
+        }
+        handleArrowKeys(keyCode) {
+            if (keyCode === 38) {
+                // Move up in the history if possible
+                if (this.historyPointer > 0) {
+                    this.historyPointer--;
+                    neOS.Console.buffer = this.commandHistory[this.historyPointer];
+                    this.redrawInput();
+                }
+            }
+            else if (keyCode === 40) {
+                // Move down in the history if possible
+                if (this.historyPointer < this.commandHistory.length - 1) {
+                    this.historyPointer++;
+                    neOS.Console.buffer = this.commandHistory[this.historyPointer];
+                    this.redrawInput();
+                }
+                else {
+                    neOS.Console.buffer = "";
+                    this.redrawInput();
+                }
+            }
+        }
+        redrawInput() {
+            neOS.Console.clearCurrentLine(); // Assuming you have a method to clear the current line
+            neOS.StdOut.putText(this.promptStr);
+            neOS.StdOut.putText(neOS.Console.buffer); // Draw the current buffer
         }
         // Note: args is an optional parameter, ergo the ? which allows TypeScript to understand that.
         execute(fn, args) {
@@ -435,7 +471,7 @@ var TSOS;
             }
         }
         showBluePillGiff() {
-            console.log('displaying blue pill gif');
+            console.log("displaying blue pill gif");
             const gifContainer = document.getElementById("bluePillGif");
             gifContainer.style.display = "flex";
         }

@@ -30,7 +30,6 @@ namespace TSOS {
       // Parse the params.  TODO: Check that the params are valid and osTrapError if not.
       const keyCode = params[0];
       const isShifted = params[1];
-
       if (keyCode === 20) {
         this.isCapsLockActive = !this.isCapsLockActive;
         return;
@@ -44,7 +43,9 @@ namespace TSOS {
           this.isCapsLockActive
       );
       let chr = "";
-
+      if (keyCode === 38 || keyCode === 40) {
+        neOS.OsShell.handleArrowKeys(keyCode);
+      }
       if (keyCode >= 65 && keyCode <= 90) {
         chr = this.handleLetter(keyCode, isShifted);
         neOS.KernelInputQueue.enqueue(chr);

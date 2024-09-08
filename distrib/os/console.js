@@ -70,6 +70,12 @@ var TSOS;
             const bufferWidth = neOS.DrawingContext.measureText(this.currentFont, this.currentFontSize, this.buffer);
             this.currentXPosition = promptWidth + bufferWidth;
         }
+        // Fix clearCurrentLine to only clear the current line where input is happening
+        clearCurrentLine() {
+            const currentLineStartY = this.currentYPosition - this.lineHeight; // The starting Y position of the current line
+            neOS.DrawingContext.clearRect(0, currentLineStartY, neOS.Canvas.width, this.lineHeight); // Clear only the current line
+            this.currentXPosition = 0; // Reset the X position to the beginning of the line
+        }
         putText(text) {
             if (text !== "") {
                 const offset = neOS.DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
@@ -93,11 +99,6 @@ var TSOS;
             if (this.currentYPosition >= neOS.Canvas.height) {
                 this.scrollText();
             }
-        }
-        clearCurrentLine() {
-            const currentLineHeight = this.currentYPosition - this.lineHeight;
-            neOS.DrawingContext.clearRect(0, currentLineHeight, neOS.Canvas.width, this.lineHeight);
-            this.resetXY();
         }
         scrollText() {
             const scrollAmount = this.lineHeight;

@@ -39,6 +39,8 @@ namespace TSOS {
 namespace TSOS {
   export class Shell extends SystemService {
     // Properties
+    private commandHistory: string[] = [];
+    private historyPointer: number = -1;
     public promptStr = ">";
     public commandList = [];
     public curses =
@@ -48,7 +50,8 @@ namespace TSOS {
     public detailedCommands = {
       help: "Help displays a list of all available commands",
       ver: "Displays version data and personal details (name/course).",
-      shutdown: "Shuts down the virtual OS but leaves the underlying host / hardware simulation running.",
+      shutdown:
+        "Shuts down the virtual OS but leaves the underlying host / hardware simulation running.",
       cls: "Clears the screen and resets the cursor position.",
       man: "Displays the manual page for a command. Usage: man <command>",
       trace: "Turns the OS trace on or off. Usage: trace <on | off>",
@@ -63,7 +66,6 @@ namespace TSOS {
       list: "List all the running processes and the corresponding IDS <string>.",
       kill: "Kills the specified process id <string>",
     };
-    
 
     constructor() {
       super("Shell");
@@ -153,13 +155,15 @@ namespace TSOS {
       sc = new ShellCommand(
         () => this.shellLoad(),
         "load",
-        " - Load a user program");
+        " - Load a user program"
+      );
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
         this.shellBSOD,
-        'bsod',
-        ' - triggers a BSOD for testing');
+        "bsod",
+        " - triggers a BSOD for testing"
+      );
       this.commandList[this.commandList.length] = sc;
 
       // ps  - list the running processes and their IDs
@@ -177,14 +181,8 @@ namespace TSOS {
         "<string> - Kills the specificed process id."
       );
       this.commandList[this.commandList.length] = sc;
-      sc = new ShellCommand(
-        this.shellList,
-        "list",
-        "Lists processes."
-      );
+      sc = new ShellCommand(this.shellList, "list", "Lists processes.");
       this.commandList[this.commandList.length] = sc;
-      
-
 
       // kill <id> - kills the specified process id.
       // new shell command
@@ -203,15 +201,18 @@ namespace TSOS {
       this.putPrompt(); // Display the initial prompt.
     }
 
-public putPrompt() {
-  if (neOS.StdOut.currentXPosition !== 0) {
-    neOS.StdOut.advanceLine();  // Only advance the line if we are not at the start
-  }
-  neOS.StdOut.putText(this.promptStr);
-}
+    public putPrompt() {
+      if (neOS.StdOut.currentXPosition !== 0) {
+        neOS.StdOut.advanceLine(); // Only advance the line if we are not at the start
+      }
+      neOS.StdOut.putText(this.promptStr);
+    }
 
-
-    public handleInput(buffer) {
+    public handleInput(buffer: string) {
+      if (buffer.trim() !== "") {
+        this.commandHistory.push(buffer);
+        this.historyPointer = this.commandHistory.length;
+      }
       neOS.Kernel.krnTrace("Shell Command~" + buffer);
       if (neOS.waitingForRiddleAnswer) {
         this.checkRiddleAnswer(buffer);
@@ -219,7 +220,10 @@ public putPrompt() {
       }
       //
       // Parse the input...
-      //
+      if (buffer.trim() !== "") {
+        this.commandHistory.push(buffer);
+        this.historyPointer = this.commandHistory.length;
+      }
       var userCommand = this.parseInput(buffer);
       // ... and assign the command and args to local variables.
       var cmd = userCommand.command;
@@ -256,6 +260,32 @@ public putPrompt() {
           this.execute(this.shellInvalidCommand);
         }
       }
+    }
+
+    public handleArrowKeys(keyCode: number): void {
+      if (keyCode === 38) {
+        // Move up in the history if possible
+        if (this.historyPointer > 0) {
+          this.historyPointer--;
+          neOS.Console.buffer = this.commandHistory[this.historyPointer];
+          this.redrawInput();
+        }
+      } else if (keyCode === 40) {
+        // Move down in the history if possible
+        if (this.historyPointer < this.commandHistory.length - 1) {
+          this.historyPointer++;
+          neOS.Console.buffer = this.commandHistory[this.historyPointer];
+          this.redrawInput();
+        } else {
+          neOS.Console.buffer = "";
+          this.redrawInput();
+        }
+      }
+    }
+    private redrawInput(): void {
+      neOS.Console.clearCurrentLine(); // Assuming you have a method to clear the current line
+      neOS.StdOut.putText(this.promptStr);
+      neOS.StdOut.putText(neOS.Console.buffer); // Draw the current buffer
     }
 
     // Note: args is an optional parameter, ergo the ? which allows TypeScript to understand that.
@@ -348,25 +378,22 @@ public putPrompt() {
     public shellHelp(args: string[]) {
       neOS.StdOut.putText("Commands:");
       neOS.StdOut.advanceLine(); // Move to a new line for the list of commands.
-    
+
       // Loop through each command in the commandList and print it without any extra lines.
       for (var i in neOS.OsShell.commandList) {
         const command = neOS.OsShell.commandList[i].command;
         const description = neOS.OsShell.commandList[i].description;
-    
+
         // Debugging log to check if there are any unexpected characters
         console.log(`Command: ${command} | Description: ${description}`);
-        
+
         // Combine the command and description, and print them on the same line.
         neOS.StdOut.putText(command + " " + description);
-        
+
         // After printing the command and description, advance the line.
         neOS.StdOut.advanceLine();
       }
     }
-    
-
-    
 
     public shellShutdown(args: string[]) {
       neOS.StdOut.putText("Shutting down...");
@@ -445,7 +472,7 @@ public putPrompt() {
 
     public checkRiddleAnswer(answer: string) {
       const trimmedAnswer = answer.toLowerCase().trim();
-    
+
       // Check if the answer is valid
       if (trimmedAnswer === "red" || trimmedAnswer === "red pill") {
         neOS.StdOut.advanceLine();
@@ -459,33 +486,29 @@ public putPrompt() {
         neOS.StdOut.putText("red or blue dumbass.");
         neOS.StdOut.advanceLine();
         this.putPrompt(); // Show the prompt again after an invalid response
-        return;  // Exit the function to avoid resetting the riddle state
+        return; // Exit the function to avoid resetting the riddle state
       }
-    
+
       // Reset state after a valid response
       neOS.waitingForRiddleAnswer = false;
       neOS.correctAnswer = "";
       this.putPrompt(); // Reset the prompt after the valid response
     }
-    
 
     public shellStatus(args: string[]) {
       if (args.length > 0) {
-          let statusMessage = args.join(" ");
-          neOS.StatusMessage = statusMessage;
-          neOS.StdOut.putText(`Status set to: ${statusMessage}`);
-          
-          // Manually update the taskbar element directly for testing
-          document.getElementById("taskbar-status").textContent = statusMessage;
+        let statusMessage = args.join(" ");
+        neOS.StatusMessage = statusMessage;
+        neOS.StdOut.putText(`Status set to: ${statusMessage}`);
+
+        // Manually update the taskbar element directly for testing
+        document.getElementById("taskbar-status").textContent = statusMessage;
       } else {
-          neOS.StdOut.putText("Usage: status <string>. Please supply a status message.");
+        neOS.StdOut.putText(
+          "Usage: status <string>. Please supply a status message."
+        );
       }
-  }
-  
-  
-
-
-
+    }
 
     public shellLoad() {
       // Assuming the input is fetched from a text area on the HTML page
@@ -508,7 +531,7 @@ public putPrompt() {
     }
 
     public shellBSOD(args: string[]) {
-      neOS.Kernel.krnTrapError("Manual BSOD trigger.")
+      neOS.Kernel.krnTrapError("Manual BSOD trigger.");
     }
 
     public shellList(args: string[]) {
@@ -555,7 +578,7 @@ public putPrompt() {
     }
 
     private showBluePillGiff() {
-      console.log('displaying blue pill gif');
+      console.log("displaying blue pill gif");
       const gifContainer = document.getElementById("bluePillGif");
       gifContainer.style.display = "flex";
     }
