@@ -36,9 +36,14 @@ var TSOS;
 })(TSOS || (TSOS = {}));
 (function (TSOS) {
     class Shell extends TSOS.SystemService {
-        // Properties
+        //properties for tab completion of similar letters
+        lastTabInput = "";
+        tabCompletionMatches = [];
+        tabCompletionPointer = 0;
+        //properties for tab completion
         commandHistory = [];
         historyPointer = -1;
+        // Properties
         promptStr = ">";
         commandList = [];
         curses = "[fuvg],[cvff],[shpx],[phag],[pbpxfhpxre],[zbgureshpxre],[gvgf]";
@@ -109,8 +114,6 @@ var TSOS;
             sc = new TSOS.ShellCommand(this.shellList, "list", "<string> - List running processes.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id.");
-            this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellList, "list", "Lists processes.");
             this.commandList[this.commandList.length] = sc;
             // kill <id> - kills the specified process id.
             // new shell command
@@ -468,6 +471,29 @@ var TSOS;
             }
             else {
                 neOS.StdOut.putText("Usage: man <topic>. Please supply a topic.");
+            }
+        }
+        handleTabCompletion() {
+            const input = neOS.Console.buffer.trim();
+            // If the input is not empty, find matching commands
+            if (input.length > 0) {
+                this.tabCompletionMatches = this.commandList
+                    .map(cmd => cmd.command)
+                    .filter(command => command.startsWith(input));
+                // If there are multiple matches, show them
+                if (this.tabCompletionMatches.length > 1) {
+                    neOS.StdOut.advanceLine();
+                    neOS.StdOut.putText(this.tabCompletionMatches.join(", "));
+                    neOS.StdOut.advanceLine();
+                    this.putPrompt();
+                    this.redrawInput();
+                    return; // Don't autocomplete, just show the possible matches
+                }
+                // If there's exactly one match, autocomplete the command
+                else if (this.tabCompletionMatches.length === 1) {
+                    neOS.Console.buffer = this.tabCompletionMatches[0];
+                    this.redrawInput();
+                }
             }
         }
         showBluePillGiff() {

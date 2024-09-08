@@ -27,16 +27,20 @@ var TSOS;
             // Parse the params.  TODO: Check that the params are valid and osTrapError if not.
             const keyCode = params[0];
             const isShifted = params[1];
-            if (keyCode === 20) {
-                this.isCapsLockActive = !this.isCapsLockActive;
-                return;
-            }
             neOS.Kernel.krnTrace("Key code:" +
                 keyCode +
                 " shifted:" +
                 isShifted +
                 " capsLock:" +
                 this.isCapsLockActive);
+            if (keyCode === 9) {
+                neOS.OsShell.handleTabCompletion();
+                return;
+            }
+            if (keyCode === 20) {
+                this.isCapsLockActive = !this.isCapsLockActive;
+                return;
+            }
             let chr = "";
             if (keyCode === 38 || keyCode === 40) {
                 neOS.OsShell.handleArrowKeys(keyCode);

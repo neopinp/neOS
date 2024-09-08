@@ -38,9 +38,14 @@ namespace TSOS {
 
 namespace TSOS {
   export class Shell extends SystemService {
-    // Properties
+    //properties for tab completion of similar letters
+    private lastTabInput: string = "";
+    private tabCompletionMatches: string[] = [];
+    private tabCompletionPointer: number = 0;
+    //properties for tab completion
     private commandHistory: string[] = [];
     private historyPointer: number = -1;
+    // Properties
     public promptStr = ">";
     public commandList = [];
     public curses =
@@ -180,8 +185,6 @@ namespace TSOS {
         "kill",
         "<string> - Kills the specificed process id."
       );
-      this.commandList[this.commandList.length] = sc;
-      sc = new ShellCommand(this.shellList, "list", "Lists processes.");
       this.commandList[this.commandList.length] = sc;
 
       // kill <id> - kills the specified process id.
@@ -576,6 +579,33 @@ namespace TSOS {
         neOS.StdOut.putText("Usage: man <topic>. Please supply a topic.");
       }
     }
+
+    public handleTabCompletion(): void {
+      const input = neOS.Console.buffer.trim();
+      
+      // If the input is not empty, find matching commands
+      if (input.length > 0) {
+          this.tabCompletionMatches = this.commandList
+              .map(cmd => cmd.command)
+              .filter(command => command.startsWith(input));
+          
+          // If there are multiple matches, show them
+          if (this.tabCompletionMatches.length > 1) {
+              neOS.StdOut.advanceLine();
+              neOS.StdOut.putText(this.tabCompletionMatches.join(", "));
+              neOS.StdOut.advanceLine();
+              this.putPrompt();
+              this.redrawInput();
+              return;  // Don't autocomplete, just show the possible matches
+          } 
+          // If there's exactly one match, autocomplete the command
+          else if (this.tabCompletionMatches.length === 1) {
+              neOS.Console.buffer = this.tabCompletionMatches[0];
+              this.redrawInput();
+          }
+      }
+  }
+  
 
     private showBluePillGiff() {
       console.log("displaying blue pill gif");
