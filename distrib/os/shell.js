@@ -342,23 +342,27 @@ var TSOS;
         }
         checkRiddleAnswer(answer) {
             const trimmedAnswer = answer.toLowerCase().trim();
-            if (trimmedAnswer === "red" ||
-                trimmedAnswer === "red pill" ||
-                trimmedAnswer === "blue" ||
-                trimmedAnswer === "blue pill") {
+            // Check if the answer is valid
+            if (trimmedAnswer === "red" || trimmedAnswer === "red pill") {
                 neOS.StdOut.advanceLine();
-                if (trimmedAnswer === "red" || trimmedAnswer === "red pill") {
-                    neOS.StdOut.putText("Good choice...");
-                }
-                else {
-                    this.shellBSOD([]);
-                    return;
-                }
+                neOS.StdOut.putText("Good choice...");
             }
-            neOS.StdOut.advanceLine();
+            else if (trimmedAnswer === "blue" || trimmedAnswer === "blue pill") {
+                neOS.StdOut.advanceLine();
+                this.showBluePillGiff();
+            }
+            else {
+                // Handle invalid input
+                neOS.StdOut.advanceLine();
+                neOS.StdOut.putText("red or blue dumbass.");
+                neOS.StdOut.advanceLine();
+                this.putPrompt(); // Show the prompt again after an invalid response
+                return; // Exit the function to avoid resetting the riddle state
+            }
+            // Reset state after a valid response
             neOS.waitingForRiddleAnswer = false;
             neOS.correctAnswer = "";
-            this.putPrompt();
+            this.putPrompt(); // Reset the prompt after the valid response
         }
         shellStatus(args) {
             if (args.length > 0) {
@@ -429,6 +433,11 @@ var TSOS;
             else {
                 neOS.StdOut.putText("Usage: man <topic>. Please supply a topic.");
             }
+        }
+        showBluePillGiff() {
+            console.log('displaying blue pill gif');
+            const gifContainer = document.getElementById("bluePillGif");
+            gifContainer.style.display = "flex";
         }
     }
     TSOS.Shell = Shell;
