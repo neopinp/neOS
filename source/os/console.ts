@@ -88,8 +88,6 @@ namespace TSOS {
   
       public putText(text: string): void {
         if (text !== "") {
-
-          
           const offset = neOS.DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
           
           // Handle wrapping when text exceeds the canvas width
@@ -123,6 +121,11 @@ namespace TSOS {
         if (this.currentYPosition >= neOS.Canvas.height) {
           this.scrollText();
         }
+      }
+      public clearCurrentLine(): void {
+        const currentLineHeight = this.currentYPosition - this.lineHeight;
+        neOS.DrawingContext.clearRect(0, currentLineHeight, neOS.Canvas.width, this.lineHeight);
+        this.resetXY();
       }
   
       private scrollText(): void {

@@ -94,6 +94,11 @@ var TSOS;
                 this.scrollText();
             }
         }
+        clearCurrentLine() {
+            const currentLineHeight = this.currentYPosition - this.lineHeight;
+            neOS.DrawingContext.clearRect(0, currentLineHeight, neOS.Canvas.width, this.lineHeight);
+            this.resetXY();
+        }
         scrollText() {
             const scrollAmount = this.lineHeight;
             // Scroll the canvas by copying the existing data up by one line height
