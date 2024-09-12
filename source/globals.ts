@@ -33,7 +33,7 @@ var neOS = {
    DefaultFontFamily: 'sans',
    DefaultFontSize: 13,
    FontHeightMargin: 4,
-   Trace: true,
+   Trace: true,  
    Kernel: null as TSOS.Kernel,
    KernelInterruptQueue: null as TSOS.Queue,
    KernelInputQueue: null as TSOS.Queue,
