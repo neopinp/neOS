@@ -9,7 +9,13 @@
 
 namespace TSOS {
   export class Kernel {
-    //
+    public memoryManager: MemoryManager;
+
+    constructor() { 
+      this.memoryManager = new MemoryManager(256);
+      neOS.MemoryManager = this.memoryManager;
+    }
+
     // OS Startup and Shutdown Routines
     //
     public krnBootstrap() {

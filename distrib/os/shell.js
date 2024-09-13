@@ -416,14 +416,18 @@ var TSOS;
             }
         }
         shellLoad() {
-            // Assuming the input is fetched from a text area on the HTML page
             const programInput = document.getElementById("taProgramInput").value;
             // Validate that the input is a valid hexadecimal string
             const isValidHex = /^[0-9a-fA-F\s]+$/.test(programInput.trim());
             if (isValidHex) {
-                neOS.StdOut.putText("Program loaded successfully.");
-                // Here you could also implement storing the program in memory if required
-                // e.g., neOS.MemoryManager.storeProgram(programInput);
+                const program = programInput.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || [];
+                const pid = neOS.MemoryManager.storeProgram(program);
+                if (pid >= 0) {
+                    neOS.StdOut.putText("Program loaded successfully with PID: " + pid);
+                }
+                else {
+                    neOS.StdOut.putText("Error: Not enough memory to load the program");
+                }
             }
             else {
                 neOS.StdOut.putText("Invalid program. Please enter a valid hexadecimal string.");

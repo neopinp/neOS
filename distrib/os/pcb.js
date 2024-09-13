@@ -10,7 +10,7 @@ var TSOS;
         base;
         limit;
         state;
-        constructor(pid, PC = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, base = 0, limit = 0, state = 'New') {
+        constructor(pid, PC = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, base = 0, limit = 0, state = "New") {
             this.pid = pid;
             this.PC = PC;
             this.Acc = Acc;
@@ -45,8 +45,11 @@ var TSOS;
                 Acc: this.Acc,
                 Xreg: this.Xreg,
                 Yreg: this.Yreg,
-                Zflag: this.Zflag
+                Zflag: this.Zflag,
             };
+        }
+        setState(state) {
+            this.state = state;
         }
     }
     TSOS.PCB = PCB;

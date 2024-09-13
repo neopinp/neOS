@@ -9,7 +9,11 @@
 var TSOS;
 (function (TSOS) {
     class Kernel {
-        //
+        memoryManager;
+        constructor() {
+            this.memoryManager = new TSOS.MemoryManager(256);
+            neOS.MemoryManager = this.memoryManager;
+        }
         // OS Startup and Shutdown Routines
         //
         krnBootstrap() {
