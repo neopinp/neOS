@@ -53,7 +53,7 @@ var neOS = {
    waitingForRiddleAnswer: false,
    StatusMessage: '',
    correctAnswer: '',
-   ProcessList: [] as { pid: number, name: string}[],
+   ProcessList: [] as TSOS.PCB[],
    onDocumentLoad: function() {
       TSOS.Control.hostInit();
    }

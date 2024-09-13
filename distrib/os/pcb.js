@@ -2,54 +2,20 @@ var TSOS;
 (function (TSOS) {
     class PCB {
         pid;
-        PC;
-        Acc;
-        Xreg;
-        Yreg;
-        Zflag;
         base;
         limit;
+        pc;
         state;
-        constructor(pid, PC = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, base = 0, limit = 0, state = "New") {
+        priority;
+        name; // Add a name field
+        constructor(pid, base, limit, priority = 1, name = "UnnamedProcess") {
             this.pid = pid;
-            this.PC = PC;
-            this.Acc = Acc;
-            this.Xreg = Xreg;
-            this.Yreg = Yreg;
-            this.Zflag = Zflag;
             this.base = base;
             this.limit = limit;
-            this.state = state;
-        }
-        init(pid, base, limit) {
-            this.pid = pid;
-            this.PC = 0;
-            this.Acc = 0;
-            this.Xreg = 0;
-            this.Yreg = 0;
-            this.Zflag = 0;
-            this.base = base;
-            this.limit = limit;
+            this.pc = 0;
             this.state = "New";
-        }
-        saveState(PC, Acc, Xreg, Yreg, Zflag) {
-            this.PC = PC;
-            this.Acc = Acc;
-            this.Xreg = Xreg;
-            this.Yreg = Yreg;
-            this.Zflag = Zflag;
-        }
-        loadState() {
-            return {
-                PC: this.PC,
-                Acc: this.Acc,
-                Xreg: this.Xreg,
-                Yreg: this.Yreg,
-                Zflag: this.Zflag,
-            };
-        }
-        setState(state) {
-            this.state = state;
+            this.priority = priority;
+            this.name = name; // Initialize name
         }
     }
     TSOS.PCB = PCB;

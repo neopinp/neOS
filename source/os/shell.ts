@@ -174,7 +174,7 @@ namespace TSOS {
       // ps  - list the running processes and their IDs
       // new shell command
       sc = new ShellCommand(
-        this.shellList,
+        this.shellListPCB,
         "list",
         "<string> - List running processes."
       );
@@ -522,12 +522,27 @@ namespace TSOS {
       const isValidHex = /^[0-9a-fA-F\s]+$/.test(programInput.trim());
 
       if (isValidHex) {
-        const program = programInput.match(/.{1,2}/g)?.map(byte => parseInt(byte,16)) || [];
+        const program =
+          programInput.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) ||
+          [];
 
-        const pid = neOS.MemoryManager.storeProgram(program);
+        // Load the program starting at $0000 if available
+        const { pid, baseAddress } = neOS.MemoryManager.storeProgram(program);
 
         if (pid >= 0) {
-          neOS.StdOut.putText("Program loaded successfully with PID: " + pid);
+          // Create a new PCB (Process Control Block) and add it to the process list
+          const pcb = new PCB(
+            pid,
+            baseAddress,
+            baseAddress + program.length - 1,
+            1,
+            `Program_${pid}`
+          );
+          neOS.ProcessList.push(pcb); // Store the PCB in the process list
+
+          neOS.StdOut.putText(
+            `Program loaded successfully with PID: ${pid}`
+          );
         } else {
           neOS.StdOut.putText("Error: Not enough memory to load the program");
         }
@@ -536,28 +551,33 @@ namespace TSOS {
           "Invalid program. Please enter a valid hexadecimal string."
         );
       }
-
-
     }
 
     public shellBSOD(args: string[]) {
       neOS.Kernel.krnTrapError("Manual BSOD trigger.");
     }
 
-    public shellList(args: string[]) {
+    public shellListPCB(args: string[]) {
       if (neOS.ProcessList.length > 0) {
-        neOS.StdOut.putText("PID \tProcess Name");
-        neOS.StdOut.advanceLine();
-        for (let i = 0; i < neOS.ProcessList.length; i++) {
-          neOS.StdOut.putText(
-            neOS.ProcessList[i].pid + "   \t" + neOS.ProcessList[i].name
-          );
+          neOS.StdOut.putText("PID  \tBase  \tLimit  \tState");
           neOS.StdOut.advanceLine();
-        }
+          for (let i = 0; i < neOS.ProcessList.length; i++) {
+              const pcb = neOS.ProcessList[i];
+              // Format base and limit as four-character hex strings with a leading '$'
+              const base = "$" + pcb.base.toString(16).padStart(4, "0").toUpperCase();
+              const limit = "$" + pcb.limit.toString(16).padStart(4, "0").toUpperCase();
+              neOS.StdOut.putText(
+                  `${pcb.pid}   \t${base} \t${limit} \t${pcb.state}`
+              );
+              neOS.StdOut.advanceLine();
+          }
       } else {
-        neOS.StdOut.putText("No running Processes.");
+          neOS.StdOut.putText("No running Processes.");
       }
-    } // new command
+  }
+  
+
+    // new command
     public shellKill(args: string[]) {
       // add new shell command functionalities
     }
@@ -589,30 +609,29 @@ namespace TSOS {
 
     public handleTabCompletion(): void {
       const input = neOS.Console.buffer.trim();
-      
+
       // If the input is not empty, find matching commands
       if (input.length > 0) {
-          this.tabCompletionMatches = this.commandList
-              .map(cmd => cmd.command)
-              .filter(command => command.startsWith(input));
-          
-          // If there are multiple matches, show them
-          if (this.tabCompletionMatches.length > 1) {
-              neOS.StdOut.advanceLine();
-              neOS.StdOut.putText(this.tabCompletionMatches.join(", "));
-              neOS.StdOut.advanceLine();
-              this.putPrompt();
-              this.redrawInput();
-              return;  // Don't autocomplete, just show the possible matches
-          } 
-          // If there's exactly one match, autocomplete the command
-          else if (this.tabCompletionMatches.length === 1) {
-              neOS.Console.buffer = this.tabCompletionMatches[0];
-              this.redrawInput();
-          }
+        this.tabCompletionMatches = this.commandList
+          .map((cmd) => cmd.command)
+          .filter((command) => command.startsWith(input));
+
+        // If there are multiple matches, show them
+        if (this.tabCompletionMatches.length > 1) {
+          neOS.StdOut.advanceLine();
+          neOS.StdOut.putText(this.tabCompletionMatches.join(", "));
+          neOS.StdOut.advanceLine();
+          this.putPrompt();
+          this.redrawInput();
+          return; // Don't autocomplete, just show the possible matches
+        }
+        // If there's exactly one match, autocomplete the command
+        else if (this.tabCompletionMatches.length === 1) {
+          neOS.Console.buffer = this.tabCompletionMatches[0];
+          this.redrawInput();
+        }
       }
-  }
-  
+    }
 
     private showBluePillGiff() {
       console.log("displaying blue pill gif");
