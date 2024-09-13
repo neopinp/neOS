@@ -11,7 +11,7 @@ var TSOS;
     class Kernel {
         memoryManager;
         constructor() {
-            this.memoryManager = new TSOS.MemoryManager(256);
+            this.memoryManager = new TSOS.MemoryManager(256, neOS.MemoryAccessor);
             neOS.MemoryManager = this.memoryManager;
         }
         // OS Startup and Shutdown Routines
@@ -19,6 +19,7 @@ var TSOS;
         krnBootstrap() {
             // Page 8. {
             TSOS.Control.hostLog("bootstrap", "host"); // Use hostLog because we ALWAYS want this, even if neOS.Trace is off.
+            neOS.MemoryManager = new TSOS.MemoryManager(256, neOS.MemoryAccessor);
             // Initialize our global queues.
             neOS.KernelInterruptQueue = new TSOS.Queue(); // A (currently) non-priority queue for interrupt requests (IRQs).
             neOS.KernelBuffers = new Array(); // Buffers... for the kernel.

@@ -87,8 +87,12 @@ namespace TSOS {
             document.getElementById("display").focus();
 
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
-            neOS.CPU = new Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
+            neOS.CPU = new TSOS.Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
             neOS.CPU.init();       //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+            neOS.Memory = new TSOS.Memory(256);
+            neOS.Memory.init();
+            
+            neOS.MemoryAccessor = new TSOS.MemoryAccessor(neOS.Memory);
 
             // ... then set the host clock pulse ...
             neOS.hardwareClockID = setInterval(Devices.hostClockPulse, CPU_CLOCK_INTERVAL) as unknown as number;

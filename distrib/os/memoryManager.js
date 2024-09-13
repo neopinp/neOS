@@ -2,15 +2,14 @@ var TSOS;
 (function (TSOS) {
     class MemoryManager {
         memorySize;
-        memory;
+        memoryAccessor;
         nextPID;
         allocatedMemoryBlocks;
         // store allocated memory
         freeMemoryBlocks;
-        // track free memory
-        constructor(memorySize) {
+        constructor(memorySize, memoryAccessor) {
             this.memorySize = memorySize;
-            this.memory = new Array(memorySize).fill(0);
+            this.memoryAccessor = memoryAccessor; // Use memory accessor for all memory operations
             this.nextPID = 0; // start with PID: 0
             this.allocatedMemoryBlocks = []; // track memory allocation
             this.freeMemoryBlocks = [{ start: 0, end: memorySize - 1 }];
@@ -21,7 +20,7 @@ var TSOS;
             const baseAddress = this.findFreeMemoryBlock(programSize);
             if (baseAddress !== null) {
                 for (let i = 0; i < programSize; i++) {
-                    this.memory[baseAddress + i] = program[i];
+                    this.memoryAccessor.write(baseAddress + i, program[i]); // Use memoryAccessor to write
                 }
                 const pid = this.nextPID++;
                 this.allocatedMemoryBlocks.push({
@@ -30,7 +29,6 @@ var TSOS;
                     end: baseAddress + programSize - 1,
                 });
                 this.updateFreeMemory(baseAddress, programSize);
-                // update which memory blocks are free
                 return pid;
             }
             return -1; // if not enough memory
@@ -57,7 +55,8 @@ var TSOS;
             return null;
         }
         updateFreeMemory(baseAddress, programSize) {
-            this.freeMemoryBlocks = this.freeMemoryBlocks.map((block) => {
+            this.freeMemoryBlocks = this.freeMemoryBlocks
+                .map((block) => {
                 if (block.start === baseAddress) {
                     const remainingBlockStart = block.start + programSize;
                     if (remainingBlockStart <= block.end) {
@@ -70,12 +69,17 @@ var TSOS;
                 else {
                     return block;
                 }
-            }).filter(block => block !== null);
+            })
+                .filter((block) => block !== null);
         }
         retrieveProgram(pid) {
             const memoryBlock = this.allocatedMemoryBlocks.find((block) => block.pid === pid);
             if (memoryBlock) {
-                return this.memory.slice(memoryBlock.start, memoryBlock.end + 1);
+                const program = [];
+                for (let i = memoryBlock.start; i <= memoryBlock.end; i++) {
+                    program.push(this.memoryAccessor.read(i)); // Use memoryAccessor to read
+                }
+                return program;
             }
             return null;
         }

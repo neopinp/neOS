@@ -12,7 +12,7 @@ namespace TSOS {
     public memoryManager: MemoryManager;
 
     constructor() { 
-      this.memoryManager = new MemoryManager(256);
+      this.memoryManager = new MemoryManager(256, neOS.MemoryAccessor);
       neOS.MemoryManager = this.memoryManager;
     }
 
@@ -21,6 +21,7 @@ namespace TSOS {
     public krnBootstrap() {
       // Page 8. {
       Control.hostLog("bootstrap", "host"); // Use hostLog because we ALWAYS want this, even if neOS.Trace is off.
+      neOS.MemoryManager = new TSOS.MemoryManager(256, neOS.MemoryAccessor);
 
       // Initialize our global queues.
       neOS.KernelInterruptQueue = new Queue(); // A (currently) non-priority queue for interrupt requests (IRQs).
