@@ -178,9 +178,10 @@ var TSOS;
             const pid = neOS.ProcessList.length > 0
                 ? neOS.ProcessList[neOS.ProcessList.length - 1].pid + 1
                 : 1;
-            neOS.ProcessList.push({ pid: pid, name: name });
-            neOS.StdOut.putText(`Process "${name}"
-         started with PID ${pid}.`);
+            const pcb = new TSOS.PCB(pid, 0x0000, 256, 1, name); // Adjust the base, limit, priority as needed
+            neOS.ProcessList.push(pcb); // Add the full PCB to the process list
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText(`Process "${name}" started with PID ${pid}.`);
         }
     }
     TSOS.Kernel = Kernel;

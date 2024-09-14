@@ -5,20 +5,29 @@ var TSOS;
         constructor(memory) {
             this.memory = memory;
         }
+        // Read a byte from memory
         read(address) {
-            if (address >= 0 && address < neOS.Memory.memoryArray.length) {
-                return neOS.Memory.getByte(address);
+            if (address >= 0 && address < this.memory.memoryArray.length) {
+                return this.memory.getByte(address);
+                throw new Error("Memory access violation at address " + address);
+            }
+        }
+        // Write a byte to memory
+        write(address, value) {
+            if (address >= 0 && address < this.memory.memoryArray.length) {
+                this.memory.setByte(address, value);
             }
             else {
                 throw new Error("Memory access violation at address " + address);
             }
         }
-        write(address, value) {
-            if (address >= 0 && address < neOS.Memory.memoryArray.length) {
-                neOS.Memory.setByte(address, value);
+        // Read a block of memory (for retrieving programs)
+        readBlock(startAddress, endAddress) {
+            if (startAddress >= 0 && endAddress < this.memory.memoryArray.length) {
+                return this.memory.memoryArray.slice(startAddress, endAddress + 1);
             }
             else {
-                throw new Error("Memory access violation at address " + address);
+                throw new Error("Memory access violation between addresses " + startAddress + " and " + endAddress);
             }
         }
     }

@@ -48,6 +48,7 @@ var neOS = {
     waitingForRiddleAnswer: false,
     StatusMessage: '',
     correctAnswer: '',
+    CurrentProcess: null,
     ProcessList: [],
     onDocumentLoad: function () {
         TSOS.Control.hostInit();

@@ -105,26 +105,22 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellStatus, "status", " - Set status.");
             this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", " - triggers a BSOD for testing");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellRun, // The run command
+            "run", // Command name
+            "<process_name> - Starts a new process.");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(() => this.shellLoad(), "load", " - Load a user program");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellBSOD, "bsod", " - triggers a BSOD for testing");
+            sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id.");
             this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // new shell command
             sc = new TSOS.ShellCommand(this.shellListPCB, "list", "<string> - List running processes.");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id.");
-            this.commandList[this.commandList.length] = sc;
             // kill <id> - kills the specified process id.
             // new shell command
-            /*
-            sc = new ShellCommand(
-              this.shellRun,
-              "run",
-              "<process_name> - Starts a new process with the given name."
-            );
-            this.commandList[this.commandList.length] = sc;
-            */
             // test new command functionalities
             // list + kill
             this.putPrompt(); // Display the initial prompt.
@@ -222,7 +218,6 @@ var TSOS;
         // Note: args is an optional parameter, ergo the ? which allows TypeScript to understand that.
         execute(fn, args) {
             // We just got a command, so advance the line...
-            neOS.StdOut.advanceLine();
             // ... call the command function passing in the args with some über-cool functional programming ...
             fn(args);
             // Check to see if we need to advance the line again
@@ -290,6 +285,7 @@ var TSOS;
         // Although args is unused in some of these functions, it is always provided in the
         // actual parameter list when this function is called, so I feel like we need it.
         shellVer(args) {
+            neOS.StdOut.advanceLine();
             neOS.StdOut.putText(APP_NAME + " version " + APP_VERSION);
             neOS.StdOut.advanceLine();
             neOS.StdOut.putText("Developed by: Neo Pi");
@@ -365,9 +361,11 @@ var TSOS;
         }
         shellDate(args) {
             const currentDate = new Date().toLocaleString();
+            neOS.StdOut.advanceLine();
             neOS.StdOut.putText("Current Date & Time: " + currentDate);
         }
         shellWhereAmI(args) {
+            neOS.StdOut.advanceLine();
             neOS.StdIn.putText("You are stuck in the Matrix.");
         }
         shellRiddle(args) {
@@ -428,6 +426,7 @@ var TSOS;
                     // Create a new PCB (Process Control Block) and add it to the process list
                     const pcb = new TSOS.PCB(pid, baseAddress, baseAddress + program.length - 1, 1, `Program_${pid}`);
                     neOS.ProcessList.push(pcb); // Store the PCB in the process list
+                    neOS.StdOut.advanceLine();
                     neOS.StdOut.putText(`Program loaded successfully with PID: ${pid}`);
                 }
                 else {
@@ -443,6 +442,7 @@ var TSOS;
         }
         shellListPCB(args) {
             if (neOS.ProcessList.length > 0) {
+                neOS.StdOut.advanceLine();
                 neOS.StdOut.putText("PID  \tBase  \tLimit  \tState");
                 neOS.StdOut.advanceLine();
                 for (let i = 0; i < neOS.ProcessList.length; i++) {
@@ -460,22 +460,69 @@ var TSOS;
         }
         // new command
         shellKill(args) {
-            // add new shell command functionalities
+            if (args.length > 0) {
+                const pid = parseInt(args[0], 10);
+                const pcb = neOS.ProcessList.find((p) => p.pid === pid);
+                if (pcb) {
+                    if (pcb.state === "Terminated") {
+                        neOS.StdOut.advanceLine();
+                        neOS.StdOut.putText(`Error: Process ${pid} already terminated.`);
+                    }
+                    else {
+                        pcb.state = "Terminated";
+                        neOS.StdOut.putText(`Process ${pid} terminated successfully.`);
+                        if (neOS.CurrentProcess && neOS.CurrentProcess.pid === pid) {
+                            neOS.CPU.isExecuting = false;
+                            neOS.CurrentProcess = null;
+                            neOS.StdOut.putText(`Process ${pid} was the running process and is now terminated.`);
+                        }
+                        // free memory associated with termianted process
+                        neOS.MemoryManager.freeProcessMemory(pid);
+                    }
+                }
+                else {
+                    neOS.StdOut.putText(`Error: No process found with PID ${pid}.`);
+                }
+            }
+            else {
+                neOS.StdOut.putText("Usage: kill <pid>. Please supply a PID.");
+            }
         }
         shellRun(args) {
             if (args.length > 0) {
-                const processName = args[0];
-                neOS.Kernel.startNewProcess(processName);
-                neOS.StdOut.advanceLine();
-                neOS.StdOut.putText(`Process "${processName}" started.`);
+                const pid = parseInt(args[0], 10);
+                const pcb = neOS.ProcessList.find((p) => p.pid === pid);
+                if (pcb) {
+                    if (pcb.state === "Terminated") {
+                        neOS.StdOut.advanceLine();
+                        neOS.StdOut.putText(`Error: Process ${pid} has already terminated.`);
+                    }
+                    else if (pcb.state === "Running") {
+                        neOS.StdOut.advanceLine();
+                        neOS.StdOut.putText(`Error: Process ${pid} is already running.`);
+                    }
+                    else {
+                        pcb.state = "Running";
+                        neOS.CurrentProcess = pcb;
+                        neOS.CPU.setPC(pcb.base);
+                        neOS.CPU.isExecuting = true;
+                        neOS.StdOut.advanceLine();
+                        neOS.StdOut.putText(`Process ${pid} is now running.`);
+                    }
+                }
+                else {
+                    neOS.StdOut.advanceLine();
+                    neOS.StdOut.putText(`Error: No process found with PID ${pid}`);
+                }
             }
             else {
-                neOS.StdOut.putText("Usage: run <process_name>");
+                neOS.StdOut.advanceLine();
+                neOS.StdOut.putText("Usage: run <pid>");
             }
         }
         shellMan(args) {
             if (args.length > 0) {
-                var topic = TSOS.Utils.trim(args[0].toLowerCase()); // Trim and lowercase the argument
+                var topic = TSOS.Utils.trim(args[0].toLowerCase());
                 if (this.detailedCommands[topic]) {
                     neOS.StdOut.putText(this.detailedCommands[topic]);
                 }
