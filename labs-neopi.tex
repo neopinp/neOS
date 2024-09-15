@@ -97,16 +97,40 @@ You can develop it by specifically using system calls to manage processes and fi
 \subsection{How is your console like the ancient TTY subsystem in Unix as described in https://www.linusaskesson/programming/tty/?}
 Originally, the TTY system was designed for text-based input and output. Similarly, the current console we are working on operates the same way. It takes character-based commands, and handles commands by processing input as text characters. The input is buffered line-by-line, just as it is in our own OS. Anohter important factor, is that the TTV subsystem was the primary interface for the system, and similarly our OS provides a similar interactive interface. Lastly, the interaction is all in real time, when issuing commands and receiving feedback. 
 
-%----------------------------------------------------------------------------------------
-%   end PROBLEM ONE
-%----------------------------------------------------------------------------------------
 
 \pagebreak
+\section{Lab Three}
+\subsection{Explain	the	difference	between	internal and external fragmentation.}
+Internal fragmentation happens when memory is allocated in block larger than what is required. The memory that is not used inside the allocated block becomes useless if the process does not require the whole block. External fragmentation happens when there is enough free memory, but the free memory is scattered in different blocks. Even though there is enough free memory, there are no single blocks large enough for the request. 
+Overall, internal fragmentation contains wasted space within memory blocks, while external fragmentation has wasted space between memory blocks. 
+\subsection{Given five memory partitions of 100KB, 500KB, 200KB, 300KB, and 600LB (in that order), how would optimal, first-fit best-fit, and worst-fit algorithms place processes of 212KB, 417KB, 112KB, and 426KB (in that order)?}
 
-%----------------------------------------------------------------------------------------
-%   start PROBLEM TWO
-%----------------------------------------------------------------------------------------
-\section{Problem Two}
+For optimal placement, it would work like this: 
+212KB : 300KB 
+417KB : 500KB 
+112KB : 200KB 
+426KB : 600KB 
+
+First-Fit: 
+212KB : 500KB 
+417KB : 600KB 
+112KB : 200KB 
+426KB : 
+
+Best-Fit: 
+212KB : 300KB, 
+417KB : 500KB, 
+112KB : 200KB, 
+426KB : 600KB 
+
+Worst-Fit: 
+212KB : 600KB, 
+417KB : 500KB, 
+112KB : 300KB, 
+426KB : 
+
+
+
 
 %----------------------------------------------------------------------------------------
 %   end PROBLEM Two
