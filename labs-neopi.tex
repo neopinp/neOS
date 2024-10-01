@@ -23,7 +23,7 @@
 %----------------------------------------------------------------------------------------
 
 \documentclass[letterpaper, 10pt,DIV=13]{scrartcl} 
-
+\usepackage{float}
 \usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
 \usepackage[english]{babel} % English language/hyphenation
 \usepackage{amsmath,amsfonts,amsthm,xfrac} % Math packages
@@ -144,10 +144,10 @@ Worst-Fit:
 \section{Lab 4}
 \subsection{What is the relationship between a guest operating system and a host operating system like VMware? What factors need to be considered in choosing the host operating system?}
 The relationship involves how the host manages the hardware resources and virtualizes them for the guest OS. The guest OS runs as if it were operating directly on a physical machine, but it instead operates on virtual hardware. The guest OS relies on the host OS for certain things such as CPU and RAM. Some factors to be considered are: 
-The compatibility with the virtualization software 
-Performance
-Resource Allocation 
-Security 
+The compatibility with the virtualization software, 
+Performance,
+Resource Allocation,
+Security.
 
 
 %----------------------------------------------------------------------------------------
@@ -156,16 +156,118 @@ Security
 
 \pagebreak
 
+\section{Lab 5}
+\subsection{The processes are assumed to have arrived in the order P1, P2, P3, P4, P5, all at time 0.}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ccc}
+        Process &Burst Time  &Priority \\
+        P1 &10 &3\\
+        P2 &1  &1 \\
+        P3 &2  &3 \\
+        P4 &1  &4 \\
+        P5 &5  &2 \\
+    \end{tabular}
+    \caption{Consider the set of processes, with the length of the CPU burst given in milliseconds.}
+    \label{tab:my_label}
+\end{table}
+
+
+a. Draw four Gantt charts that illustrate the execution of these processes using the following scheduling algorithms. FCFS, SJF, non preemptive priority (a smaller priority number implies a higher priority), and RR (quantum = 1).\\
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{cccccc}
+        P1 & P2 & P3 & P4 & P5 & \\
+        0  &10  & 11 &  13&  14&19 \\
+    \end{tabular}
+    \caption{FCFS}
+    \label{tab:my_label}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{cccccc}
+        P2 & P4 & P3 & P5 & P1 & \\
+        0 & 1 & 2 & 4 & 9 & 19\\
+    \end{tabular}
+    \caption{SJF}
+    \label{tab:my_label}
+\end{table}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{cccccc}
+        P2 & P5 & P1 & P3 & P4 & \\
+        0 & 1 & 6 & 16 & 18 & 19\\
+    \end{tabular}
+    \caption{Non-preemptive Priority}
+    \label{tab:my_label}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{cccccccccc}
+         P1&  P2&  P3&  P4&  P5&  P1&  P3&  P5&  P1& \\
+         0&  1&  2&  3& 4 &  5&  6& 7 &  8& \\
+    \end{tabular}
+    \caption{RR Part1}
+    \label{tab:my_label}
+\end{table}
+\begin{table}[H]
+    \centering
+    \begin{tabular}{ccccccc}
+         P5& P1&  P5&  P1&  P5&  P1& \\
+         9& 10 &11  &12  &13  &14  &19 \\
+    \end{tabular}
+    \caption{RR Part2}
+    \label{tab:my_label}
+\end{table}
+\pagebreak
+b. What is the turnaround time of each process for each of the scheduling algorithms in part a? \\
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{cccccc}
+         Process&  FCFS&  SJF&  Priority&  RR& \\
+         P1&  10&  19&  16&  19& \\
+         P2&  11&  1&  1&  1& \\
+         P3&  13&  4&  18&  12& \\
+         P4&  14&  2&  19&  3& \\
+         P5& 19&  9& 6& 13& \\
+    \end{tabular}
+    \caption{Turnaround Time}
+    \label{tab:my_label}
+\end{table}
+c. What is the waiting time of each process for each of these scheduling algorithms? \\
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{ccccc}
+        Process & FCFS & SJF & Priority &RR \\
+         P1&  0&  9&  6& 9\\
+         P2&  10&  0&  0& 0\\
+         P3&  11&  2&  16& 10\\
+         P4&  13&  1&  18&2 \\
+         P5&  14&  4&  1& 8\\
+    \end{tabular}
+    \caption{Waiting Time}
+    \label{tab:my_label}
+\end{table}
+d. Which of the algorithms results in the minimum average waiting time (over all processes)?
+
+\begin{quote}
+    FCFS Average Waiting Time: (0 + 10 + 11 + 13 + 14) / 5 = 9.6 ms.\\
+    SJF Average Waiting Time: (9 + 0 + 2 + 1 + 4) / 5 = 3.2 ms.\\
+    Priority Average Waiting Time: (6 + 0 + 16 + 18 + 1) / 5 = 8.2 ms.\\
+    RR Average Waiting Time: (9 + 0 + 10 + 2 + 8) / 5 = 5.8 ms.
+\end{quote}
+\textbf{Shortest Job First has the minimum average waiting time.} 
+
+
+
 %----------------------------------------------------------------------------------------
 %   REFERENCES
 %----------------------------------------------------------------------------------------
-% The following two commands are all you need in the initial runs of your .tex file to
-% produce the bibliography for the citations in your paper.
-\bibliographystyle{abbrv}
-\bibliography{lab01} 
-% You must have a proper ".bib" file and remember to run:
-% latex bibtex latex latex
-% to resolve all references.
 
 \pagebreak
 
@@ -174,58 +276,5 @@ Security
 %----------------------------------------------------------------------------------------
 
 \section{Appendix}
-
-\subsection{Some JavaScript source code listings}
-
-\lstset{numbers=left, numberstyle=\tiny, stepnumber=1, numbersep=5pt, basicstyle=\footnotesize\ttfamily}
-\begin{lstlisting}[frame=single, ]  
-var A = [5,0,5,6,6,8,45,50];
-
-function solve(A) {
-    // Base case to stop the recursion.
-    if (A.length == 1) {
-        if (A[0] % 5 == 0) {
-            var retVal = 1;
-        } else {
-            var retVal = 0;
-        }
-        return retVal;
-    } else {
-        // Divide.
-        var divPoint = Math.floor( A.length / 2);
-        var left  = A.slice(0, divPoint);
-        var right = A.slice(divPoint, A.length);
-        
-        // Conquer.
-        var left5s   = solve(left, level+1);
-        var center5s = straddle(left, right);
-        var right5s  = solve(right, level+1);             
-        
-        // Combine.
-        return Math.max(left5s, Math.max(center5s, right5s));
-    }
-}
-
-function straddle(left, right) {
-    var retVal = 0;
-    if ((left[left.length-1] % 5 == 0) && (right[0] % 5 == 0)) {
-        // Count back the 5's on the left going from right to left.
-        var leftCount = 0;
-        var index = left.length-1;
-        while ( (index >= 0) && (left[index] % 5 == 0) ) {
-            index--;
-            leftCount++;
-        }
-        // Count forward the 5's on the right going from left to right.
-        var rightCount = 0;
-        while ( (rightCount < right.length) && (right[rightCount] % 5 == 0) ) {
-            rightCount++;
-        }
-        // Return the sum of the straddling 5s on the left and right.
-        retVal = leftCount + rightCount;
-    }
-    return retVal;
-}
-\end{lstlisting}
 
 \end{document}
