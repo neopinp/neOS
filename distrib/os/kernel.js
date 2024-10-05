@@ -11,29 +11,37 @@ var TSOS;
     class Kernel {
         memoryManager;
         constructor() {
-            this.memoryManager = new TSOS.MemoryManager(256, neOS.MemoryAccessor);
-            neOS.MemoryManager = this.memoryManager;
+            console.log("Kernel constructed.");
         }
         // OS Startup and Shutdown Routines
         //
         krnBootstrap() {
             // Page 8. {
-            TSOS.Control.hostLog("bootstrap", "host"); // Use hostLog because we ALWAYS want this, even if neOS.Trace is off.
-            neOS.MemoryManager = new TSOS.MemoryManager(256, neOS.MemoryAccessor);
+            TSOS.Control.hostLog("bootstrap", "host");
+            // Use hostLog because we ALWAYS want this, even if neOS.
+            // Initialize memory manager
+            this.memoryManager = new TSOS.MemoryManager(256, neOS.MemoryAccessor);
+            neOS.MemoryManager = this.memoryManager;
             // Initialize our global queues.
-            neOS.KernelInterruptQueue = new TSOS.Queue(); // A (currently) non-priority queue for interrupt requests (IRQs).
-            neOS.KernelBuffers = new Array(); // Buffers... for the kernel.
-            neOS.KernelInputQueue = new TSOS.Queue(); // Where device input lands before being processed out somewhere.
+            neOS.KernelInterruptQueue = new TSOS.Queue();
+            // A (currently) non-priority queue for interrupt requests (IRQs).
+            neOS.KernelBuffers = new Array();
+            // Buffers... for the kernel.
+            neOS.KernelInputQueue = new TSOS.Queue();
+            // Where device input lands before being processed out somewhere.
             // Initialize the console.
-            neOS.Console = new TSOS.Console(); // The command line interface / console I/O device.
+            neOS.Console = new TSOS.Console();
+            // The command line interface / console I/O device.
             neOS.Console.init();
             // Initialize standard input and output to the neOS.Console.
             neOS.StdIn = neOS.Console;
             neOS.StdOut = neOS.Console;
             // Load the Keyboard Device Driver
             this.krnTrace("Loading the keyboard device driver.");
-            neOS.krnKeyboardDriver = new TSOS.DeviceDriverKeyboard(); // Construct it.
-            neOS.krnKeyboardDriver.driverEntry(); // Call the driverEntry() initialization routine.
+            neOS.krnKeyboardDriver = new TSOS.DeviceDriverKeyboard();
+            // Construct it.
+            neOS.krnKeyboardDriver.driverEntry();
+            // Call the driverEntry() initialization routine.
             this.krnTrace(neOS.krnKeyboardDriver.status);
             //
             // ... more?
@@ -63,6 +71,7 @@ var TSOS;
             this.krnTrace("end shutdown OS");
         }
         krnOnCPUClockPulse() {
+            neOS.OSclock++;
             /* This gets called from the host hardware simulation every time there is a hardware clock pulse.
                      This is NOT the same as a TIMER, which causes an interrupt and is handled like other interrupts.
                      This, on the other hand, is the clock pulse from the hardware / VM / host that tells the kernel

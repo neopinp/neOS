@@ -13,7 +13,7 @@ namespace TSOS {
       this.base = base;
       this.limit = limit;
       this.pc = 0;
-      this.state = "New";
+      this.state = "Ready";
       this.priority = priority;
       this.name = name;  // Initialize name
     }

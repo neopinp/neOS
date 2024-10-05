@@ -1,19 +1,6 @@
-/* ------------
-     CPU.ts
-
-     Routines for the host CPU simulation, NOT for the OS itself.
-     In this manner, it's A LITTLE BIT like a hypervisor,
-     in that the Document environment inside a browser is the "bare metal" (so to speak) for which we write code
-     that hosts our client OS. But that analogy only goes so far, and the lines are blurred, because we are using
-     TypeScript/JavaScript in both the host and client environments.
-
-     This code references page numbers in the text book:
-     Operating System Concepts 8th edition by Silberschatz, Galvin, and Gagne.  ISBN 978-0-470-12872-5
-     ------------ */
-
 namespace TSOS {
   export class Cpu {
-    private memory: Memory;
+    private memoryAccessor: MemoryAccessor; // Use the memoryAccessor instead of a direct memory instance
 
     constructor(
       public PC: number = 0,
@@ -23,7 +10,20 @@ namespace TSOS {
       public Zflag: number = 0,
       public isExecuting: boolean = false
     ) {
-      this.memory = new Memory(256);
+      console.log(
+        "neOS.MemoryAccessor before assignment in CPU:",
+        neOS.MemoryAccessor
+      );
+
+      // Check if MemoryAccessor is null before assigning
+      if (neOS.MemoryAccessor === null) {
+        console.error(
+          "MemoryAccessor is null in CPU constructor! Aborting initialization."
+        );
+      } else {
+        this.memoryAccessor = neOS.MemoryAccessor;
+        console.log("MemoryAccessor in CPU constructor:", this.memoryAccessor); // Debug statement
+      }
     }
 
     public init(): void {
@@ -36,45 +36,117 @@ namespace TSOS {
     }
 
     public cycle(): void {
-      neOS.Kernel.krnTrace("CPU cycle");
-      if (this.isExecuting) {
-        const instruction = neOS.MemoryAccessor.read(this.PC);
-        this.execute(instruction);
-        this.PC += 1;
+      // Log the state of the CPU registers
+      neOS.Kernel.krnTrace(
+        `CPU cycle - PC: ${this.PC}, Acc: ${this.Acc}, Xreg: ${this.Xreg}, Yreg: ${this.Yreg}, Zflag: ${this.Zflag}`
+      );
+
+      // Ensure MemoryAccessor is not null before accessing
+      if (!this.memoryAccessor) {
+        console.error("MemoryAccessor is NULL in CPU cycle! Cannot execute.");
+        return; // Stop execution if memoryAccessor is not set
       }
-      // TODO: Accumulate CPU usage and profiling statistics here.
-      // Do the real work here. Be sure to set this.isExecuting appropriately.
+
+      if (this.isExecuting) {
+        // Log that execution is continuing
+        neOS.Kernel.krnTrace("CPU is executing...");
+        // Fetch the next instruction from memory
+        const instruction = this.memoryAccessor.read(this.PC); // Use memoryAccessor to read memory
+        console.log(`Executing instruction at PC ${this.PC}: ${instruction.toString(16).toUpperCase()}`);
+
+        // Execute the instruction
+        this.execute(instruction);
+      } else {
+        // If CPU is not executing, log it
+        neOS.Kernel.krnTrace("CPU is idle, not executing any instruction.");
+      }
     }
 
+    // Helper to get the memory address (combine two bytes)
     public getAddress(): number {
-      const lowByte = neOS.MemoryAccessor.read(this.PC + 1);
-      const highByte = neOS.MemoryAccessor.read(this.PC + 2);
+      const lowByte = this.memoryAccessor.read(this.PC + 1);
+      const highByte = this.memoryAccessor.read(this.PC + 2);
       const address = (highByte << 8) | lowByte; // Combine the two bytes
-      this.PC += 2; // Increment PC to skip over the two address bytes
       return address;
     }
 
+    // Execute the fetched instruction
     public execute(instruction: number): void {
+      console.log(
+        `Executing instruction ${instruction
+          .toString(16)
+          .toUpperCase()} at PC ${this.PC}`
+      );
+
+      let address: number;
+      let memoryValue: number;
+      let value: number;
+
       switch (instruction) {
         case 0xa9: // LDA: Load Accumulator with a constant
-          const value = neOS.MemoryAccessor.read(this.PC + 1);
+          value = this.memoryAccessor.read(this.PC + 1);
+          neOS.Kernel.krnTrace(`LDA: Loading constant ${value} into Acc.`);
           this.Acc = value;
-          this.PC += 1;
-          break;
-
-        case 0xad: // LDA: Load Accumulator from memory
-          const address = this.getAddress();
-          const memoryValue = neOS.MemoryAccessor.read(address);
-          this.Acc = memoryValue; // Load it into the accumulator
+          console.log(
+            `DEBUG: Accumulator value after LDA immediate: ${this.Acc}`
+          );
+          this.PC += 2;
           break;
 
         case 0x8d: // STA: Store Accumulator in memory
-          const storeAddress = this.getAddress(); // Get the address to store at
-          neOS.MemoryAccessor.write(storeAddress, this.Acc); // Write Acc to memory
+          address = this.getAddress(); // Get the memory address to store the Accumulator value
+          console.log(
+            `DEBUG: STA: Storing Accumulator (${this.Acc}) at address ${address}`
+          );
+          this.memoryAccessor.write(address, this.Acc); // Write the Accumulator value to memory
+          console.log(
+            `DEBUG: Memory at address ${address} after STA: ${this.memoryAccessor.read(
+              address
+            )}`
+          );
+          this.PC += 3;
+          this.memoryAccessor.displayMemory();
+          break;
+
+        case 0x6d: // ADC: Add with Carry
+          address = this.getAddress();
+          memoryValue = this.memoryAccessor.read(address);
+          this.Acc += memoryValue;
+          this.PC += 3;
+          break;
+
+        case 0xa2: // LDX: Load X register with a constant
+          value = this.memoryAccessor.read(this.PC + 1);
+          this.Xreg = value;
+          this.PC += 2;
+          break;
+
+        case 0xae: // LDX: Load X register from memory
+          address = this.getAddress();
+          memoryValue = this.memoryAccessor.read(address);
+          this.Xreg = memoryValue;
+          this.PC += 3;
+          break;
+
+        case 0xa0: // LDY: Load Y register with a constant
+          value = this.memoryAccessor.read(this.PC + 1);
+          this.Yreg = value;
+          this.PC += 2;
+          break;
+
+        case 0xac: // LDY: Load Y register from memory
+          address = this.getAddress();
+          memoryValue = this.memoryAccessor.read(address);
+          this.Yreg = memoryValue;
+          this.PC += 3;
+          break;
+
+        case 0xea: // NOP: No operation
+          this.PC += 1;
           break;
 
         case 0x00: // BRK: End of process
-        neOS.StdOut.advanceLine();
+          neOS.StdOut.advanceLine();
           neOS.StdOut.putText(
             `Process ${neOS.CurrentProcess.pid} has terminated.`
           );
@@ -82,13 +154,79 @@ namespace TSOS {
           neOS.CurrentProcess.state = "Terminated";
           this.isExecuting = false;
           neOS.OsShell.putPrompt();
+          break;
 
-          // No prompt here, the shell should handle it after the process terminates
+        case 0xec: // CPX: Compare a byte in memory to the X register
+          address = this.getAddress();
+          memoryValue = this.memoryAccessor.read(address);
+          console.log(
+            `DEBUG: CPX - Comparing Xreg (${this.Xreg}) with memory value (${memoryValue}) at address ${address}`
+          );
+          this.Zflag = this.Xreg === memoryValue ? 1 : 0; // Set Z flag if equal
+          console.log(`DEBUG: New Z flag value: ${this.Zflag}`);
+          this.PC += 3;
+          break;
+
+        case 0xd0: // BNE: Branch if Z flag is not set
+          const branchOffset = this.memoryAccessor.read(this.PC + 1);
+          console.log(
+            `DEBUG: BNE - Current Z flag: ${this.Zflag}, Branch Offset: ${branchOffset}`
+          );
+          if (this.Zflag === 0) {
+            if (branchOffset > 127) {
+              this.PC -= 256 - branchOffset; // Handle negative offset
+            } else {
+              this.PC += branchOffset; // Positive offset
+            }
+            console.log(`DEBUG: Branch taken, new PC: ${this.PC}`);
+          } else {
+            console.log(`DEBUG: No branch taken.`);
+          }
+          this.PC += 2;
+          break;
+
+        case 0xee: // INC: Increment the value of a byte in memory
+          address = this.getAddress();
+          memoryValue = this.memoryAccessor.read(address);
+          memoryValue++;
+          this.memoryAccessor.write(address, memoryValue);
+          this.PC += 3;
+          break;
+
+        case 0xff: // SYS: System Call
+          if (this.Xreg === 1) {
+            neOS.StdOut.putText(this.Yreg.toString());
+          } else if (this.Xreg === 2) {
+            let strAddress = this.Yreg;
+            let outputStr = "";
+            let currentChar = this.memoryAccessor.read(strAddress);
+            while (currentChar !== 0x00) {
+              outputStr += String.fromCharCode(currentChar);
+              strAddress++;
+              currentChar = this.memoryAccessor.read(strAddress);
+            }
+            neOS.StdOut.putText(outputStr);
+          }
+          this.PC += 1;
           break;
 
         default:
+          neOS.Kernel.krnTrace(
+            `Unknown instruction: ${instruction.toString(16)}`
+          );
           throw new Error(`Unknown opcode: ${instruction.toString(16)}`);
       }
+
+      // Always display memory after any instruction execution
+      this.memoryAccessor.displayMemory();
+
+      // Log post-execution state
+      neOS.Kernel.krnTrace(
+        `Post-execution: PC = ${this.PC}, Acc = ${this.Acc}, Xreg = ${this.Xreg}, Yreg = ${this.Yreg}, Zflag = ${this.Zflag}`
+      );
+      console.log(
+        `DEBUG: Post-execution: PC = ${this.PC}, Acc = ${this.Acc}, Xreg = ${this.Xreg}, Yreg = ${this.Yreg}, Zflag = ${this.Zflag}`
+      );
     }
 
     public setPC(address: number): void {

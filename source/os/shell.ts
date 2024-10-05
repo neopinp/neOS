@@ -369,7 +369,7 @@ namespace TSOS {
 
     public shellVer(args: string[]) {
       neOS.StdOut.advanceLine();
-      neOS.StdOut.putText(APP_NAME + " version " + APP_VERSION);
+      neOS.StdOut.putText(neOS.APP_NAME + " version " + APP_VERSION);
       neOS.StdOut.advanceLine();
       neOS.StdOut.putText("Developed by: Neo Pi");
       neOS.StdOut.advanceLine();
@@ -514,42 +514,50 @@ namespace TSOS {
     }
 
     public shellLoad() {
-      const programInput = (
-        document.getElementById("taProgramInput") as HTMLTextAreaElement
-      ).value;
-
+      const programInput = (document.getElementById("taProgramInput") as HTMLTextAreaElement).value.trim();
+    
       // Validate that the input is a valid hexadecimal string
-      const isValidHex = /^[0-9a-fA-F\s]+$/.test(programInput.trim());
-
+      const isValidHex = /^[0-9a-fA-F\s]+$/.test(programInput);
+    
       if (isValidHex) {
-        const program =
-          programInput.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) ||
-          [];
-
-        // Load the program starting at $0000 if available
-        const { pid, baseAddress } = neOS.MemoryManager.storeProgram(program);
-
-        if (pid >= 0) {
-          // Create a new PCB (Process Control Block) and add it to the process list
-          const pcb = new PCB(
-            pid,
-            baseAddress,
-            baseAddress + program.length - 1,
-            1,
-            `Program_${pid}`
-          );
-          neOS.ProcessList.push(pcb); // Store the PCB in the process list
-          neOS.StdOut.advanceLine();
-          neOS.StdOut.putText(`Program loaded successfully with PID: ${pid}`);
+        // Remove all whitespace and split into an array of hex byte pairs (e.g., 'A9', '00', etc.)
+        const programBytes = programInput.replace(/\s+/g, "").match(/.{1,2}/g);
+    
+        if (programBytes) {
+          // Convert hex byte strings to actual byte values (integers)
+          const program = programBytes.map(byte => parseInt(byte, 16));
+    
+          // Load the program into memory starting at the available address
+          const { pid, baseAddress } = neOS.MemoryManager.storeProgram(program);
+    
+          if (pid >= 0) {
+            // Create a new Process Control Block (PCB) for the loaded program
+            const pcb = new PCB(pid, baseAddress, baseAddress + program.length - 1, 1, `Program_${pid}`);
+            pcb.state = "Ready";
+            neOS.ProcessList.push(pcb); // Add PCB to process list
+    
+            // Output success message to the console
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText(`Program loaded successfully with PID: ${pid}`);
+            
+            // Debugging: Log the loaded program to ensure bytes are correct
+            for (let i = 0; i < program.length; i++) {
+              console.log(`Memory WRITE: Address: ${baseAddress + i}, Value: ${program[i].toString(16)}`);
+            }
+          } else {
+            // Handle memory allocation failure
+            neOS.StdOut.putText("Error: Not enough memory to load the program");
+          }
         } else {
-          neOS.StdOut.putText("Error: Not enough memory to load the program");
+          // Handle case where the hex parsing didn't work correctly
+          neOS.StdOut.putText("Error: Could not parse the program input into valid bytes.");
         }
       } else {
-        neOS.StdOut.putText(
-          "Invalid program. Please enter a valid hexadecimal string."
-        );
+        // Invalid input, display an error message
+        neOS.StdOut.putText("Invalid program. Please enter a valid hexadecimal string.");
       }
     }
+    
 
     public shellBSOD(args: string[]) {
       neOS.Kernel.krnTrapError("Manual BSOD trigger.");

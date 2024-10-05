@@ -86,19 +86,29 @@ namespace TSOS {
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
 
-            // ... Create and initialize the CPU (because it's part of the hardware)  ...
-            neOS.CPU = new TSOS.Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
-            neOS.CPU.init();       //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
-            neOS.Memory = new TSOS.Memory(256);
-            neOS.Memory.init();
-            
-            neOS.MemoryAccessor = new TSOS.MemoryAccessor(neOS.Memory);
-
-            // ... then set the host clock pulse ...
-            neOS.hardwareClockID = setInterval(Devices.hostClockPulse, CPU_CLOCK_INTERVAL) as unknown as number;
-            // .. and call the OS Kernel Bootstrap routine.
-            neOS.Kernel = new Kernel();
-            neOS.Kernel.krnBootstrap();  // neOS.GLaDOS.afterStartup() will get called in there, if configured.
+            console.log("Initializing Memory...");
+            neOS.Memory = new TSOS.Memory(256); 
+            neOS.Memory.init(); // Ensure this has an `init` method or remove this line if not needed
+            console.log("Memory initialized:", neOS.Memory);
+        
+            // Initialize MemoryAccessor
+            console.log("Initializing MemoryAccessor...");
+            neOS.MemoryAccessor = new TSOS.MemoryAccessor(neOS.Memory); 
+            console.log("MemoryAccessor initialized:", neOS.MemoryAccessor);
+        
+            // Initialize the CPU (use the initialized MemoryAccessor)
+            console.log("Initializing CPU...");
+            neOS.CPU = new TSOS.Cpu();  // CPU will use the initialized neOS.MemoryAccessor
+            neOS.CPU.init(); // Check CPU init logs
+            console.log("CPU initialized.");
+        
+            // Initialize Kernel after CPU, Memory, and MemoryAccessor
+            console.log("Bootstrapping the Kernel...");
+            neOS.Kernel = new TSOS.Kernel();
+            neOS.Kernel.krnBootstrap(); // neOS.GLaDOS.afterStartup() will get called in there, if configured.
+        
+            // Start the clock pulse
+            neOS.hardwareClockID = setInterval(Devices.hostClockPulse, neOS.CPU_CLOCK_INTERVAL) as unknown as number;
         }
 
         public static hostBtnHaltOS_click(btn): void {
