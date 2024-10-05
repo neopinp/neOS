@@ -1,6 +1,6 @@
 body {
   background: black;
-  font-family: Helvetica, Verdana, Arial, sans-serif;
+  font-family:Menlo, Monaco, 'Courier New', monospace;
   font-size: 12pt;
   font-weight: normal;
   font-style: normal;
@@ -22,16 +22,23 @@ h2 {
 }
 
 h3 {
-  font-family: Helvetica, Verdana, Arial, sans-serif;
   font-size: 16pt;
   font-weight: normal;
   font-style: normal;
+  color: green;
+  margin-left: 45%;
+}
+
+#divConsole {
+  font-family: Menlo, Monaco, 'Courier New', monospace
+
 }
 
 #display {
   background-color: black;
   border: 2px solid rgb(6, 128, 0);
   cursor: default;
+  font-family: Menlo, Monaco, 'Courier New', monospace
 }
 
 .normal_button {
@@ -41,9 +48,9 @@ h3 {
   background-color: black;
 }
 
+
 .footerText {
   color: black;
-  font-family: Arial, Helvetica, sans-serif;
   font-size: 8pt;
   text-align: center;
 }
@@ -52,21 +59,24 @@ h3 {
   background-color: black;
   color: green;
   border: 2px solid rgb(6, 128, 0);
+  font-family: Menlo, Monaco, 'Courier New', monospace
+
 
 }
+
 
 #taProgramInput {
   background-color: black;
   color: green;
   border: 2px solid rgb(6, 128, 0);
+  font-family: Menlo, Monaco, 'Courier New', monospace
+
 }
 
 #taskbar {
   position: fixed;
   bottom: 0;
   width: 100%;
-  background-color: #333; 
-  background-image: url('matrix-code-animation-gif-free-animated-background.gif'); 
   background-size: cover;
   background-repeat: no-repeat; 
   color: green; 
@@ -75,7 +85,6 @@ h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: Arial, sans-serif;
   font-size: 12pt;
   box-sizing: border-box; 
   border: 2px solid rgb(6, 128, 0);
@@ -97,6 +106,24 @@ h3 {
   max-width: calc(100% - 200px); 
   display: inline-block;
   color: green; 
+  font-family: Menlo, Monaco, 'Courier New', monospace
+
+}
+
+
+
+
+/* For WebKit-based browsers (Chrome, Safari, Edge) */
+#taHostLog::-webkit-scrollbar {
+  width: 10px; /* Width of the scrollbar */
+  scrollbar-color: green black;
+}
+
+
+#taHostLog::-webkit-scrollbar-thumb {
+  background-color: green; /* The draggable part of the scrollbar */
+  border-radius: 10px; /* Rounded corners */
+  border: 2px solid black; /* Border around the thumb */
 }
 
 #bluePillGif {
@@ -113,9 +140,7 @@ h3 {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-
 }
-
 #bluePillGif img {
   max-width: 100%;
   max-height: 100%;
@@ -124,17 +149,3 @@ h3 {
   padding: 0;
   display: block;
 }
-
-/* For WebKit-based browsers (Chrome, Safari, Edge) */
-#taHostLog::-webkit-scrollbar {
-  width: 10px; /* Width of the scrollbar */
-  scrollbar-color: green black; /* Thumb color and track color */
-}
-
-
-#taHostLog::-webkit-scrollbar-thumb {
-  background-color: green; /* The draggable part of the scrollbar */
-  border-radius: 10px; /* Rounded corners */
-  border: 2px solid black; /* Border around the thumb */
-}
-

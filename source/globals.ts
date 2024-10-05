@@ -25,7 +25,7 @@ const KEYBOARD_IRQ: number = 1;
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
 var neOS = {
-   CPU_CLOCK_INTERVAL: 100,
+   CPU_CLOCK_INTERVAL: 150,
    APP_NAME: "TSOS",
    CPU: null as TSOS.Cpu,
    OSclock: 0,

@@ -88,7 +88,8 @@ namespace TSOS {
 
             console.log("Initializing Memory...");
             neOS.Memory = new TSOS.Memory(256); 
-            neOS.Memory.init(); // Ensure this has an `init` method or remove this line if not needed
+            neOS.Memory.init(); 
+
             console.log("Memory initialized:", neOS.Memory);
         
             // Initialize MemoryAccessor
@@ -96,18 +97,16 @@ namespace TSOS {
             neOS.MemoryAccessor = new TSOS.MemoryAccessor(neOS.Memory); 
             console.log("MemoryAccessor initialized:", neOS.MemoryAccessor);
         
-            // Initialize the CPU (use the initialized MemoryAccessor)
-            console.log("Initializing CPU...");
-            neOS.CPU = new TSOS.Cpu();  // CPU will use the initialized neOS.MemoryAccessor
-            neOS.CPU.init(); // Check CPU init logs
-            console.log("CPU initialized.");
+
+            neOS.CPU = new TSOS.Cpu();  
+            neOS.CPU.init(); 
+
         
-            // Initialize Kernel after CPU, Memory, and MemoryAccessor
-            console.log("Bootstrapping the Kernel...");
+
+
             neOS.Kernel = new TSOS.Kernel();
-            neOS.Kernel.krnBootstrap(); // neOS.GLaDOS.afterStartup() will get called in there, if configured.
+            neOS.Kernel.krnBootstrap(); 
         
-            // Start the clock pulse
             neOS.hardwareClockID = setInterval(Devices.hostClockPulse, neOS.CPU_CLOCK_INTERVAL) as unknown as number;
         }
 

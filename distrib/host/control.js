@@ -66,22 +66,16 @@ var TSOS;
             document.getElementById("display").focus();
             console.log("Initializing Memory...");
             neOS.Memory = new TSOS.Memory(256);
-            neOS.Memory.init(); // Ensure this has an `init` method or remove this line if not needed
+            neOS.Memory.init();
             console.log("Memory initialized:", neOS.Memory);
             // Initialize MemoryAccessor
             console.log("Initializing MemoryAccessor...");
             neOS.MemoryAccessor = new TSOS.MemoryAccessor(neOS.Memory);
             console.log("MemoryAccessor initialized:", neOS.MemoryAccessor);
-            // Initialize the CPU (use the initialized MemoryAccessor)
-            console.log("Initializing CPU...");
-            neOS.CPU = new TSOS.Cpu(); // CPU will use the initialized neOS.MemoryAccessor
-            neOS.CPU.init(); // Check CPU init logs
-            console.log("CPU initialized.");
-            // Initialize Kernel after CPU, Memory, and MemoryAccessor
-            console.log("Bootstrapping the Kernel...");
+            neOS.CPU = new TSOS.Cpu();
+            neOS.CPU.init();
             neOS.Kernel = new TSOS.Kernel();
-            neOS.Kernel.krnBootstrap(); // neOS.GLaDOS.afterStartup() will get called in there, if configured.
-            // Start the clock pulse
+            neOS.Kernel.krnBootstrap();
             neOS.hardwareClockID = setInterval(TSOS.Devices.hostClockPulse, neOS.CPU_CLOCK_INTERVAL);
         }
         static hostBtnHaltOS_click(btn) {

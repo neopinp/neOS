@@ -299,8 +299,6 @@ var TSOS;
             for (var i in neOS.OsShell.commandList) {
                 const command = neOS.OsShell.commandList[i].command;
                 const description = neOS.OsShell.commandList[i].description;
-                // Debugging log to check if there are any unexpected characters
-                console.log(`Command: ${command} | Description: ${description}`);
                 // Combine the command and description, and print them on the same line.
                 neOS.StdOut.putText(command + " " + description);
                 // After printing the command and description, advance the line.
