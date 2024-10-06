@@ -115,7 +115,6 @@ thead th {
   width: 500px;
   margin-right: 25px;
   overflow: hidden;
-  margin-left: 25px;
 }
 
 #scrollContainer {
@@ -154,7 +153,7 @@ thead th {
 #memoryTable {
   table-layout: fixed;
   width: 100%;
-
+  margin-left: 10px;
 
 }
 
@@ -167,12 +166,13 @@ thead th {
 
 #memoryDisplayLabel {
   color: green;
-  margin-left: 40%;
+  margin-left: 45%;
   margin-bottom: 10px;
 }
 
 #memoryTable th:first-child, #memoryTable td:first-child {
   width: 45px; /* Adjust the 'Address' column to be wider */
+  font: bold;
 }
 
 #memoryTable tbody {
