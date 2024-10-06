@@ -48,8 +48,8 @@ var TSOS;
             return this.memory.getMemoryArray();
         }
         displayMemory() {
+            let memoryDisplay = document.getElementById('memoryDisplay');
             let memoryContent = "";
-            console.log("Displaying memory in console...");
             // Correct the for loop to iterate based on the length of the memory array
             for (let i = 0; i < this.memory.memoryArray.length; i++) {
                 if (i % 8 === 0) {
@@ -61,6 +61,7 @@ var TSOS;
                 // Append each byte as two hex digits, padded with zero if needed
                 memoryContent +=
                     this.memory.getByte(i).toString(16).padStart(2, "0") + " ";
+                memoryDisplay.value = memoryContent.trim();
             }
             // Log the memory content in the console
             console.log(memoryContent);

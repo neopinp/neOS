@@ -119,6 +119,20 @@ h3 {
   scrollbar-color: green black;
 }
 
+#memoryDisplay::-webkit-scrollbar {
+  width: 10px; 
+  scrollbar-color: green black;
+}
+#memoryDisplay::-webkit-scrollbar-thumb {
+  width: 10px;
+  scrollbar-color: green black;
+}
+#memoryDisplayLabel {
+  color: green;
+  margin-left: 40%;
+  
+}
+
 
 #taHostLog::-webkit-scrollbar-thumb {
   background-color: green; /* The draggable part of the scrollbar */
