@@ -35,7 +35,6 @@ var TSOS;
         }
         cycle() {
             // Log the state of the CPU registers
-            neOS.Kernel.krnTrace(`CPU cycle - PC: ${this.PC}, Acc: ${this.Acc}, Xreg: ${this.Xreg}, Yreg: ${this.Yreg}, Zflag: ${this.Zflag}`);
             // Ensure MemoryAccessor is not null before accessing
             if (!this.memoryAccessor) {
                 console.error("MemoryAccessor is NULL in CPU cycle! Cannot execute.");
@@ -43,10 +42,8 @@ var TSOS;
             }
             if (this.isExecuting) {
                 // Log that execution is continuing
-                neOS.Kernel.krnTrace("CPU is executing...");
                 // Fetch the next instruction from memory
                 const instruction = this.memoryAccessor.read(this.PC); // Use memoryAccessor to read memory
-                console.log(`Executing instruction at PC ${this.PC}: ${instruction.toString(16).toUpperCase()}`);
                 // Execute the instruction
                 this.execute(instruction);
             }
@@ -64,9 +61,6 @@ var TSOS;
         }
         // Execute the fetched instruction
         execute(instruction) {
-            console.log(`Executing instruction ${instruction
-                .toString(16)
-                .toUpperCase()} at PC ${this.PC}`);
             let address;
             let memoryValue;
             let value;
@@ -75,14 +69,11 @@ var TSOS;
                     value = this.memoryAccessor.read(this.PC + 1);
                     neOS.Kernel.krnTrace(`LDA: Loading constant ${value} into Acc.`);
                     this.Acc = value;
-                    console.log(`DEBUG: Accumulator value after LDA immediate: ${this.Acc}`);
                     this.PC += 2;
                     break;
                 case 0x8d: // STA: Store Accumulator in memory
                     address = this.getAddress(); // Get the memory address to store the Accumulator value
-                    console.log(`DEBUG: STA: Storing Accumulator (${this.Acc}) at address ${address}`);
                     this.memoryAccessor.write(address, this.Acc); // Write the Accumulator value to memory
-                    console.log(`DEBUG: Memory at address ${address} after STA: ${this.memoryAccessor.read(address)}`);
                     this.PC += 3;
                     this.memoryAccessor.displayMemory();
                     break;
@@ -128,9 +119,7 @@ var TSOS;
                 case 0xec: // CPX: Compare a byte in memory to the X register
                     address = this.getAddress();
                     memoryValue = this.memoryAccessor.read(address);
-                    console.log(`DEBUG: CPX - Comparing Xreg (${this.Xreg}) with memory value (${memoryValue}) at address ${address}`);
                     this.Zflag = this.Xreg === memoryValue ? 1 : 0; // Set Z flag if equal
-                    console.log(`DEBUG: New Z flag value: ${this.Zflag}`);
                     this.PC += 3;
                     break;
                 case 0xd0: // BNE: Branch if Z flag is not set
@@ -181,8 +170,6 @@ var TSOS;
             // Always display memory after any instruction execution
             this.memoryAccessor.displayMemory();
             // Log post-execution state
-            neOS.Kernel.krnTrace(`Post-execution: PC = ${this.PC}, Acc = ${this.Acc}, Xreg = ${this.Xreg}, Yreg = ${this.Yreg}, Zflag = ${this.Zflag}`);
-            console.log(`DEBUG: Post-execution: PC = ${this.PC}, Acc = ${this.Acc}, Xreg = ${this.Xreg}, Yreg = ${this.Yreg}, Zflag = ${this.Zflag}`);
         }
         setPC(address) {
             this.PC = address;

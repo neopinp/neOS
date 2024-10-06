@@ -541,7 +541,6 @@ namespace TSOS {
             
             // Debugging: Log the loaded program to ensure bytes are correct
             for (let i = 0; i < program.length; i++) {
-              console.log(`Memory WRITE: Address: ${baseAddress + i}, Value: ${program[i].toString(16)}`);
             }
           } else {
             // Handle memory allocation failure

@@ -37,9 +37,6 @@ namespace TSOS {
 
     public cycle(): void {
       // Log the state of the CPU registers
-      neOS.Kernel.krnTrace(
-        `CPU cycle - PC: ${this.PC}, Acc: ${this.Acc}, Xreg: ${this.Xreg}, Yreg: ${this.Yreg}, Zflag: ${this.Zflag}`
-      );
 
       // Ensure MemoryAccessor is not null before accessing
       if (!this.memoryAccessor) {
@@ -49,10 +46,9 @@ namespace TSOS {
 
       if (this.isExecuting) {
         // Log that execution is continuing
-        neOS.Kernel.krnTrace("CPU is executing...");
         // Fetch the next instruction from memory
         const instruction = this.memoryAccessor.read(this.PC); // Use memoryAccessor to read memory
-        console.log(`Executing instruction at PC ${this.PC}: ${instruction.toString(16).toUpperCase()}`);
+
 
         // Execute the instruction
         this.execute(instruction);
@@ -72,11 +68,7 @@ namespace TSOS {
 
     // Execute the fetched instruction
     public execute(instruction: number): void {
-      console.log(
-        `Executing instruction ${instruction
-          .toString(16)
-          .toUpperCase()} at PC ${this.PC}`
-      );
+
 
       let address: number;
       let memoryValue: number;
@@ -87,23 +79,12 @@ namespace TSOS {
           value = this.memoryAccessor.read(this.PC + 1);
           neOS.Kernel.krnTrace(`LDA: Loading constant ${value} into Acc.`);
           this.Acc = value;
-          console.log(
-            `DEBUG: Accumulator value after LDA immediate: ${this.Acc}`
-          );
           this.PC += 2;
           break;
 
         case 0x8d: // STA: Store Accumulator in memory
           address = this.getAddress(); // Get the memory address to store the Accumulator value
-          console.log(
-            `DEBUG: STA: Storing Accumulator (${this.Acc}) at address ${address}`
-          );
           this.memoryAccessor.write(address, this.Acc); // Write the Accumulator value to memory
-          console.log(
-            `DEBUG: Memory at address ${address} after STA: ${this.memoryAccessor.read(
-              address
-            )}`
-          );
           this.PC += 3;
           this.memoryAccessor.displayMemory();
           break;
@@ -159,11 +140,8 @@ namespace TSOS {
         case 0xec: // CPX: Compare a byte in memory to the X register
           address = this.getAddress();
           memoryValue = this.memoryAccessor.read(address);
-          console.log(
-            `DEBUG: CPX - Comparing Xreg (${this.Xreg}) with memory value (${memoryValue}) at address ${address}`
-          );
           this.Zflag = this.Xreg === memoryValue ? 1 : 0; // Set Z flag if equal
-          console.log(`DEBUG: New Z flag value: ${this.Zflag}`);
+
           this.PC += 3;
           break;
 
@@ -221,12 +199,6 @@ namespace TSOS {
       this.memoryAccessor.displayMemory();
 
       // Log post-execution state
-      neOS.Kernel.krnTrace(
-        `Post-execution: PC = ${this.PC}, Acc = ${this.Acc}, Xreg = ${this.Xreg}, Yreg = ${this.Yreg}, Zflag = ${this.Zflag}`
-      );
-      console.log(
-        `DEBUG: Post-execution: PC = ${this.PC}, Acc = ${this.Acc}, Xreg = ${this.Xreg}, Yreg = ${this.Yreg}, Zflag = ${this.Zflag}`
-      );
     }
 
     public setPC(address: number): void {
@@ -234,3 +206,4 @@ namespace TSOS {
     }
   }
 }
+

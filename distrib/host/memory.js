@@ -10,12 +10,10 @@ var TSOS;
         }
         getByte(address) {
             const value = this.memoryArray[address];
-            neOS.Kernel.krnTrace(`Reading memory at address ${address}: ${value}`);
             return value;
         }
         setByte(address, value) {
             this.memoryArray[address] = value;
-            neOS.Kernel.krnTrace(`Writing value ${value} to memory at address ${address}`);
         }
         getMemoryArray() {
             return this.memoryArray;

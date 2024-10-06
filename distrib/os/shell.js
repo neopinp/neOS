@@ -433,7 +433,6 @@ var TSOS;
                         neOS.StdOut.putText(`Program loaded successfully with PID: ${pid}`);
                         // Debugging: Log the loaded program to ensure bytes are correct
                         for (let i = 0; i < program.length; i++) {
-                            console.log(`Memory WRITE: Address: ${baseAddress + i}, Value: ${program[i].toString(16)}`);
                         }
                     }
                     else {

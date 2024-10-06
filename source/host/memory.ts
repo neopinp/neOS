@@ -12,13 +12,11 @@ namespace TSOS {
 
     public getByte(address: number): number {
       const value = this.memoryArray[address];
-      neOS.Kernel.krnTrace(`Reading memory at address ${address}: ${value}`); 
       return value;
     }
 
     public setByte(address: number, value: number): void {
       this.memoryArray[address] = value;
-      neOS.Kernel.krnTrace(`Writing value ${value} to memory at address ${address}`);
     }
 
     public getMemoryArray(): number[] {

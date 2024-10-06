@@ -86,16 +86,16 @@ namespace TSOS {
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
 
-            console.log("Initializing Memory...");
+            //console.log("Initializing Memory...");
             neOS.Memory = new TSOS.Memory(256); 
             neOS.Memory.init(); 
 
-            console.log("Memory initialized:", neOS.Memory);
+            //console.log("Memory initialized:", neOS.Memory);
         
             // Initialize MemoryAccessor
-            console.log("Initializing MemoryAccessor...");
+            //console.log("Initializing MemoryAccessor...");
             neOS.MemoryAccessor = new TSOS.MemoryAccessor(neOS.Memory); 
-            console.log("MemoryAccessor initialized:", neOS.MemoryAccessor);
+            //console.log("MemoryAccessor initialized:", neOS.MemoryAccessor);
         
 
             neOS.CPU = new TSOS.Cpu();  

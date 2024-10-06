@@ -9,10 +9,6 @@ var TSOS;
         read(address) {
             if (address >= 0 && address < this.memory.memoryArray.length) {
                 const value = this.memory.getByte(address);
-                // Log memory access
-                console.log(`Memory READ: Address: ${address
-                    .toString(16)
-                    .toUpperCase()}, Value: ${value.toString(16).toUpperCase()}`);
                 return value;
             }
             else {
@@ -24,9 +20,6 @@ var TSOS;
             if (address >= 0 && address < this.memory.memoryArray.length) {
                 this.memory.setByte(address, value);
                 // Log memory access
-                console.log(`Memory WRITE: Address: ${address
-                    .toString(16)
-                    .toUpperCase()}, Value: ${value.toString(16).toUpperCase()}`);
             }
             else {
                 throw new Error("Memory access violation at address " + address);
