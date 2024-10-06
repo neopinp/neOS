@@ -8,6 +8,7 @@ var TSOS;
         Zflag;
         isExecuting;
         memoryAccessor; // Use the memoryAccessor instead of a direct memory instance
+        instructionRegister = 0;
         constructor(PC = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, isExecuting = false) {
             this.PC = PC;
             this.Acc = Acc;
@@ -31,6 +32,7 @@ var TSOS;
             this.Xreg = 0;
             this.Yreg = 0;
             this.Zflag = 0;
+            this.instructionRegister = 0;
             this.isExecuting = false;
         }
         cycle() {
@@ -44,8 +46,11 @@ var TSOS;
                 // Log that execution is continuing
                 // Fetch the next instruction from memory
                 const instruction = this.memoryAccessor.read(this.PC); // Use memoryAccessor to read memory
+                this.instructionRegister = instruction;
                 // Execute the instruction
                 this.execute(instruction);
+                TSOS.Control.updatePCBDisplay();
+                TSOS.Control.updateCPUDisplay(this);
             }
             else {
                 // If CPU is not executing, log it
@@ -167,9 +172,16 @@ var TSOS;
                     neOS.Kernel.krnTrace(`Unknown instruction: ${instruction.toString(16)}`);
                     throw new Error(`Unknown opcode: ${instruction.toString(16)}`);
             }
-            // Always display memory after any instruction execution
+            if (neOS.CurrentProcess) {
+                neOS.CurrentProcess.pc = this.PC;
+                neOS.CurrentProcess.acc = this.Acc;
+                neOS.CurrentProcess.xReg = this.Xreg;
+                neOS.CurrentProcess.yReg = this.Yreg;
+                neOS.CurrentProcess.zFlag = this.Zflag;
+                neOS.CurrentProcess.ir = this.instructionRegister; // Capture the instruction
+            }
             this.memoryAccessor.displayMemory();
-            // Log post-execution state
+            TSOS.Control.updatePCBDisplay();
         }
         setPC(address) {
             this.PC = address;

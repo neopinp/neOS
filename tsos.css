@@ -24,7 +24,7 @@ h2 {
 h3 {
   font-size: 16pt;
   color: green;
-  margin-left: 45%;
+
 }
 
 /* Console Styles */
@@ -66,7 +66,7 @@ h3 {
   bottom: 0;
   width: 100%;
   background-size: cover;
-  background-repeat: no-repeat; 
+  background-repeat: no-repeat;
   color: green;
   text-align: left;
   padding: 5px;
@@ -81,15 +81,15 @@ h3 {
 }
 
 #taskbar span {
-  text-shadow: 1px 1px 2px white; 
+  text-shadow: 1px 1px 2px white;
 }
 
 #taskbar-status {
   margin-right: 50px;
-  white-space: nowrap; 
-  overflow: hidden; 
-  text-overflow: ellipsis; 
-  max-width: calc(100% - 200px); 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 200px);
   display: inline-block;
 }
 
@@ -100,33 +100,37 @@ table {
 }
 
 th, td {
-  border: 2px solid green;
+  border: 2px dotted green;
   padding: 5px;
   text-align: center;
+  vertical-align: middle;
   color: green;
   background-color: black;
 }
 
 thead th {
-  color: green;
+  position: sticky; /* Keep headers visible during scroll */
+  top: 0;
+  background-color: black;
 }
 
 #divMemoryDisplay {
-  width: 500px;
-  margin-right: 25px;
+  width: 100%; /* Ensure it spans the full available space */
   overflow: hidden;
+  border: transparent;
+  border-left: none;
 }
 
 #scrollContainer {
-  width: 550px; /* Ensure enough width to accommodate all data columns */
-  height: 250px;
-  overflow-y: scroll;
-  direction: ltr; 
-  margin-right: 25px;
+  width: 100%; /* Ensure container takes full width */
+  height: 250px; /* Set a fixed height for the memory display */
+  overflow-y: scroll; /* Vertical scroll for large memory content */
+  padding-right: 10px;
+  border-left: none;
 }
 
 #scrollContainer table {
-  width: 100%;
+  width: 100%; /* Ensure the table takes the full width of the container */
   table-layout: fixed; /* Ensure fixed table layout */
 }
 
@@ -136,7 +140,7 @@ thead th {
 }
 
 #scrollContainer::-webkit-scrollbar-thumb {
-  background-color: green;
+  background-color: black;
   border-radius: 10px;
 }
 
@@ -151,23 +155,21 @@ thead th {
 }
 
 #memoryTable {
-  table-layout: fixed;
-  width: 100%;
-  margin-left: 10px;
-
+  width: calc(100% - 10px); /* Ensure the table takes up full width of container */
+  table-layout: fixed; /* Fixed layout for uniform cell sizes */
 }
 
 #memoryTableWrapper {
   height: 150px; /* Adjust to show a fixed number of rows */
   overflow-y: auto;
   overflow-x: hidden;
-  
 }
 
 #memoryDisplayLabel {
   color: green;
+  text-align: center; /* Center the label */
   margin-left: 45%;
-  margin-bottom: 10px;
+
 }
 
 #memoryTable th:first-child, #memoryTable td:first-child {
@@ -183,24 +185,85 @@ thead th {
 
 #memoryTable thead, #memoryTable tbody tr {
   display: table;
-  width: 60px;
+  width: 100%;
   table-layout: fixed;
-  
 }
 
 #memoryTable thead th {
   background-color: black;
   color: green;
   position: sticky;
-  
+  border-top: none;
+
 }
 
 #memoryTable th, #memoryTable td {
-  width: 45px; /* Adjust the width of data columns to fit all 6 */
+  border-right: 2px dotted green; 
+  padding: 5px;
   text-align: center;
   vertical-align: middle;
-  border: none;
   color: green;
   background-color: black;
-  
+}
+#divPCBStatus th, #divPCBStatus td {
+  border: none;
+  border-left: 2px dotted green;
+  border-right: 2px dotted green;
+}
+
+#pcbTableBody th, #pcbTableBody td {
+  border: none;
+  border-left: 2px dotted green;
+  border-right: 2px dotted green;
+  padding: 5px;
+  text-align: center;
+  vertical-align: middle;
+  color: green;
+  background-color: black;
+}
+#pcbTableBody {
+  table-layout: fixed;
+  width: 100%; /* Ensure the table fits within the container */
+}
+
+#divPCBStatus {
+  max-width: 100%;
+}
+
+#divPCBStatus th {
+  border-top: none;
+  border-bottom: 2px dotted green;
+  text-align: center;
+}
+
+#divCPUStatus td {
+  border-right: 2px dotted green;
+  border-left: 2px dotted green;
+  border-top: none;
+  border-bottom: none;
+}
+
+#divCPUStatus th {
+  border-top: none;
+  border-right: 2px dotted green;
+  border-left: 2px dotted green;
+  border-bottom: 2px dotted green;
+}
+
+/* Transparent border for memory table */
+#memoryTable td {
+  border-right: 2px dotted green;
+  border-left: 2px dotted green;
+  border-bottom: transparent;
+  border-top: transparent;
+}
+
+#memoryTable th { 
+  border-bottom: 2px dotted green;
+  border-right: 2px dotted green;
+  border-left: 2px dotted green;
+
+
+
+
 }

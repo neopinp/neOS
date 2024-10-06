@@ -17,10 +17,89 @@
 var TSOS;
 (function (TSOS) {
     class Control {
+        static updatePCBDisplay() {
+            let pcbDisplayElement = document.querySelector("#pcbTableBody");
+            if (pcbDisplayElement) {
+                pcbDisplayElement.innerHTML = ""; // Clear the table body before updating
+                neOS.ProcessList.forEach((pcb) => {
+                    let row = document.createElement("tr");
+                    // Process ID (PID)
+                    let pidCell = document.createElement("td");
+                    pidCell.textContent = pcb.pid.toString(); // PID should always exist
+                    // Program Counter (PC)
+                    let pcCell = document.createElement("td");
+                    pcCell.textContent =
+                        pcb.pc !== undefined && pcb.pc !== null
+                            ? `0x${pcb.pc.toString(16).toUpperCase().padStart(2, "0")}`
+                            : `0x00`;
+                    // Instruction Register (IR)
+                    let irCell = document.createElement("td");
+                    irCell.textContent =
+                        pcb.ir !== undefined && pcb.ir !== null
+                            ? `0x${pcb.ir.toString(16).toUpperCase().padStart(2, "0")}`
+                            : `0x00`;
+                    // Accumulator (ACC)
+                    let accCell = document.createElement("td");
+                    accCell.textContent =
+                        pcb.acc !== undefined && pcb.acc !== null
+                            ? `0x${pcb.acc.toString(16).toUpperCase().padStart(2, "0")}`
+                            : `0x00`;
+                    // X Register (Xreg)
+                    let xRegCell = document.createElement("td");
+                    xRegCell.textContent =
+                        pcb.xReg !== undefined && pcb.xReg !== null
+                            ? `0x${pcb.xReg.toString(16).toUpperCase().padStart(2, "0")}`
+                            : `0x00`;
+                    // Y Register (Yreg)
+                    let yRegCell = document.createElement("td");
+                    yRegCell.textContent =
+                        pcb.yReg !== undefined && pcb.yReg !== null
+                            ? `0x${pcb.yReg.toString(16).toUpperCase().padStart(2, "0")}`
+                            : `0x00`;
+                    // Zero Flag (Zflag) - just a number, so `0` makes sense here
+                    let zFlagCell = document.createElement("td");
+                    zFlagCell.textContent =
+                        pcb.zFlag !== undefined && pcb.zFlag !== null
+                            ? pcb.zFlag.toString()
+                            : `0`;
+                    // State (Running, Terminated, etc.)
+                    let stateCell = document.createElement("td");
+                    stateCell.textContent = pcb.state || "Unknown"; // Fallback to "Unknown" if state is undefined
+                    // Append cells to the row
+                    row.appendChild(pidCell);
+                    row.appendChild(pcCell);
+                    row.appendChild(irCell);
+                    row.appendChild(accCell);
+                    row.appendChild(xRegCell);
+                    row.appendChild(yRegCell);
+                    row.appendChild(zFlagCell);
+                    row.appendChild(stateCell);
+                    // Add the row to the table body
+                    pcbDisplayElement.appendChild(row);
+                });
+            }
+            else {
+                console.error("PCB display table body not found.");
+            }
+        }
+        static updateCPUDisplay(cpu) {
+            const cpuTable = document.getElementById('cpuTableBody');
+            if (cpuTable) {
+                cpuTable.innerHTML = `
+            <tr>
+            <td>0x${cpu.PC.toString(16).padStart(2, '0').toUpperCase()}</td>
+            <td>0x${cpu.instructionRegister.toString(16).padStart(2, '0').toUpperCase()}</td>
+            <td>0x${cpu.Acc.toString(16).padStart(2, '0').toUpperCase()}</td>
+            <td>0x${cpu.Xreg.toString(16).padStart(2, '0').toUpperCase()}</td>
+            <td>0x${cpu.Yreg.toString(16).padStart(2, '0').toUpperCase()}</td>
+            <td>${cpu.Zflag}</td>
+          </tr>`;
+            }
+        }
         static hostInit() {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
             // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
-            neOS.Canvas = document.getElementById('display');
+            neOS.Canvas = document.getElementById("display");
             // Get a global reference to the drawing context.
             neOS.DrawingContext = neOS.Canvas.getContext("2d");
             // Enable the added-in canvas text functions (see canvastext.ts for provenance and details).
@@ -47,7 +126,16 @@ var TSOS;
             // Note the REAL clock in milliseconds since January 1, 1970.
             var now = new Date().getTime();
             // Build the log string.
-            var str = "({ clock:" + clock + ", source:" + source + ", msg:" + msg + ", now:" + now + " })" + "\n";
+            var str = "({ clock:" +
+                clock +
+                ", source:" +
+                source +
+                ", msg:" +
+                msg +
+                ", now:" +
+                now +
+                " })" +
+                "\n";
             // Update the log console.
             var taLog = document.getElementById("taHostLog");
             taLog.value = str + taLog.value;
@@ -60,7 +148,8 @@ var TSOS;
             // Disable the (passed-in) start button...
             btn.disabled = true;
             // .. enable the Halt and Reset buttons ...
-            document.getElementById("btnHaltOS").disabled = false;
+            document.getElementById("btnHaltOS").disabled =
+                false;
             document.getElementById("btnReset").disabled = false;
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();

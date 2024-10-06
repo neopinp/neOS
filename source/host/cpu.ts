@@ -1,6 +1,7 @@
 namespace TSOS {
   export class Cpu {
     private memoryAccessor: MemoryAccessor; // Use the memoryAccessor instead of a direct memory instance
+    public instructionRegister: number = 0;
 
     constructor(
       public PC: number = 0,
@@ -32,6 +33,7 @@ namespace TSOS {
       this.Xreg = 0;
       this.Yreg = 0;
       this.Zflag = 0;
+      this.instructionRegister = 0;
       this.isExecuting = false;
     }
 
@@ -48,10 +50,13 @@ namespace TSOS {
         // Log that execution is continuing
         // Fetch the next instruction from memory
         const instruction = this.memoryAccessor.read(this.PC); // Use memoryAccessor to read memory
-
+        this.instructionRegister = instruction;
 
         // Execute the instruction
         this.execute(instruction);
+        TSOS.Control.updatePCBDisplay();
+        TSOS.Control.updateCPUDisplay(this); 
+
       } else {
         // If CPU is not executing, log it
         neOS.Kernel.krnTrace("CPU is idle, not executing any instruction.");
@@ -68,8 +73,6 @@ namespace TSOS {
 
     // Execute the fetched instruction
     public execute(instruction: number): void {
-
-
       let address: number;
       let memoryValue: number;
       let value: number;
@@ -194,11 +197,16 @@ namespace TSOS {
           );
           throw new Error(`Unknown opcode: ${instruction.toString(16)}`);
       }
-
-      // Always display memory after any instruction execution
+      if (neOS.CurrentProcess) {
+        neOS.CurrentProcess.pc = this.PC;
+        neOS.CurrentProcess.acc = this.Acc;
+        neOS.CurrentProcess.xReg = this.Xreg;
+        neOS.CurrentProcess.yReg = this.Yreg;
+        neOS.CurrentProcess.zFlag = this.Zflag;
+        neOS.CurrentProcess.ir = this.instructionRegister; // Capture the instruction
+      }
       this.memoryAccessor.displayMemory();
-
-      // Log post-execution state
+      TSOS.Control.updatePCBDisplay();
     }
 
     public setPC(address: number): void {
@@ -206,4 +214,3 @@ namespace TSOS {
     }
   }
 }
-

@@ -3,7 +3,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="author" content="Alan G. Labouseur" />
-    <link rel="stylesheet" href="tsos.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="tsos.css" type="text/css" media="all" />
     <title>TSOS - a browser-based virtual Operating System in TypeScript</title>
 
    <!-- Globals CONSTANTS and _Variables. Must included be first. -->
@@ -157,9 +157,9 @@
     <!-- Bottom row containing Memory Display, PCB, and CPU Status -->
     <div id="bottomRow" style="display: flex; justify-content: space-between">
       <!-- Memory Display on the left -->
-      <div id="divMemoryDisplay" style="width: 500px; height: 250px; margin-right: 25px">
-        <label id="memoryDisplayLabel">Memory</label>
-        <div id="scrollContainer">
+      <div id="divMemoryDisplay" style="width: 504px; height: 250px;">
+        <h3 style="margin-left: 40%;">Memory</h3>>
+        <div id="scrollContainer" style="width: 504px;">
           <table id="memoryTable">
             <thead>
               <tr>
@@ -194,7 +194,7 @@
       >
         <!-- PCB Status -->
         <div id="divPCBStatus">
-          <h3 style="margin-left: 35%">Processes</h3>
+          <h3 style="margin-left: 45%">Processes</h3>
           <!-- Label for Processes -->
           <table>
             <thead>
@@ -210,35 +210,13 @@
               </tr>
             </thead>
             <tbody id="pcbTableBody">
-              <!-- Example Rows, dynamically added later -->
-              <tr>
-                <td>0</td>
-                <td>34</td>
-                <td>A9</td>
-                <td>79</td>
-                <td>3</td>
-                <td>2</td>
-                <td>1</td>
-                <td>Running</td>
-              </tr>
-              <tr>
-                <td>1</td>
-                <td>20</td>
-                <td>B7</td>
-                <td>65</td>
-                <td>5</td>
-                <td>3</td>
-                <td>0</td>
-                <td>Waiting</td>
-              </tr>
-              <!-- More rows can be added dynamically here -->
             </tbody>
           </table>
         </div>
 
         <!-- CPU Status -->
         <div id="divCPUStatus">
-          <h3>CPU</h3>
+          <h3 style="margin-left: 50%; margin-top: 25px;">CPU</h3>
           <!-- Label for CPU -->
           <table>
             <thead>
@@ -251,14 +229,14 @@
                 <th>Z</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="cpuTableBody">
               <tr>
-                <td>022</td>
-                <td>A9</td>
-                <td>79</td>
-                <td>3</td>
-                <td>2</td>
-                <td>1</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
               </tr>
             </tbody>
           </table>
