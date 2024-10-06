@@ -1,7 +1,11 @@
+/* General Styles */
 body {
   background: black;
-  font-family:Menlo, Monaco, 'Courier New', monospace;
+  font-family: Menlo, Monaco, 'Courier New', monospace;
   font-size: 12pt;
+}
+
+h1, h2, h3 {
   font-weight: normal;
   font-style: normal;
 }
@@ -9,38 +13,32 @@ body {
 h1 {
   color: black;
   font-size: 24pt;
-  font-weight: normal;
-  font-style: normal;
   border-bottom: 1px solid black;
 }
 
 h2 {
   color: black;
   font-size: 20pt;
-  font-weight: normal;
-  font-style: normal;
 }
 
 h3 {
   font-size: 16pt;
-  font-weight: normal;
-  font-style: normal;
   color: green;
-  margin-left: 45%;
+  margin-left: 25%;
 }
 
-#divConsole {
-  font-family: Menlo, Monaco, 'Courier New', monospace
-
+/* Console Styles */
+#divConsole, #display, #taskbar-status {
+  font-family: Menlo, Monaco, 'Courier New', monospace;
 }
 
 #display {
   background-color: black;
   border: 2px solid rgb(6, 128, 0);
   cursor: default;
-  font-family: Menlo, Monaco, 'Courier New', monospace
 }
 
+/* Button Styles */
 .normal_button {
   border: 2px solid green;
   color: green;
@@ -48,45 +46,34 @@ h3 {
   background-color: black;
 }
 
-
+/* Footer Text */
 .footerText {
   color: black;
   font-size: 8pt;
   text-align: center;
 }
 
-#taHostLog {
+/* Text Area Styles */
+#taHostLog, #taProgramInput {
   background-color: black;
   color: green;
   border: 2px solid rgb(6, 128, 0);
-  font-family: Menlo, Monaco, 'Courier New', monospace
-
-
 }
 
-
-#taProgramInput {
-  background-color: black;
-  color: green;
-  border: 2px solid rgb(6, 128, 0);
-  font-family: Menlo, Monaco, 'Courier New', monospace
-
-}
-
+/* Taskbar Styles */
 #taskbar {
   position: fixed;
   bottom: 0;
   width: 100%;
   background-size: cover;
   background-repeat: no-repeat; 
-  color: green; 
+  color: green;
   text-align: left;
   padding: 5px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 12pt;
-  box-sizing: border-box; 
   border: 2px solid rgb(6, 128, 0);
   border-top: transparent;
   border-left: transparent;
@@ -95,7 +82,6 @@ h3 {
 
 #taskbar span {
   text-shadow: 1px 1px 2px white; 
-  color: green; 
 }
 
 #taskbar-status {
@@ -105,61 +91,116 @@ h3 {
   text-overflow: ellipsis; 
   max-width: calc(100% - 200px); 
   display: inline-block;
-  color: green; 
-  font-family: Menlo, Monaco, 'Courier New', monospace
-
 }
 
-
-
-
-/* For WebKit-based browsers (Chrome, Safari, Edge) */
-#taHostLog::-webkit-scrollbar {
-  width: 10px; /* Width of the scrollbar */
-  scrollbar-color: green black;
+/* Table Styles */
+table {
+  border-collapse: collapse;
+  width: 100%;
 }
 
-#memoryDisplay::-webkit-scrollbar {
-  width: 10px; 
-  scrollbar-color: green black;
-}
-#memoryDisplay::-webkit-scrollbar-thumb {
-  width: 10px;
-  scrollbar-color: green black;
-}
-#memoryDisplayLabel {
+th, td {
+  border: 2px solid green;
+  padding: 5px;
+  text-align: center;
   color: green;
-  margin-left: 40%;
+  background-color: black;
+}
+
+thead th {
+  color: green;
+}
+
+#divMemoryDisplay {
+  width: 500px;
+  margin-right: 25px;
+  overflow: hidden;
+  margin-left: 25px;
+}
+
+#scrollContainer {
+  width: 550px; /* Ensure enough width to accommodate all data columns */
+  height: 250px;
+  overflow-y: scroll;
+  direction: ltr; 
+  margin-right: 25px;
+}
+
+#scrollContainer table {
+  width: 100%;
+  table-layout: fixed; /* Ensure fixed table layout */
+}
+
+#scrollContainer::-webkit-scrollbar {
+  width: 10px;
+  background-color: black;
+}
+
+#scrollContainer::-webkit-scrollbar-thumb {
+  background-color: green;
+  border-radius: 10px;
+}
+
+#taHostLog::-webkit-scrollbar {
+  width: 10px;
+  background-color: black;
+}
+
+#taHostLog::-webkit-scrollbar-thumb {
+  background-color: green;
+  border-radius: 10px;
+}
+
+#memoryTable {
+  table-layout: fixed;
+  width: 100%;
+
+
+}
+
+#memoryTableWrapper {
+  height: 150px; /* Adjust to show a fixed number of rows */
+  overflow-y: auto;
+  overflow-x: hidden;
   
 }
 
-
-#taHostLog::-webkit-scrollbar-thumb {
-  background-color: green; /* The draggable part of the scrollbar */
-  border-radius: 10px; /* Rounded corners */
-  border: 2px solid black; /* Border around the thumb */
+#memoryDisplayLabel {
+  color: green;
+  margin-left: 40%;
+  margin-bottom: 10px;
 }
 
-#bluePillGif {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw; 
-  height: 100vh; 
+#memoryTable th:first-child, #memoryTable td:first-child {
+  width: 45px; /* Adjust the 'Address' column to be wider */
+}
+
+#memoryTable tbody {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+#memoryTable thead, #memoryTable tbody tr {
+  display: table;
+  width: 60px;
+  table-layout: fixed;
+  
+}
+
+#memoryTable thead th {
   background-color: black;
-  z-index: 9999;
-  justify-content: center;
-  align-items: center;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  color: green;
+  position: sticky;
+  
 }
-#bluePillGif img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: fill;
-  margin: 0;
-  padding: 0;
-  display: block;
+
+#memoryTable th, #memoryTable td {
+  width: 45px; /* Adjust the width of data columns to fit all 6 */
+  text-align: center;
+  vertical-align: middle;
+  border: none;
+  color: green;
+  background-color: black;
+  
 }

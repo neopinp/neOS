@@ -159,26 +159,27 @@
       <!-- Memory Display on the left -->
       <div id="divMemoryDisplay" style="width: 500px; height: 250px; margin-right: 25px">
         <label id="memoryDisplayLabel">Memory</label>
-        <table id="memoryTable">
-          <thead>
-            <tr>
-              <th>Address</th> <!-- Memory address as row header -->
-              <th>Data 0</th>
-              <th>Data 1</th>
-              <th>Data 2</th>
-              <th>Data 3</th>
-              <th>Data 4</th>
-              <th>Data 5</th>
-              <th>Data 6</th>
-              <th>Data 7</th>
-            </tr>
-          </thead>
-          <tbody>
+        <div id="scrollContainer">
+          <table id="memoryTable">
+            <thead>
+              <tr>
+                <th>ADDR</th> <!-- Memory address as row header -->
+                <th>0</th>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+                <th>6</th>
 
-            <!-- Rows will be dynamically generated here -->
-          </tbody>
-        </table>
-        
+              </tr>
+            </thead>
+            <tbody>
+
+              <!-- Rows will be dynamically generated here -->
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Right-side column with PCB and CPU Status stacked -->
