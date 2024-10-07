@@ -17,6 +17,7 @@
 var TSOS;
 (function (TSOS) {
     class Control {
+        static singleStepMode = false;
         static updatePCBDisplay() {
             let pcbDisplayElement = document.querySelector("#pcbTableBody");
             if (pcbDisplayElement) {
@@ -110,6 +111,17 @@ var TSOS;
             // Set focus on the start button.
             // Use the TypeScript cast to HTMLInputElement
             document.getElementById("btnStartOS").focus();
+            document.addEventListener('keydown', (event) => {
+                if (event.ctrlKey && event.key === 'c') {
+                    const pid = neOS.CurrentProcess ? neOS.CurrentProcess.pid : null;
+                    if (pid !== null) {
+                        neOS.OsShell.shellKill([pid.toString()]);
+                        neOS.StdOut.advanceLine();
+                        neOS.OsShell.putPrompt();
+                    }
+                }
+            });
+            // More init
             // Check for our testing and enrichment core, which
             // may be referenced here (from index.html) as function Glados().
             if (typeof Glados === "function") {
@@ -118,6 +130,8 @@ var TSOS;
                 neOS.GLaDOS = new Glados();
                 neOS.GLaDOS.init();
             }
+            Control.singleStepToggle();
+            Control.executeStep();
             setInterval(Control.updateTaskBar, 1000);
         }
         static hostLog(msg, source = "?") {
@@ -157,15 +171,18 @@ var TSOS;
             neOS.Memory = new TSOS.Memory(256);
             neOS.Memory.init();
             //console.log("Memory initialized:", neOS.Memory);
-            // Initialize MemoryAccessor
-            //console.log("Initializing MemoryAccessor...");
             neOS.MemoryAccessor = new TSOS.MemoryAccessor(neOS.Memory);
             //console.log("MemoryAccessor initialized:", neOS.MemoryAccessor);
             neOS.CPU = new TSOS.Cpu();
             neOS.CPU.init();
             neOS.Kernel = new TSOS.Kernel();
             neOS.Kernel.krnBootstrap();
-            neOS.hardwareClockID = setInterval(TSOS.Devices.hostClockPulse, neOS.CPU_CLOCK_INTERVAL);
+            if (!this.singleStepMode) {
+                neOS.hardwareClockID = setInterval(TSOS.Devices.hostClockPulse, neOS.CPU_CLOCK_INTERVAL);
+            }
+            else {
+                neOS.CPU.isExecuting = false;
+            }
         }
         static hostBtnHaltOS_click(btn) {
             Control.hostLog("Emergency halt", "host");
@@ -175,6 +192,51 @@ var TSOS;
             // Stop the interval that's simulating our clock pulse.
             clearInterval(neOS.hardwareClockID);
             // TODO: Is there anything else we need to do here?
+        }
+        static singleStepToggle() {
+            const singleStepButton = document.getElementById('singleStep');
+            if (singleStepButton) {
+                singleStepButton.addEventListener('click', () => {
+                    this.singleStepMode = !this.singleStepMode;
+                    singleStepButton.textContent = this.singleStepMode ? "Disable Single Step" : "Enable Single Step";
+                    // Reset the CPU state
+                    if (this.singleStepMode) {
+                        neOS.CPU.isExecuting = false; // Stop executing immediately if enabling single-step mode
+                    }
+                });
+            }
+        }
+        static executeStep() {
+            const stepButton = document.getElementById('stepElement');
+            if (stepButton) {
+                stepButton.addEventListener('click', () => {
+                    if (this.singleStepMode) {
+                        // Only execute if the current process is valid
+                        if (neOS.CurrentProcess && neOS.CurrentProcess.state !== "Terminated") {
+                            const instruction = neOS.CPU.memoryAccessor.read(neOS.CPU.PC); // Fetch the instruction based on the current PC
+                            console.log(`Fetching instruction: ${instruction.toString(16)} from PC: ${neOS.CPU.PC.toString(16)}`);
+                            // Execute the instruction
+                            try {
+                                neOS.CPU.execute(instruction);
+                            }
+                            catch (error) {
+                                console.error(`Error executing instruction: ${error.message}`);
+                                return; // Exit if there's an execution error
+                            }
+                            // After execution, check if the process is still valid
+                            if (neOS.CurrentProcess.state === "Terminated") {
+                                console.log(`Process ${neOS.CurrentProcess.pid} has terminated.`);
+                            }
+                        }
+                        else {
+                            console.warn("No valid process to execute or process is terminated.");
+                        }
+                    }
+                    else {
+                        console.warn("Single step mode is not enabled.");
+                    }
+                });
+            }
         }
         static hostBtnReset_click(btn) {
             // The easiest and most thorough way to do this is to reload (not refresh) the document.

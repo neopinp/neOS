@@ -589,6 +589,8 @@ namespace TSOS {
         const pid = parseInt(args[0], 10);
         const pcb = neOS.ProcessList.find((p) => p.pid === pid);
 
+        
+
         if (pcb) {
           if (pcb.state === "Terminated") {
             neOS.StdOut.advanceLine();
@@ -599,11 +601,7 @@ namespace TSOS {
             if (neOS.CurrentProcess && neOS.CurrentProcess.pid === pid) {
               neOS.CPU.isExecuting = false;
               neOS.CurrentProcess = null;
-              neOS.StdOut.putText(
-                `Process ${pid} was the running process and is now terminated.`
-              );
             }
-            // free memory associated with termianted process
             neOS.MemoryManager.freeProcessMemory(pid);
           }
         } else {
@@ -627,12 +625,23 @@ namespace TSOS {
             neOS.StdOut.advanceLine();
             neOS.StdOut.putText(`Error: Process ${pid} is already running.`);
           } else {
+            // Set the process to "Running"
             pcb.state = "Running";
             neOS.CurrentProcess = pcb;
             neOS.CPU.setPC(pcb.base);
-            neOS.CPU.isExecuting = true;
-            neOS.StdOut.advanceLine();
-            neOS.StdOut.putText(`Process ${pid} is now running.`);
+    
+            // Check if single-step mode is enabled
+            if (TSOS.Control.singleStepMode) {
+              // Do not set isExecuting to true; it will be done on step
+              neOS.CPU.isExecuting = false; // Ensure it's not executing
+              neOS.StdOut.advanceLine();
+              neOS.StdOut.putText(`Process ${pid} is ready for single-step execution.`);
+            } else {
+              // If single-step mode is not enabled, allow execution
+              neOS.CPU.isExecuting = true;
+              neOS.StdOut.advanceLine();
+              neOS.StdOut.putText(`Process ${pid} is now running.`);
+            }
           }
         } else {
           neOS.StdOut.advanceLine();
@@ -643,6 +652,7 @@ namespace TSOS {
         neOS.StdOut.putText("Usage: run <pid>");
       }
     }
+    
     
 
     public shellMan(args: string[]) {

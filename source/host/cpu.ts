@@ -1,6 +1,6 @@
 namespace TSOS {
   export class Cpu {
-    private memoryAccessor: MemoryAccessor; // Use the memoryAccessor instead of a direct memory instance
+    public memoryAccessor: MemoryAccessor; // Use the memoryAccessor instead of a direct memory instance
     public instructionRegister: number = 0;
 
     constructor(

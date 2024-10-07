@@ -207,6 +207,7 @@ namespace TSOS {
 
       // Then shut down the OS.
       this.krnShutdown();
+
     }
 
     public startNewProcess(name: string) {

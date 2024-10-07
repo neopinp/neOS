@@ -21,6 +21,8 @@
 declare var Glados: any;
 namespace TSOS {
   export class Control {
+    public static singleStepMode: boolean = false;
+
     public static updatePCBDisplay(): void {
       let pcbDisplayElement = document.querySelector("#pcbTableBody");
       if (pcbDisplayElement) {
@@ -98,9 +100,9 @@ namespace TSOS {
     }
 
     public static updateCPUDisplay(cpu: Cpu): void {
-        const cpuTable = document.getElementById('cpuTableBody');
-        if (cpuTable) {
-            cpuTable.innerHTML = `
+      const cpuTable = document.getElementById('cpuTableBody');
+      if (cpuTable) {
+        cpuTable.innerHTML = `
             <tr>
             <td>0x${cpu.PC.toString(16).padStart(2, '0').toUpperCase()}</td>
             <td>0x${cpu.instructionRegister.toString(16).padStart(2, '0').toUpperCase()}</td>
@@ -109,7 +111,7 @@ namespace TSOS {
             <td>0x${cpu.Yreg.toString(16).padStart(2, '0').toUpperCase()}</td>
             <td>${cpu.Zflag}</td>
           </tr>`;
-        }
+      }
     }
 
     public static hostInit(): void {
@@ -132,6 +134,20 @@ namespace TSOS {
       // Use the TypeScript cast to HTMLInputElement
       (<HTMLInputElement>document.getElementById("btnStartOS")).focus();
 
+      document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key === 'c') {
+            const pid = neOS.CurrentProcess ? neOS.CurrentProcess.pid : null;
+            if (pid !== null) {
+                neOS.OsShell.shellKill([pid.toString()]); 
+                neOS.StdOut.advanceLine(); 
+                neOS.OsShell.putPrompt(); 
+            }
+        }
+    });
+
+    // More init
+
+
       // Check for our testing and enrichment core, which
       // may be referenced here (from index.html) as function Glados().
       if (typeof Glados === "function") {
@@ -140,6 +156,8 @@ namespace TSOS {
         neOS.GLaDOS = new Glados();
         neOS.GLaDOS.init();
       }
+      Control.singleStepToggle();
+      Control.executeStep();
       setInterval(Control.updateTaskBar, 1000);
     }
 
@@ -191,8 +209,6 @@ namespace TSOS {
 
       //console.log("Memory initialized:", neOS.Memory);
 
-      // Initialize MemoryAccessor
-      //console.log("Initializing MemoryAccessor...");
       neOS.MemoryAccessor = new TSOS.MemoryAccessor(neOS.Memory);
       //console.log("MemoryAccessor initialized:", neOS.MemoryAccessor);
 
@@ -202,10 +218,16 @@ namespace TSOS {
       neOS.Kernel = new TSOS.Kernel();
       neOS.Kernel.krnBootstrap();
 
-      neOS.hardwareClockID = setInterval(
-        Devices.hostClockPulse,
-        neOS.CPU_CLOCK_INTERVAL
-      ) as unknown as number;
+      if (!this.singleStepMode) {
+        neOS.hardwareClockID = setInterval(
+          Devices.hostClockPulse,
+          neOS.CPU_CLOCK_INTERVAL
+        ) as unknown as number;  
+      } else {
+        neOS.CPU.isExecuting = false;
+      }
+
+
     }
 
     public static hostBtnHaltOS_click(btn): void {
@@ -218,10 +240,62 @@ namespace TSOS {
       // TODO: Is there anything else we need to do here?
     }
 
+ public static singleStepToggle(): void {
+      const singleStepButton = document.getElementById('singleStep');
+      if (singleStepButton) {
+        singleStepButton.addEventListener('click', () => {
+          this.singleStepMode = !this.singleStepMode;
+          singleStepButton.textContent = this.singleStepMode ? "Disable Single Step" : "Enable Single Step";
+          
+          // Reset the CPU state
+          if (this.singleStepMode) {
+            neOS.CPU.isExecuting = false; // Stop executing immediately if enabling single-step mode
+          }
+        });
+      }
+    }
+
+    public static executeStep(): void {
+      const stepButton = document.getElementById('stepElement');
+      if (stepButton) {
+        stepButton.addEventListener('click', () => {
+          if (this.singleStepMode) {
+            // Only execute if the current process is valid
+            if (neOS.CurrentProcess && neOS.CurrentProcess.state !== "Terminated") {
+              const instruction = neOS.CPU.memoryAccessor.read(neOS.CPU.PC); // Fetch the instruction based on the current PC
+              console.log(`Fetching instruction: ${instruction.toString(16)} from PC: ${neOS.CPU.PC.toString(16)}`);
+    
+              // Execute the instruction
+              try {
+                neOS.CPU.execute(instruction);
+              } catch (error) {
+                console.error(`Error executing instruction: ${error.message}`);
+                return; // Exit if there's an execution error
+              }
+    
+              // After execution, check if the process is still valid
+              if (neOS.CurrentProcess.state === "Terminated") {
+                console.log(`Process ${neOS.CurrentProcess.pid} has terminated.`);
+              }
+            } else {
+              console.warn("No valid process to execute or process is terminated.");
+            }
+          } else {
+            console.warn("Single step mode is not enabled.");
+          }
+        });
+      }
+    }
+    
+    
+    
+
     public static hostBtnReset_click(btn): void {
       // The easiest and most thorough way to do this is to reload (not refresh) the document.
       location.reload();
     }
+
+
     public static updateTaskBar(): void {
       const now = new Date();
       const dateString = now.toLocaleDateString();
@@ -240,5 +314,7 @@ namespace TSOS {
         taskbarStatusElement.textContent = neOS.StatusMessage; // Hardcoded test
       }
     }
+
+
   }
 }
