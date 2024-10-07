@@ -44,6 +44,7 @@ h3 {
   color: green;
   width: 100px;
   background-color: black;
+  font-family: Menlo, Monaco, 'Courier New', monospace;
 }
 
 /* Footer Text */
@@ -262,8 +263,5 @@ thead th {
   border-bottom: 2px dotted green;
   border-right: 2px dotted green;
   border-left: 2px dotted green;
-
-
-
-
 }
+
