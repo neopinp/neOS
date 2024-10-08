@@ -250,6 +250,8 @@ namespace TSOS {
           // Reset the CPU state
           if (this.singleStepMode) {
             neOS.CPU.isExecuting = false; // Stop executing immediately if enabling single-step mode
+          } else {
+            neOS.CPU.isExecuting = true;
           }
         });
       }
@@ -263,25 +265,26 @@ namespace TSOS {
             // Only execute if the current process is valid
             if (neOS.CurrentProcess && neOS.CurrentProcess.state !== "Terminated") {
               const instruction = neOS.CPU.memoryAccessor.read(neOS.CPU.PC); // Fetch the instruction based on the current PC
-              console.log(`Fetching instruction: ${instruction.toString(16)} from PC: ${neOS.CPU.PC.toString(16)}`);
+
     
               // Execute the instruction
               try {
                 neOS.CPU.execute(instruction);
+                const hexInstruction = instruction.toString(16).padStart(2, '0').toUpperCase();
+                neOS.Kernel.krnTrace(`Step Button Pressed - Execute: 0x${hexInstruction}`);
               } catch (error) {
-                console.error(`Error executing instruction: ${error.message}`);
-                return; // Exit if there's an execution error
+                return; 
               }
     
               // After execution, check if the process is still valid
               if (neOS.CurrentProcess.state === "Terminated") {
-                console.log(`Process ${neOS.CurrentProcess.pid} has terminated.`);
+                neOS.Kernel.krnTrace(`Process ${neOS.CurrentProcess.pid} has terminated.`);
               }
             } else {
-              console.warn("No valid process to execute or process is terminated.");
+              neOS.Kernel.krnTrace("No valid process to execute or process is terminated.");
             }
           } else {
-            console.warn("Single step mode is not enabled.");
+            neOS.Kernel.krnTrace("Single step mode is not enabled.");
           }
         });
       }

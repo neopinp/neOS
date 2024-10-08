@@ -6,38 +6,40 @@
     <link rel="stylesheet" href="tsos.css" type="text/css" media="all" />
     <title>TSOS - a browser-based virtual Operating System in TypeScript</title>
 
-   <!-- Globals CONSTANTS and _Variables. Must included be first. -->
-   <script type="text/javascript" src="distrib/globals.js"></script>
+    <!-- Globals CONSTANTS and _Variables. Must included be first. -->
+    <script type="text/javascript" src="distrib/globals.js"></script>
 
-   <!-- Host (Virtual Machine / Hardware Simulation) Routines -->
+    <!-- Host (Virtual Machine / Hardware Simulation) Routines -->
     <script type="text/javascript" src="distrib/os/pcb.js"></script>
     <script type="text/javascript" src="distrib/host/memory.js"></script>
-    <script type="text/javascript" src="distrib/host/memoryAccessor.js"></script>
-   <script type="text/javascript" src="distrib/host/control.js"></script>
-   <script type="text/javascript" src="distrib/host/devices.js"></script>
-   <script type="text/javascript" src="distrib/host/cpu.js"></script>
+    <script
+      type="text/javascript"
+      src="distrib/host/memoryAccessor.js"
+    ></script>
+    <script type="text/javascript" src="distrib/host/control.js"></script>
+    <script type="text/javascript" src="distrib/host/devices.js"></script>
+    <script type="text/javascript" src="distrib/host/cpu.js"></script>
 
-   <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
-   <script type="text/javascript" src="distrib/os/interrupt.js"></script>
-   <script type="text/javascript" src="distrib/os/canvastext.js"></script>
-   <script type="text/javascript" src="distrib/os/console.js"></script>
-   <script type="text/javascript" src="distrib/os/deviceDriver.js"></script>
-   <script
-     type="text/javascript"
-     src="distrib/os/deviceDriverKeyboard.js"
-   ></script>
-   <script type="text/javascript" src="distrib/os/queue.js"></script>
-   <script type="text/javascript" src="distrib/os/shell.js"></script>
-   <script type="text/javascript" src="distrib/os/shellCommand.js"></script>
-   <script type="text/javascript" src="distrib/os/userCommand.js"></script>
-   <script type="text/javascript" src="distrib/os/memoryManager.js"></script>
-   <script type="text/javascript" src="distrib/os/kernel.js"></script>
+    <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
+    <script type="text/javascript" src="distrib/os/interrupt.js"></script>
+    <script type="text/javascript" src="distrib/os/canvastext.js"></script>
+    <script type="text/javascript" src="distrib/os/console.js"></script>
+    <script type="text/javascript" src="distrib/os/deviceDriver.js"></script>
+    <script
+      type="text/javascript"
+      src="distrib/os/deviceDriverKeyboard.js"
+    ></script>
+    <script type="text/javascript" src="distrib/os/queue.js"></script>
+    <script type="text/javascript" src="distrib/os/shell.js"></script>
+    <script type="text/javascript" src="distrib/os/shellCommand.js"></script>
+    <script type="text/javascript" src="distrib/os/userCommand.js"></script>
+    <script type="text/javascript" src="distrib/os/memoryManager.js"></script>
+    <script type="text/javascript" src="distrib/os/kernel.js"></script>
 
-
-   <!-- Other Routines -->
-   <script type="text/javascript" src="distrib/utils.js"></script>
-   <!-- Uncomment the line below to enable GLaDOS testing. -->
-   <script type="text/javascript" src="test\glados-ip2.js"></script>
+    <!-- Other Routines -->
+    <script type="text/javascript" src="distrib/utils.js"></script>
+    <!-- Uncomment the line below to enable GLaDOS testing. -->
+    <script type="text/javascript" src="test\glados-ip2.js"></script>
 
     <style>
       /* Style to center the text inside the table cells */
@@ -72,42 +74,37 @@
       style="display: flex; justify-content: space-between; margin-bottom: 20px"
     >
       <!-- Console and buttons on the left -->
-      <div id="leftColumn" style="width: 55%; margin-right: 10px">
-        <!-- Buttons on top -->
-        <div id="divButtonBar" style="margin-bottom: 10px">
-          <input
-            type="button"
-            id="btnStartOS"
-            name="brnStartOS"
-            class="normal_button"
-            value="Start"
-            tabindex="0"
-            onclick="TSOS.Control.hostBtnStartOS_click(this);"
-          />
-          <input
-            type="button"
-            id="btnHaltOS"
-            name="brnHaltOS"
-            class="normal_button"
-            disabled="disabled"
-            value="Halt"
-            tabindex="1"
-            onclick="TSOS.Control.hostBtnHaltOS_click(this);"
-          />
-          <input
-            type="button"
-            id="btnReset"
-            name="brnReset"
-            class="normal_button"
-            disabled="disabled"
-            value="Reset"
-            tabindex="2"
-            onclick="TSOS.Control.hostBtnReset_click(this);"
-          />
-          <button class="normal_button" id="singleStep">Enable Single Step</button>
-          <button class="normal_button" id="stepElement">step</button>
-
-        </div>
+      <!-- Buttons on top -->
+      <div id="divButtonBar" style="margin-bottom: 10px">
+        <input
+          type="button"
+          id="btnStartOS"
+          name="brnStartOS"
+          class="normal_button"
+          value="Start"
+          tabindex="0"
+          onclick="TSOS.Control.hostBtnStartOS_click(this);"
+        />
+        <input
+          type="button"
+          id="btnHaltOS"
+          name="brnHaltOS"
+          class="normal_button"
+          disabled="disabled"
+          value="Halt"
+          tabindex="1"
+          onclick="TSOS.Control.hostBtnHaltOS_click(this);"
+        />
+        <input
+          type="button"
+          id="btnReset"
+          name="brnReset"
+          class="normal_button"
+          disabled="disabled"
+          value="Reset"
+          tabindex="2"
+          onclick="TSOS.Control.hostBtnReset_click(this);"
+        />
         <!-- Console -->
         <div id="divConsole" style="flex-grow: 1">
           <canvas
@@ -118,7 +115,15 @@
           ></canvas>
         </div>
       </div>
+        <div
+        style="flex: display; flex-direction: column;">
+          <button class="normal_button" id="singleStep">
+            Enable Single Step
+          </button>
+          <button class="normal_button" id="stepElement">step</button>
+        </div>
 
+      <!-- Top Row -->
 
       <!-- Right-side column with Host Log and Program Input below -->
       <div
@@ -161,13 +166,15 @@
     <!-- Bottom row containing Memory Display, PCB, and CPU Status -->
     <div id="bottomRow" style="display: flex; justify-content: space-between">
       <!-- Memory Display on the left -->
-      <div id="divMemoryDisplay" style="width: 504px; height: 250px;">
-        <h3 style="margin-left: 40%;">Memory</h3>>
-        <div id="scrollContainer" style="width: 504px;">
+      <div id="divMemoryDisplay" style="width: 504px; height: 250px">
+        <h3 style="margin-left: 40%">Memory</h3>
+        >
+        <div id="scrollContainer" style="width: 504px">
           <table id="memoryTable">
             <thead>
               <tr>
-                <th>ADDR</th> <!-- Memory address as row header -->
+                <th>ADDR</th>
+                <!-- Memory address as row header -->
                 <th>0</th>
                 <th>1</th>
                 <th>2</th>
@@ -175,11 +182,9 @@
                 <th>4</th>
                 <th>5</th>
                 <th>6</th>
-
               </tr>
             </thead>
             <tbody>
-
               <!-- Rows will be dynamically generated here -->
             </tbody>
           </table>
@@ -213,14 +218,13 @@
                 <th>State</th>
               </tr>
             </thead>
-            <tbody id="pcbTableBody">
-            </tbody>
+            <tbody id="pcbTableBody"></tbody>
           </table>
         </div>
 
         <!-- CPU Status -->
         <div id="divCPUStatus">
-          <h3 style="margin-left: 50%; margin-top: 25px;">CPU</h3>
+          <h3 style="margin-left: 50%; margin-top: 25px">CPU</h3>
           <!-- Label for CPU -->
           <table>
             <thead>
@@ -256,9 +260,7 @@
       Stevie Ray Vaughan, Neil Peart, and Ian Fleming.
     </p>
 
-    <div
-      id="taskbar"
-    >
+    <div id="taskbar">
       <span id="taskbar-date-time"></span>
       <span id="taskbar-status" style="margin-right: 50px"></span>
     </div>

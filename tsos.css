@@ -30,6 +30,7 @@ h3 {
 /* Console Styles */
 #divConsole, #display, #taskbar-status {
   font-family: Menlo, Monaco, 'Courier New', monospace;
+  border-radius: 10px;
 }
 
 #display {
@@ -45,6 +46,9 @@ h3 {
   width: 100px;
   background-color: black;
   font-family: Menlo, Monaco, 'Courier New', monospace;
+  border-radius: 5px;
+  margin-bottom: 10px;
+
 }
 
 /* Footer Text */
@@ -59,6 +63,8 @@ h3 {
   background-color: black;
   color: green;
   border: 2px solid rgb(6, 128, 0);
+  border-radius: 20px;
+
 }
 
 /* Taskbar Styles */
@@ -265,3 +271,19 @@ thead th {
   border-left: 2px dotted green;
 }
 
+#stepElement, #singleStep {
+  margin-left: 40%;
+  margin-right: 20%;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#stepElement {
+  margin-top: 10%;
+
+}
+
+#singleStep {
+  margin-top: 30%;
+
+}
