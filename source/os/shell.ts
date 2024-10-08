@@ -512,6 +512,10 @@ namespace TSOS {
       }
     }
 
+
+    
+
+
     public shellLoad() {
       const programInput = (document.getElementById("taProgramInput") as HTMLTextAreaElement).value.trim();
     
@@ -579,6 +583,7 @@ namespace TSOS {
           neOS.StdOut.advanceLine();
         }
       } else {
+        neOS.StdOut.advanceLine();
         neOS.StdOut.putText("No running Processes.");
       }
     }

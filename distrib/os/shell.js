@@ -468,6 +468,7 @@ var TSOS;
                 }
             }
             else {
+                neOS.StdOut.advanceLine();
                 neOS.StdOut.putText("No running Processes.");
             }
         }
