@@ -10,7 +10,7 @@ var TSOS;
         xReg;
         yReg;
         zFlag;
-        state;
+        state = "New";
         priority;
         name;
         constructor(pid, base, limit, priority = 1, name = "UnnamedProcess") {
@@ -27,7 +27,7 @@ var TSOS;
             this.priority = priority;
             this.name = name; // Set process name
         }
-        // Add a method to reset the PCB (useful for when the process is reset)
+        // Add a method to reset the PCB 
         reset() {
             this.pc = 0;
             this.ir = 0;

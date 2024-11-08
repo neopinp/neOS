@@ -9,7 +9,7 @@ namespace TSOS {
     public xReg: number; 
     public yReg: number; 
     public zFlag: number; 
-    public state: string;
+    public state: string = "New";
     public priority: number; 
     public name: string;
 
@@ -34,7 +34,7 @@ namespace TSOS {
       this.name = name; // Set process name
     }
 
-    // Add a method to reset the PCB (useful for when the process is reset)
+    // Add a method to reset the PCB 
     public reset(): void {
       this.pc = 0;
       this.ir = 0;

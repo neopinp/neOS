@@ -11,26 +11,22 @@ var TSOS;
             this.memoryAccessor = memoryAccessor; // Use MemoryAccessor to access memory
             this.nextPID = 0; // Start with PID: 0
             this.allocatedMemoryBlocks = []; // Track memory allocation
-            this.freeMemoryBlocks = [{ start: 0, end: memorySize - 1 }]; // Initially, the whole memory is free
+            this.freeMemoryBlocks = [
+                { start: 0, end: 255 },
+                { start: 256, end: 511 },
+                { start: 512, end: 767 },
+            ];
         }
         // Find a free memory block, prefer baseAddress if provided (for $0000)
-        findFreeMemoryBlock(programSize, baseAddress) {
-            // Try to use the provided base address (if available) first
-            if (baseAddress !== undefined) {
-                const block = this.freeMemoryBlocks.find((block) => block.start === baseAddress &&
-                    block.end - block.start + 1 >= programSize);
+        findFreeMemoryBlock(programSize) {
+            const fixedSegments = [0x0000, 0x0100, 0x0200];
+            for (const segmentStart of fixedSegments) {
+                const block = this.freeMemoryBlocks.find((block) => block.start === segmentStart && block.end - block.start + 1 >= programSize);
                 if (block) {
-                    return baseAddress;
+                    return segmentStart;
                 }
             }
-            // Otherwise, find the first available free block that fits the program size
-            for (const block of this.freeMemoryBlocks) {
-                const blockSize = block.end - block.start + 1;
-                if (blockSize >= programSize) {
-                    return block.start;
-                }
-            }
-            return null; // Return null if no free memory block is found
+            return null;
         }
         // Update the free memory block list after allocating memory
         updateFreeMemory(baseAddress, programSize) {
@@ -54,13 +50,15 @@ var TSOS;
         // Store a program in memory and return PID and base address
         storeProgram(program) {
             const programSize = program.length;
-            // Always try to load at $0000 if it's the first program
-            const baseAddress = this.findFreeMemoryBlock(programSize, 0x0000);
+            // Find a free memory block with enough space
+            const baseAddress = this.findFreeMemoryBlock(programSize);
             if (baseAddress !== null) {
-                // Load the program into memory via the MemoryAccessor
+                // Write the program into memory
                 for (let i = 0; i < programSize; i++) {
                     this.memoryAccessor.write(baseAddress + i, program[i]);
                 }
+                // Mark this memory block as allocated
+                this.updateFreeMemory(baseAddress, programSize);
                 // Create a new process with a unique PID
                 const pid = this.nextPID++;
                 this.allocatedMemoryBlocks.push({
@@ -68,30 +66,35 @@ var TSOS;
                     start: baseAddress,
                     end: baseAddress + programSize - 1,
                 });
-                // Update the free memory blocks to reflect the new allocation
-                this.updateFreeMemory(baseAddress, programSize);
-                return { pid, baseAddress }; // Return the PID and base address of the new process
+                return { pid, baseAddress };
             }
-            return { pid: -1, baseAddress: -1 }; // Return -1 if not enough memory to load the program
+            return { pid: -1, baseAddress: -1 };
         }
         // Retrieve a loaded program by PID
         retrieveProgram(pid) {
             const memoryBlock = this.allocatedMemoryBlocks.find((block) => block.pid === pid);
             if (memoryBlock) {
-                return this.memoryAccessor.readBlock(memoryBlock.start, memoryBlock.end);
+                const blockSize = memoryBlock.end - memoryBlock.start + 1;
+                if (blockSize === 256) {
+                    return this.memoryAccessor.readBlock(memoryBlock.start, memoryBlock.end);
+                }
             }
             return null;
         }
         freeProcessMemory(pid) {
-            const memoryBlock = this.allocatedMemoryBlocks.find((block) => block.pid === pid);
-            if (memoryBlock) {
-                // Mark the memory as free by adding it back to the free memory blocks
-                this.freeMemoryBlocks.push({
-                    start: memoryBlock.start,
-                    end: memoryBlock.end,
-                });
-                // Remove the memory block from allocated memory blocks
-                this.allocatedMemoryBlocks = this.allocatedMemoryBlocks.filter((block) => block.pid !== pid);
+            const memoryBlockIndex = this.allocatedMemoryBlocks.findIndex((block) => block.pid === pid);
+            if (memoryBlockIndex !== -1) {
+                const memoryBlock = this.allocatedMemoryBlocks[memoryBlockIndex];
+                // Add the freed block back to freeMemoryBlocks if not already present
+                const isAlreadyFree = this.freeMemoryBlocks.some((block) => block.start === memoryBlock.start);
+                if (!isAlreadyFree) {
+                    this.freeMemoryBlocks.push({
+                        start: memoryBlock.start,
+                        end: memoryBlock.end,
+                    });
+                }
+                // Remove the block from allocatedMemoryBlocks
+                this.allocatedMemoryBlocks.splice(memoryBlockIndex, 1);
             }
         }
     }

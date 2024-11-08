@@ -7,35 +7,26 @@ var TSOS;
         }
         // Read a byte from memory
         read(address) {
-            if (address >= 0 && address < this.memory.memoryArray.length) {
-                const value = this.memory.getByte(address);
-                return value;
+            if (address < 0 || address >= 768) {
+                console.error(`Memory Access Error: Address ${address} out of bounds`);
+                return undefined; // Return undefined if the address is invalid
             }
-            else {
-                throw new Error("Memory access violation at address " + address);
-            }
+            return this.memory.getByte(address);
         }
         // Write a byte to memory
         write(address, value) {
-            if (address >= 0 && address < this.memory.memoryArray.length) {
-                this.memory.setByte(address, value);
-                // Log memory access
+            // Check if address is within bounds
+            if (address < 0 || address >= 768) {
+                throw new Error(`Memory Access Error: Address ${address} out of bounds`);
             }
-            else {
-                throw new Error("Memory access violation at address " + address);
-            }
+            this.memory.setByte(address, value);
         }
         // Read a block of memory (for retrieving programs)
-        readBlock(startAddress, endAddress) {
-            if (startAddress >= 0 && endAddress < this.memory.memoryArray.length) {
-                return this.memory.memoryArray.slice(startAddress, endAddress + 1);
+        readBlock(start, end) {
+            if (end >= 768) {
+                throw new Error("Memory Access Error: Block exceeds memory size");
             }
-            else {
-                throw new Error("Memory access violation between addresses " +
-                    startAddress +
-                    " and " +
-                    endAddress);
-            }
+            return this.memory.getMemoryArray().slice(start, end + 1);
         }
         getMemoryArray() {
             return this.memory.getMemoryArray();
@@ -57,15 +48,19 @@ var TSOS;
                     for (let j = 0; j < maxDataColumns; j++) {
                         let dataCell = document.createElement("td");
                         if (i + j < this.memory.memoryArray.length) {
-                            let dataValue = this.memory
-                                .getByte(i + j)
-                                .toString(16)
-                                .padStart(2, "0")
-                                .toUpperCase();
-                            dataCell.textContent = dataValue;
+                            let dataValue = this.memory.getByte(i + j);
+                            if (dataValue === undefined) {
+                                console.error(`Undefined value at memory address: ${i + j}`);
+                                dataCell.textContent = "--";
+                            }
+                            else {
+                                dataCell.textContent = dataValue
+                                    .toString(16)
+                                    .padStart(2, "0")
+                                    .toUpperCase();
+                            }
                         }
                         else {
-                            // If we're out of bounds, leave the cell blank
                             dataCell.textContent = "--";
                         }
                         row.appendChild(dataCell);

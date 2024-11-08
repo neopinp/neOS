@@ -177,6 +177,7 @@ namespace TSOS {
         " - Load a user program"
       );
       this.commandList[this.commandList.length] = sc;
+      TSOS.Control.updatePCBDisplay();
 
       sc = new ShellCommand(
         this.shellKill,
@@ -385,8 +386,6 @@ namespace TSOS {
         const command = neOS.OsShell.commandList[i].command;
         const description = neOS.OsShell.commandList[i].description;
 
-
-
         // Combine the command and description, and print them on the same line.
         neOS.StdOut.putText(command + " " + description);
 
@@ -512,54 +511,56 @@ namespace TSOS {
       }
     }
 
-
-    
-
-
     public shellLoad() {
-      const programInput = (document.getElementById("taProgramInput") as HTMLTextAreaElement).value.trim();
-    
+      const programInput = (
+        document.getElementById("taProgramInput") as HTMLTextAreaElement
+      ).value.trim();
+
       // Validate that the input is a valid hexadecimal string
       const isValidHex = /^[0-9a-fA-F\s]+$/.test(programInput);
-    
+
       if (isValidHex) {
         // Remove all whitespace and split into an array of hex byte pairs (e.g., 'A9', '00', etc.)
         const programBytes = programInput.replace(/\s+/g, "").match(/.{1,2}/g);
-    
+
         if (programBytes) {
           // Convert hex byte strings to actual byte values (integers)
-          const program = programBytes.map(byte => parseInt(byte, 16));
-    
+          const program = programBytes.map((byte) => parseInt(byte, 16));
+
           // Load the program into memory starting at the available address
           const { pid, baseAddress } = neOS.MemoryManager.storeProgram(program);
-    
+
           if (pid >= 0) {
             // Create a new Process Control Block (PCB) for the loaded program
-            const pcb = new PCB(pid, baseAddress, baseAddress + program.length - 1, 1, `Program_${pid}`);
+            const pcb = new PCB(
+              pid,
+              baseAddress,
+              baseAddress + 255,
+              1,
+              `Program_${pid}`
+            );
             pcb.state = "Ready";
             neOS.ProcessList.push(pcb); // Add PCB to process list
-    
-            // Output success message to the console
+
             neOS.StdOut.advanceLine();
             neOS.StdOut.putText(`Program loaded successfully with PID: ${pid}`);
-            
-            // Debugging: Log the loaded program to ensure bytes are correct
-            for (let i = 0; i < program.length; i++) {
-            }
           } else {
-            // Handle memory allocation failure
             neOS.StdOut.putText("Error: Not enough memory to load the program");
           }
         } else {
-          // Handle case where the hex parsing didn't work correctly
-          neOS.StdOut.putText("Error: Could not parse the program input into valid bytes.");
+          neOS.StdOut.putText(
+            "Error: Could not parse the program input into valid bytes."
+          );
         }
       } else {
         // Invalid input, display an error message
-        neOS.StdOut.putText("Invalid program. Please enter a valid hexadecimal string.");
+        neOS.StdOut.putText(
+          "Invalid program. Please enter a valid hexadecimal string."
+        );
       }
+      TSOS.Control.updatePCBDisplay();
+      neOS.MemoryAccessor.displayMemory();
     }
-    
 
     public shellBSOD(args: string[]) {
       neOS.Kernel.krnTrapError("Manual BSOD trigger.");
@@ -572,7 +573,7 @@ namespace TSOS {
         neOS.StdOut.advanceLine();
         for (let i = 0; i < neOS.ProcessList.length; i++) {
           const pcb = neOS.ProcessList[i];
-          // Format base and limit as four-character hex strings with a leading '$'
+
           const base =
             "$" + pcb.base.toString(16).padStart(4, "0").toUpperCase();
           const limit =
@@ -594,8 +595,6 @@ namespace TSOS {
         const pid = parseInt(args[0], 10);
         const pcb = neOS.ProcessList.find((p) => p.pid === pid);
 
-        
-
         if (pcb) {
           if (pcb.state === "Terminated") {
             neOS.StdOut.advanceLine();
@@ -604,7 +603,7 @@ namespace TSOS {
             pcb.state = "Terminated";
             neOS.StdOut.putText(`Process ${pid} terminated successfully.`);
             if (neOS.CurrentProcess && neOS.CurrentProcess.pid === pid) {
-              neOS.CPU.isExecuting = false;
+              neOS.CPU.terminateProcess();
               neOS.CurrentProcess = null;
             }
             neOS.MemoryManager.freeProcessMemory(pid);
@@ -621,28 +620,31 @@ namespace TSOS {
       if (args.length > 0) {
         const pid = parseInt(args[0], 10);
         const pcb = neOS.ProcessList.find((p) => p.pid === pid);
-    
+
         if (pcb) {
           if (pcb.state === "Terminated") {
             neOS.StdOut.advanceLine();
-            neOS.StdOut.putText(`Error: Process ${pid} has already terminated.`);
+            neOS.StdOut.putText(
+              `Error: Process ${pid} has already terminated.`
+            );
           } else if (pcb.state === "Running") {
             neOS.StdOut.advanceLine();
             neOS.StdOut.putText(`Error: Process ${pid} is already running.`);
           } else {
-            // Set the process to "Running"
+            // Set the process to "Running" and assign it to the CPU
             pcb.state = "Running";
             neOS.CurrentProcess = pcb;
+
+            // Reset the PC to the base of the process
             neOS.CPU.setPC(pcb.base);
-    
-            // Check if single-step mode is enabled
+
             if (TSOS.Control.singleStepMode) {
-              // Do not set isExecuting to true; it will be done on step
-              neOS.CPU.isExecuting = false; // Ensure it's not executing
+              neOS.CPU.isExecuting = false;
               neOS.StdOut.advanceLine();
-              neOS.StdOut.putText(`Process ${pid} is ready for single-step execution.`);
+              neOS.StdOut.putText(
+                `Process ${pid} is ready for single-step execution.`
+              );
             } else {
-              // If single-step mode is not enabled, allow execution
               neOS.CPU.isExecuting = true;
               neOS.StdOut.advanceLine();
               neOS.StdOut.putText(`Process ${pid} is now running.`);
@@ -657,8 +659,6 @@ namespace TSOS {
         neOS.StdOut.putText("Usage: run <pid>");
       }
     }
-    
-    
 
     public shellMan(args: string[]) {
       if (args.length > 0) {
@@ -682,14 +682,13 @@ namespace TSOS {
           .map((cmd) => cmd.command)
           .filter((command) => command.startsWith(input));
 
-        // If there are multiple matches, show them
         if (this.tabCompletionMatches.length > 1) {
           neOS.StdOut.advanceLine();
           neOS.StdOut.putText(this.tabCompletionMatches.join(", "));
           neOS.StdOut.advanceLine();
           this.putPrompt();
           this.redrawInput();
-          return; // Don't autocomplete, just show the possible matches
+          return; 
         }
         // If there's exactly one match, autocomplete the command
         else if (this.tabCompletionMatches.length === 1) {

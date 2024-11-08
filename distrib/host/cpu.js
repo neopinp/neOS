@@ -9,6 +9,8 @@ var TSOS;
         isExecuting;
         memoryAccessor; // Use the memoryAccessor instead of a direct memory instance
         instructionRegister = 0;
+        base = 0;
+        limit = 255;
         constructor(PC = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, isExecuting = false) {
             this.PC = PC;
             this.Acc = Acc;
@@ -35,34 +37,62 @@ var TSOS;
             this.instructionRegister = 0;
             this.isExecuting = false;
         }
-        cycle() {
-            // Log the state of the CPU registers
-            // Ensure MemoryAccessor is not null before accessing
-            if (!this.memoryAccessor) {
-                console.error("MemoryAccessor is NULL in CPU cycle! Cannot execute.");
-                return; // Stop execution if memoryAccessor is not set
+        setCurrentProcess(pcb) {
+            this.PC = pcb.base; // Ensure PC starts at the base of the process
+            this.Acc = pcb.acc;
+            this.Xreg = pcb.xReg;
+            this.Yreg = pcb.yReg;
+            this.Zflag = pcb.zFlag;
+            this.instructionRegister = pcb.ir;
+            // Set the base and limit for the current process
+            this.base = pcb.base;
+            this.limit = pcb.limit;
+            console.log(`DEBUG: Setting process ${pcb.pid} with base: ${this.base}, limit: ${this.limit}, PC: ${this.PC}`);
+            // Ensure base and limit are valid
+            if (this.base < 0 || this.limit > 767 || this.base > this.limit) {
+                console.error(`Invalid memory boundaries for process ${pcb.pid}.`);
+                this.terminateProcess();
             }
+            this.isExecuting = true;
+        }
+        cycle() {
             if (this.isExecuting) {
-                // Log that execution is continuing
-                // Fetch the next instruction from memory
-                const instruction = this.memoryAccessor.read(this.PC); // Use memoryAccessor to read memory
+                if (!this.memoryAccessor) {
+                    console.error("MemoryAccessor is NULL");
+                    return;
+                }
+                if (this.PC < this.base || this.PC > this.limit) {
+                    console.error(`memory violation for process ${neOS.CurrentProcess.pid}`);
+                    this.isExecuting = false;
+                    neOS.CurrentProcess.state = "Terminated";
+                    TSOS.Control.updatePCBDisplay();
+                    return;
+                }
+                const instruction = this.memoryAccessor.read(this.PC);
                 this.instructionRegister = instruction;
-                // Execute the instruction
                 this.execute(instruction);
                 TSOS.Control.updatePCBDisplay();
                 TSOS.Control.updateCPUDisplay(this);
             }
             else {
-                // If CPU is not executing, log it
-                neOS.Kernel.krnTrace("CPU is idle, not executing any instruction.");
+                neOS.Kernel.krnTrace("Cpu is idle");
             }
         }
-        // Helper to get the memory address (combine two bytes)
         getAddress() {
             const lowByte = this.memoryAccessor.read(this.PC + 1);
             const highByte = this.memoryAccessor.read(this.PC + 2);
-            const address = (highByte << 8) | lowByte; // Combine the two bytes
-            return address;
+            const address = (highByte << 8) | lowByte;
+            // Adjust address by the base address of the current process
+            const baseAddress = neOS.CurrentProcess ? neOS.CurrentProcess.base : 0;
+            const effectiveAddress = baseAddress + address;
+            // Check if effective address is within bounds
+            if (effectiveAddress < baseAddress ||
+                effectiveAddress > baseAddress + 255) {
+                console.error(`Memory access out of bounds: ${effectiveAddress}`);
+                this.terminateProcess();
+                return -1;
+            }
+            return effectiveAddress;
         }
         // Execute the fetched instruction
         execute(instruction) {
@@ -77,13 +107,20 @@ var TSOS;
                     this.PC += 2;
                     break;
                 case 0x8d: // STA: Store Accumulator in memory
-                    address = this.getAddress(); // Get the memory address to store the Accumulator value
-                    this.memoryAccessor.write(address, this.Acc); // Write the Accumulator value to memory
+                    address = this.getAddress();
+                    if (this.checkMemoryAccess(address)) {
+                        this.memoryAccessor.write(address, this.Acc);
+                    }
                     this.PC += 3;
                     this.memoryAccessor.displayMemory();
                     break;
                 case 0x6d: // ADC: Add with Carry
                     address = this.getAddress();
+                    if (address < this.base || address > this.limit) {
+                        console.error(`Memory access violation at address ${address} for process ${neOS.CurrentProcess.pid}`);
+                        this.terminateProcess();
+                        return;
+                    }
                     memoryValue = this.memoryAccessor.read(address);
                     this.Acc += memoryValue;
                     this.PC += 3;
@@ -95,6 +132,11 @@ var TSOS;
                     break;
                 case 0xae: // LDX: Load X register from memory
                     address = this.getAddress();
+                    if (address < this.base || address > this.limit) {
+                        console.error(`Memory access violation at address ${address} for process ${neOS.CurrentProcess.pid}`);
+                        this.terminateProcess();
+                        return;
+                    }
                     memoryValue = this.memoryAccessor.read(address);
                     this.Xreg = memoryValue;
                     this.PC += 3;
@@ -106,8 +148,10 @@ var TSOS;
                     break;
                 case 0xac: // LDY: Load Y register from memory
                     address = this.getAddress();
-                    memoryValue = this.memoryAccessor.read(address);
-                    this.Yreg = memoryValue;
+                    if (this.checkMemoryAccess(address)) {
+                        memoryValue = this.memoryAccessor.read(address);
+                        this.Yreg = memoryValue;
+                    }
                     this.PC += 3;
                     break;
                 case 0xea: // NOP: No operation
@@ -123,6 +167,11 @@ var TSOS;
                     break;
                 case 0xec: // CPX: Compare a byte in memory to the X register
                     address = this.getAddress();
+                    if (address < this.base || address > this.limit) {
+                        console.error(`Memory access violation at address ${address} for process ${neOS.CurrentProcess.pid}`);
+                        this.terminateProcess();
+                        return;
+                    }
                     memoryValue = this.memoryAccessor.read(address);
                     this.Zflag = this.Xreg === memoryValue ? 1 : 0; // Set Z flag if equal
                     this.PC += 3;
@@ -153,12 +202,12 @@ var TSOS;
                     break;
                 case 0xff: // SYS: System Call
                     if (this.Xreg === 1) {
-                        neOS.StdOut.putText(this.Yreg.toString());
                     }
                     else if (this.Xreg === 2) {
-                        let strAddress = this.Yreg;
+                        let strAddress = this.Yreg + neOS.CurrentProcess.base; // Adjust for base address
                         let outputStr = "";
                         let currentChar = this.memoryAccessor.read(strAddress);
+                        // Read characters from memory until a null byte (0x00) is found
                         while (currentChar !== 0x00) {
                             outputStr += String.fromCharCode(currentChar);
                             strAddress++;
@@ -168,9 +217,6 @@ var TSOS;
                     }
                     this.PC += 1;
                     break;
-                default:
-                    neOS.Kernel.krnTrace(`Unknown instruction: ${instruction.toString(16)}`);
-                    throw new Error(`Unknown opcode: ${instruction.toString(16)}`);
             }
             if (neOS.CurrentProcess) {
                 neOS.CurrentProcess.pc = this.PC;
@@ -180,11 +226,25 @@ var TSOS;
                 neOS.CurrentProcess.zFlag = this.Zflag;
                 neOS.CurrentProcess.ir = this.instructionRegister; // Capture the instruction
             }
-            this.memoryAccessor.displayMemory();
             TSOS.Control.updatePCBDisplay();
         }
         setPC(address) {
             this.PC = address;
+        }
+        terminateProcess() {
+            console.error(`Terminating process ${neOS.CurrentProcess.pid} due to memory violation.`);
+            neOS.CurrentProcess.state = "Terminated";
+            this.isExecuting = false;
+            TSOS.Control.updatePCBDisplay();
+            TSOS.Control.updateCPUDisplay(this);
+        }
+        checkMemoryAccess(address) {
+            if (address < this.base || address > this.limit) {
+                console.error(`Memory access violation for process ${neOS.CurrentProcess.pid} at address ${address}.`);
+                this.terminateProcess();
+                return false;
+            }
+            return true;
         }
     }
     TSOS.Cpu = Cpu;
