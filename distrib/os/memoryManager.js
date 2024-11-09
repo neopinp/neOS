@@ -14,7 +14,7 @@ var TSOS;
             this.freeMemoryBlocks = [
                 { start: 0, end: 255 },
                 { start: 256, end: 511 },
-                { start: 512, end: 767 },
+                { start: 512, end: 768 },
             ];
         }
         // Find a free memory block, prefer baseAddress if provided (for $0000)

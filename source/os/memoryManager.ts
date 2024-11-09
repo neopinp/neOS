@@ -18,7 +18,7 @@ namespace TSOS {
       this.freeMemoryBlocks = [
         { start: 0, end: 255 },
         { start: 256, end: 511 },
-        { start: 512, end: 767 },
+        { start: 512, end: 768 },
       ];
     }
 

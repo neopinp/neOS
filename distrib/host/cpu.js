@@ -10,7 +10,7 @@ var TSOS;
         memoryAccessor; // Use the memoryAccessor instead of a direct memory instance
         instructionRegister = 0;
         base = 0;
-        limit = 255;
+        limit;
         constructor(PC = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, isExecuting = false) {
             this.PC = PC;
             this.Acc = Acc;
@@ -29,13 +29,6 @@ var TSOS;
             }
         }
         init() {
-            this.PC = 0;
-            this.Acc = 0;
-            this.Xreg = 0;
-            this.Yreg = 0;
-            this.Zflag = 0;
-            this.instructionRegister = 0;
-            this.isExecuting = false;
         }
         setCurrentProcess(pcb) {
             this.PC = pcb.base; // Ensure PC starts at the base of the process
@@ -49,7 +42,7 @@ var TSOS;
             this.limit = pcb.limit;
             console.log(`DEBUG: Setting process ${pcb.pid} with base: ${this.base}, limit: ${this.limit}, PC: ${this.PC}`);
             // Ensure base and limit are valid
-            if (this.base < 0 || this.limit > 767 || this.base > this.limit) {
+            if (this.base < 0 || this.limit > 768 || this.base > this.limit) {
                 console.error(`Invalid memory boundaries for process ${pcb.pid}.`);
                 this.terminateProcess();
             }

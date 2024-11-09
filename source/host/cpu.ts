@@ -3,7 +3,7 @@ namespace TSOS {
     public memoryAccessor: MemoryAccessor; // Use the memoryAccessor instead of a direct memory instance
     public instructionRegister: number = 0;
     public base: number = 0;
-    public limit: number = 255;
+    public limit: number;
 
     constructor(
       public PC: number = 0,
@@ -29,13 +29,6 @@ namespace TSOS {
       }
     }
     public init(): void {
-      this.PC = 0;
-      this.Acc = 0;
-      this.Xreg = 0;
-      this.Yreg = 0;
-      this.Zflag = 0;
-      this.instructionRegister = 0;
-      this.isExecuting = false;
     }
 
     public setCurrentProcess(pcb: PCB): void {
@@ -55,7 +48,7 @@ namespace TSOS {
       );
 
       // Ensure base and limit are valid
-      if (this.base < 0 || this.limit > 767 || this.base > this.limit) {
+      if (this.base < 0 || this.limit > 768 || this.base > this.limit) {
         console.error(`Invalid memory boundaries for process ${pcb.pid}.`);
         this.terminateProcess();
       }
