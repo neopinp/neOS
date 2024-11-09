@@ -578,14 +578,15 @@ var TSOS;
                 if (pcb.state === "terminated") {
                     continue;
                 }
-                neOS.CurrentProcess = pcb;
-                neOS.CPU.setPC(pcb.base);
-                neOS.CPU.isExecuting = true;
                 if (pcb.state === "running") {
                     neOS.StdOut.advanceLine();
                     neOS.StdOut.putText(`Process ${pcb.pid} is now running`);
                 }
                 else {
+                    neOS.CurrentProcess = pcb;
+                    neOS.CPU.setPC(pcb.base);
+                    neOS.CPU.isExecuting = true;
+                    neOS.CurrentProcess.state = "Running";
                     allProcessesStarted = false;
                 }
             }
@@ -593,6 +594,7 @@ var TSOS;
                 neOS.StdOut.advanceLine();
                 neOS.StdOut.putText(`All processes are now running`);
             }
+            TSOS.Control.updatePCBDisplay();
         }
         shellKillall() {
             for (let i = 0; i < neOS.ProcessList.length; i++) {

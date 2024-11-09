@@ -4,6 +4,9 @@ namespace TSOS {
     public instructionRegister: number = 0;
     public base: number = 0;
     public limit: number;
+    public quantum: number = 6;
+    public quantumCounter: number = 0;
+    public quantumLimit: number;
 
     constructor(
       public PC: number = 0,
@@ -30,31 +33,6 @@ namespace TSOS {
     }
     public init(): void {}
 
-    public setCurrentProcess(pcb: PCB): void {
-      this.PC = pcb.base; // Ensure PC starts at the base of the process
-      this.Acc = pcb.acc;
-      this.Xreg = pcb.xReg;
-      this.Yreg = pcb.yReg;
-      this.Zflag = pcb.zFlag;
-      this.instructionRegister = pcb.ir;
-
-      // Set the base and limit for the current process
-      this.base = pcb.base;
-      this.limit = pcb.limit;
-
-      console.log(
-        `DEBUG: Setting process ${pcb.pid} with base: ${this.base}, limit: ${this.limit}, PC: ${this.PC}`
-      );
-
-      // Ensure base and limit are valid
-      if (this.base < 0 || this.limit > 768 || this.base > this.limit) {
-        console.error(`Invalid memory boundaries for process ${pcb.pid}.`);
-        this.terminateProcess();
-      }
-
-      this.isExecuting = true;
-    }
-
     public cycle(): void {
       if (this.isExecuting) {
         if (!this.memoryAccessor) {
@@ -79,6 +57,10 @@ namespace TSOS {
         this.execute(instruction);
         TSOS.Control.updatePCBDisplay();
         TSOS.Control.updateCPUDisplay(this);
+        this.quantumCounter++;
+        if (this.quantumCounter <= 0) {
+          this.handleQuantumExpiration();
+        }
       } else {
         neOS.Kernel.krnTrace("Cpu is idle");
       }
@@ -277,11 +259,13 @@ namespace TSOS {
     }
 
     public terminateProcess(): void {
-      neOS.CurrentProcess.state = "Terminated";
-      this.isExecuting = false;
-      neOS.CurrentProcess.freeProcessMemory();
-      TSOS.Control.updatePCBDisplay();
-      TSOS.Control.updateCPUDisplay(this);
+      if (neOS.CurrentProcess) {
+        neOS.CurrentProcess.state = "Terminated";
+        this.isExecuting = false;
+        neOS.CurrentProcess.freeProcessMemory();
+        TSOS.Control.updatePCBDisplay();
+        TSOS.Control.updateCPUDisplay(this);
+      }
     }
     public checkMemoryAccess(address: number): boolean {
       if (address < this.base || address > this.limit) {
@@ -292,6 +276,49 @@ namespace TSOS {
         return false;
       }
       return true;
+    }
+
+    public saveCurrentProcessState(): void {
+      const currentProcess = neOS.CurrentProcess;
+      currentProcess.pc = this.PC;
+      currentProcess.acc = this.Acc;
+      currentProcess.xReg = this.Xreg;
+      currentProcess.yReg = this.Yreg;
+      currentProcess.zFlag = this.Zflag;
+      currentProcess.ir = this.instructionRegister;
+    }
+
+    private scheduleNextProcess(): void {
+      const readyProcesses = neOS.ProcessList.filter(
+        (p) => p.state === "Ready"
+      );
+
+      if (readyProcesses.length === 0) {
+        console.log("No ready processes.");
+        return;
+      }
+
+      const nextProcess = readyProcesses[0];
+      nextProcess.state = "Running";
+      neOS.CurrentProcess.state = "Ready";
+      neOS.CurrentProcess = nextProcess;
+
+      this.loadProcessState(nextProcess); // Load state of next process
+    }
+
+    public loadProcessState(process: TSOS.PCB): void {
+      this.PC = process.pc;
+      this.Acc = process.acc;
+      this.Xreg = process.xReg;
+      this.Yreg = process.yReg;
+      this.Zflag = process.zFlag;
+      this.instructionRegister = process.ir;
+      this.isExecuting = true;
+    }
+    public handleQuantumExpiration(): void {
+      this.quantumCounter = 0;
+      this.saveCurrentProcessState();
+      this.scheduleNextProcess();
     }
   }
 }
