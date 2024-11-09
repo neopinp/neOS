@@ -277,11 +277,9 @@ namespace TSOS {
     }
 
     public terminateProcess(): void {
-      console.error(
-        `Terminating process ${neOS.CurrentProcess.pid} due to memory violation.`
-      );
       neOS.CurrentProcess.state = "Terminated";
       this.isExecuting = false;
+      neOS.CurrentProcess.freeProcessMemory();
       TSOS.Control.updatePCBDisplay();
       TSOS.Control.updateCPUDisplay(this);
     }

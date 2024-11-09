@@ -2,13 +2,13 @@ namespace TSOS {
   export class MemoryManager {
     private memorySize: number;
     private memoryAccessor: MemoryAccessor;
-    private nextPID: number;
-    private allocatedMemoryBlocks: {
+    public nextPID: number;
+    public allocatedMemoryBlocks: {
       pid: number;
       start: number;
       end: number;
     }[]; // Store allocated memory
-    private freeMemoryBlocks: { start: number; end: number }[]; // Track free memory
+    public freeMemoryBlocks: { start: number; end: number }[]; // Track free memory
 
     constructor(memorySize: number, memoryAccessor: MemoryAccessor) {
       this.memorySize = memorySize;
