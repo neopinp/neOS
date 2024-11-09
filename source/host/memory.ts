@@ -2,7 +2,7 @@ namespace TSOS {
   export class Memory {
     public memoryArray: number[];
 
-    constructor(memorySize: number = 768) {  // Allow dynamic memory size, defaulting to 256 bytes
+    constructor(memorySize: number = 768) { 
       this.memoryArray = new Array(memorySize).fill(0);
     }
 

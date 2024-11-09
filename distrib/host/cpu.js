@@ -28,8 +28,7 @@ var TSOS;
                 console.log("MemoryAccessor in CPU constructor:", this.memoryAccessor); // Debug statement
             }
         }
-        init() {
-        }
+        init() { }
         setCurrentProcess(pcb) {
             this.PC = pcb.base; // Ensure PC starts at the base of the process
             this.Acc = pcb.acc;
@@ -62,6 +61,7 @@ var TSOS;
                     return;
                 }
                 const instruction = this.memoryAccessor.read(this.PC);
+                console.log(`DEBUG: Executing instruction: ${instruction} at PC: ${this.PC}`); // Debug instruction
                 this.instructionRegister = instruction;
                 this.execute(instruction);
                 TSOS.Control.updatePCBDisplay();
@@ -78,6 +78,8 @@ var TSOS;
             // Adjust address by the base address of the current process
             const baseAddress = neOS.CurrentProcess ? neOS.CurrentProcess.base : 0;
             const effectiveAddress = baseAddress + address;
+            // Debugging to print address and effectiveAddress
+            console.log(`DEBUG: Address = ${address}, Effective Address = ${effectiveAddress}`);
             // Check if effective address is within bounds
             if (effectiveAddress < baseAddress ||
                 effectiveAddress > baseAddress + 255) {
@@ -195,6 +197,8 @@ var TSOS;
                     break;
                 case 0xff: // SYS: System Call
                     if (this.Xreg === 1) {
+                        // Output the numeric value in Yreg as a string
+                        neOS.StdOut.putText(this.Yreg.toString());
                     }
                     else if (this.Xreg === 2) {
                         let strAddress = this.Yreg + neOS.CurrentProcess.base; // Adjust for base address
@@ -206,6 +210,7 @@ var TSOS;
                             strAddress++;
                             currentChar = this.memoryAccessor.read(strAddress);
                         }
+                        // Output the final string
                         neOS.StdOut.putText(outputStr);
                     }
                     this.PC += 1;

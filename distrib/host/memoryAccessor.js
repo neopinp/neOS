@@ -11,7 +11,9 @@ var TSOS;
                 console.error(`Memory Access Error: Address ${address} out of bounds`);
                 return undefined; // Return undefined if the address is invalid
             }
-            return this.memory.getByte(address);
+            const value = this.memory.getByte(address);
+            console.log(`DEBUG: Reading from memory address ${address}: ${value}`);
+            return value;
         }
         // Write a byte to memory
         write(address, value) {
