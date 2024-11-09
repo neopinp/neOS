@@ -1,9 +1,11 @@
 namespace TSOS {
   export class MemoryAccessor {
     private memory: Memory;
+    public memorySize: number;
 
     constructor(memory: Memory) {
-      this.memory = memory;
+      this.memory = Memory.getInstance();
+      this.memorySize = this.memory.getMemoryArray().length;
     }
 
     // Read a byte from memory
@@ -84,6 +86,17 @@ namespace TSOS {
       } else {
         console.error("Memory table body not found");
       }
+    }
+    public clearMemoryBlock(start: number, end: number): void {
+      for (let i = start; i <= end; i++) {
+        this.memory.setByte(i, 0);
+      }
+    }
+    public clearAllMemory(): void {
+      for (let i = 0; i < this.memorySize; i++) {
+        this.write(i, 0);
+      }
+      console.log("Memory cleared successfully.");
     }
   }
 }

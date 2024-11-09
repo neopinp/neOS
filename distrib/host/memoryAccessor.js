@@ -2,8 +2,10 @@ var TSOS;
 (function (TSOS) {
     class MemoryAccessor {
         memory;
+        memorySize;
         constructor(memory) {
-            this.memory = memory;
+            this.memory = TSOS.Memory.getInstance();
+            this.memorySize = this.memory.getMemoryArray().length;
         }
         // Read a byte from memory
         read(address) {
@@ -73,6 +75,17 @@ var TSOS;
             else {
                 console.error("Memory table body not found");
             }
+        }
+        clearMemoryBlock(start, end) {
+            for (let i = start; i <= end; i++) {
+                this.memory.setByte(i, 0);
+            }
+        }
+        clearAllMemory() {
+            for (let i = 0; i < this.memorySize; i++) {
+                this.write(i, 0);
+            }
+            console.log("Memory cleared successfully.");
         }
     }
     TSOS.MemoryAccessor = MemoryAccessor;

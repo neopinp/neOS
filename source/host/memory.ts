@@ -1,5 +1,6 @@
 namespace TSOS {
   export class Memory {
+    private static instance: Memory;
     public memoryArray: number[];
 
     constructor(memorySize: number = 768) { 
@@ -21,6 +22,12 @@ namespace TSOS {
 
     public getMemoryArray(): number[] {
       return this.memoryArray;
+    }
+    public static getInstance(): Memory {
+      if (!Memory.instance) {
+        Memory.instance = new Memory();
+      }
+      return Memory.instance;
     }
   }
 }

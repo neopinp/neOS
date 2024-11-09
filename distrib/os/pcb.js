@@ -10,10 +10,12 @@ var TSOS;
         xReg;
         yReg;
         zFlag;
-        state = "New";
+        state;
         priority;
         name;
-        constructor(pid, base, limit, priority = 1, name = "UnnamedProcess") {
+        segment;
+        location;
+        constructor(pid, base, limit, priority, name = "UnnamedProcess", segment) {
             this.pid = pid;
             this.base = base;
             this.limit = limit;
@@ -25,17 +27,9 @@ var TSOS;
             this.zFlag = 0;
             this.state = "Ready";
             this.priority = priority;
-            this.name = name; // Set process name
-        }
-        // Add a method to reset the PCB 
-        reset() {
-            this.pc = 0;
-            this.ir = 0;
-            this.acc = 0;
-            this.xReg = 0;
-            this.yReg = 0;
-            this.zFlag = 0;
-            this.state = "Ready";
+            this.name = name;
+            this.segment = segment;
+            this.location = 'Memory';
         }
     }
     TSOS.PCB = PCB;

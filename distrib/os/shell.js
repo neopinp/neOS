@@ -427,18 +427,14 @@ var TSOS;
                 if (programBytes) {
                     // Convert hex byte strings to actual byte values (integers)
                     const program = programBytes.map((byte) => parseInt(byte, 16));
-                    // Load the program into memory starting at the available address
-                    const { pid, baseAddress } = neOS.MemoryManager.storeProgram(program);
-                    if (pid >= 0) {
-                        // Create a new Process Control Block (PCB) for the loaded program
-                        const pcb = new TSOS.PCB(pid, baseAddress, baseAddress + 255, 1, `Program_${pid}`);
-                        pcb.state = "Ready";
-                        neOS.ProcessList.push(pcb); // Add PCB to process list
+                    // Load the program into memory and create a PCB
+                    const pcb = neOS.MemoryManager.storeProgram(program);
+                    if (pcb) {
                         neOS.StdOut.advanceLine();
-                        neOS.StdOut.putText(`Program loaded successfully with PID: ${pid}`);
+                        neOS.StdOut.putText(`Program loaded successfully with PID: ${pcb.pid}`);
                     }
                     else {
-                        neOS.StdOut.putText("Error: Not enough memory to load the program");
+                        neOS.StdOut.putText("Error: Not enough memory to load the program.");
                     }
                 }
                 else {
@@ -446,15 +442,16 @@ var TSOS;
                 }
             }
             else {
-                // Invalid input, display an error message
                 neOS.StdOut.putText("Invalid program. Please enter a valid hexadecimal string.");
             }
+            // Update PCB display after loading a program
             TSOS.Control.updatePCBDisplay();
             neOS.MemoryAccessor.displayMemory();
         }
         shellBSOD(args) {
             neOS.Kernel.krnTrapError("Manual BSOD trigger.");
         }
+        // base and limit shown here 
         shellPS(args) {
             if (neOS.ProcessList.length > 0) {
                 neOS.StdOut.advanceLine();
@@ -484,16 +481,24 @@ var TSOS;
                         neOS.StdOut.putText(`Error: Process ${pid} already terminated.`);
                     }
                     else {
+                        // Step 1: Terminate the process
                         pcb.state = "Terminated";
                         neOS.StdOut.advanceLine();
                         neOS.StdOut.putText(`Process ${pid} terminated successfully.`);
-                        TSOS.Control.updatePCBDisplay();
+                        // Step 2: Free the memory used by this process
+                        neOS.MemoryManager.freeProcessMemory(pid);
+                        // Step 4: If the process was running, stop the CPU
                         if (neOS.CurrentProcess && neOS.CurrentProcess.pid === pid) {
                             neOS.CurrentProcess = null;
+                            neOS.CPU.isExecuting = false;
                         }
+                        // Step 5: Update the PCB and memory displays
+                        TSOS.Control.updatePCBDisplay();
+                        neOS.MemoryAccessor.displayMemory();
                     }
                 }
                 else {
+                    neOS.StdOut.advanceLine();
                     neOS.StdOut.putText(`Error: No process found with PID ${pid}.`);
                 }
             }
@@ -559,16 +564,29 @@ var TSOS;
         shellClearem() {
             neOS.StdOut.advanceLine();
             neOS.StdOut.putText(`Clearing all memory segments...`);
-            for (let i = 0; i < neOS.ProcessList.length; i++) {
-                const pcb = neOS.ProcessList[i];
+            // Clear all processes and reset memory
+            neOS.ProcessList.forEach(pcb => {
                 neOS.MemoryManager.freeProcessMemory(pcb.pid);
-                pcb.state = "terminated";
-            }
+                pcb.state = "Terminated";
+            });
+            // Clear the process list
             neOS.ProcessList = [];
+            // Clear the memory using the singleton accessor
+            neOS.MemoryAccessor.clearAllMemory();
+            // Reset the free memory blocks
+            neOS.MemoryManager.resetFreeMemoryBlocks();
             TSOS.Control.updatePCBDisplay();
+            neOS.MemoryAccessor.displayMemory();
+            neOS.StdOut.putText("Memory cleared.");
         }
         shellRunall() {
             if (neOS.CurrentProcess) {
+                // if first process is ready start executing(ready on load)
+                // handle quantum expiration -> scheduleNextProcess
+                // These looped methods should invoke change in state automatically without implementing it into shellrunall
+                // Dispatcher + Scheduler separate file?
+                // One process should be labeled "Running" while the rest are "Ready""
+                // Should I implement a ready queue + process queue + resident list first to make it easier?
                 neOS.StdOut.putText(`Error: cannot run all procceses while a process is running`); // for now...
                 return;
             }
