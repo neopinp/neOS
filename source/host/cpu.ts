@@ -40,7 +40,6 @@ namespace TSOS {
         Control.updateCPUDisplay(this);
     
         // Increment the quantum counter
-        TSOS.Scheduler.incrementQuantumCounter();
       } else {
         neOS.Kernel.krnTrace("CPU is idle");
       }
