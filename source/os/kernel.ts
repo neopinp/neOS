@@ -22,7 +22,7 @@ namespace TSOS {
       Control.hostLog("bootstrap", "host"); 
       // Use hostLog because we ALWAYS want this, even if neOS.
       // Initialize memory manager
-      this.memoryManager = new MemoryManager(768, neOS.MemoryAccessor);
+      this.memoryManager = new MemoryManager(neOS.MemoryAccessor);
       neOS.MemoryManager = this.memoryManager;
 
 

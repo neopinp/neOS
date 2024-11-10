@@ -1,7 +1,6 @@
 var TSOS;
 (function (TSOS) {
     class Memory {
-        static instance;
         memoryArray;
         constructor(memorySize = 768) {
             this.memoryArray = new Array(memorySize).fill(0);
@@ -18,12 +17,6 @@ var TSOS;
         }
         getMemoryArray() {
             return this.memoryArray;
-        }
-        static getInstance() {
-            if (!Memory.instance) {
-                Memory.instance = new Memory();
-            }
-            return Memory.instance;
         }
     }
     TSOS.Memory = Memory;

@@ -220,7 +220,7 @@ namespace TSOS {
       document.getElementById("display").focus();
 
       //console.log("Initializing Memory...");
-      neOS.Memory = Memory.getInstance();
+      neOS.Memory = new TSOS.Memory();
       neOS.Memory.init();
 
       //console.log("Memory initialized:", neOS.Memory);

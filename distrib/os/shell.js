@@ -446,6 +446,7 @@ var TSOS;
                     // Convert hex byte strings to actual byte values (integers)
                     const program = programBytes.map((byte) => parseInt(byte, 16));
                     // Load the program into memory and create a PCB
+                    // DOESNT STORE INTO MEMORY ARRAY - STORING INTO TWO DIFFERENT MEMORIES
                     const pcb = neOS.MemoryManager.storeProgram(program);
                     TSOS.Scheduler.addtoResidentList(pcb);
                     if (pcb) {
@@ -471,6 +472,9 @@ var TSOS;
             neOS.Kernel.krnTrapError("Manual BSOD trigger.");
         }
         // base and limit shown here
+        // all process state changes should occur in scheduler/dispatcher? Only change to 'resident' state on load and 'ready' state on runall
+        // should I add to ready queue in shellrun? then let the scheduler determine execution for that process (hypothetical: one process in ready queue being executed the same way)
+        // is using freememoryblocks contradcting with actual memoryarray? or are the freememoryblocks just a breakdown of the memory array. REPLACE FREEMEMORYBLOCKS WITH MEMORY.ARRAY? (MEMORYMANAGER.TS)
         shellRun(args) {
             if (args.length > 0) {
                 const pid = parseInt(args[0], 10);
@@ -487,24 +491,12 @@ var TSOS;
                         return;
                     }
                     else if (pcb.state === "Resident") {
-                        // Disable the scheduler for a single process run
-                        TSOS.Scheduler.isScheduling = false;
-                        // Set the process state to "Running" and assign it to the CPU
+                        TSOS.Scheduler.stopScheduling();
                         pcb.state = "Running";
                         neOS.CurrentProcess = pcb;
-                        // Reset the CPU state
-                        neOS.CPU.setPC(pcb.base);
                         neOS.CPU.isExecuting = true;
                         neOS.StdOut.advanceLine();
                         neOS.StdOut.putText(`Process ${pid} is now running.`);
-                        // Directly execute the process without the scheduler
-                        while (neOS.CPU.isExecuting && pcb.state !== "Terminated") {
-                            neOS.CPU.cycle();
-                        }
-                        // Mark the process as terminated after it completes
-                        pcb.state = "Terminated";
-                        TSOS.Control.updatePCBDisplay();
-                        neOS.MemoryAccessor.displayMemory();
                     }
                 }
                 else {
@@ -531,8 +523,6 @@ var TSOS;
                         pcb.state = "Terminated";
                         neOS.StdOut.advanceLine();
                         neOS.StdOut.putText(`Process ${pid} terminated successfully.`);
-                        // Free the Process Memory
-                        neOS.MemoryManager.freeProcessMemory(pid);
                         if (neOS.CurrentProcess && neOS.CurrentProcess.pid === pid) {
                             neOS.CurrentProcess = null;
                             neOS.CPU.isExecuting = false;
@@ -574,10 +564,8 @@ var TSOS;
             });
             // Clear the process list
             neOS.ProcessList = [];
-            // Clear the memory using the singleton accessor
+            // Clear the memory using the singleton accessor (*CLEARING THE MEMORYARRAY)
             neOS.MemoryAccessor.clearAllMemory();
-            // Reset the free memory blocks
-            neOS.MemoryManager.resetFreeMemoryBlocks();
             TSOS.Control.updatePCBDisplay();
             neOS.MemoryAccessor.displayMemory();
             neOS.StdOut.putText("Memory cleared.");

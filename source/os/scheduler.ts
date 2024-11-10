@@ -5,16 +5,18 @@ namespace TSOS {
     public static quantum: number = 6;
     public static quantumCounter: number = 0;
     public static readyQueue: TSOS.PCB[] = [];
-    public static isScheduling = true;
+    public static isScheduling: boolean = false;
 
 
 
     public static addtoResidentList(pcb: TSOS.PCB): void {
       this.residentList.push(pcb);
       console.log(`Process ${pcb.pid} added to Resident List.`);
+      console.trace();
     }
     // Ready Queue
 
+    
     public static addToReadyQueue(pcb: TSOS.PCB): void {
       pcb.state = "Ready";
       this.readyQueue.push(pcb);
@@ -31,6 +33,10 @@ namespace TSOS {
     
 
     public static startScheduling(): void {
+      // Enable scheduling mode explicitly
+      this.isScheduling = true;
+      this.quantumCounter = 0;
+      
       const firstProcess = this.getNextProcess();
       if (firstProcess) {
         this.dispatchProcess(firstProcess);
@@ -38,6 +44,12 @@ namespace TSOS {
       } else {
         neOS.StdOut.putText(`No processes found to run.`);
       }
+    }
+    public static stopScheduling(): void {
+      // Disable scheduling mode
+      this.isScheduling = false;
+      this.clearReadyQueue();
+      neOS.StdOut.putText(`Scheduling stopped.`);
     }
 
     public static getNextProcess(): TSOS.PCB | null {

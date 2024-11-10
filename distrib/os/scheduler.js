@@ -6,10 +6,11 @@ var TSOS;
         static quantum = 6;
         static quantumCounter = 0;
         static readyQueue = [];
-        static isScheduling = true;
+        static isScheduling = false;
         static addtoResidentList(pcb) {
             this.residentList.push(pcb);
             console.log(`Process ${pcb.pid} added to Resident List.`);
+            console.trace();
         }
         // Ready Queue
         static addToReadyQueue(pcb) {
@@ -24,6 +25,9 @@ var TSOS;
             this.readyQueue = this.readyQueue.filter(pcb => pcb.pid !== pid);
         }
         static startScheduling() {
+            // Enable scheduling mode explicitly
+            this.isScheduling = true;
+            this.quantumCounter = 0;
             const firstProcess = this.getNextProcess();
             if (firstProcess) {
                 this.dispatchProcess(firstProcess);
@@ -32,6 +36,12 @@ var TSOS;
             else {
                 neOS.StdOut.putText(`No processes found to run.`);
             }
+        }
+        static stopScheduling() {
+            // Disable scheduling mode
+            this.isScheduling = false;
+            this.clearReadyQueue();
+            neOS.StdOut.putText(`Scheduling stopped.`);
         }
         static getNextProcess() {
             return this.readyQueue.length > 0 ? this.readyQueue.shift() : null;

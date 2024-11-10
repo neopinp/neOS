@@ -4,30 +4,44 @@ namespace TSOS {
     public memorySize: number;
 
     constructor(memory: Memory) {
-      this.memory = Memory.getInstance();
-      this.memorySize = this.memory.getMemoryArray().length;
+      this.memory = memory;
     }
 
-    // Read a byte from memory
     public read(address: number): number {
-      if (address < 0 || address >= 768) {
-        console.error(`Memory Access Error: Address ${address} out of bounds`);
-        return undefined; // Return undefined if the address is invalid
+      if (address >= 0 && address < this.memory.memoryArray.length) {
+        const value = this.memory.getByte(address);
+        return value;
+      } else {
+        throw new Error("Memory access violation at address " + address);
       }
-      const value = this.memory.getByte(address);
-      console.log(`DEBUG: Reading from memory address ${address}: ${value}`);
-      return value;
     }
 
     // Write a byte to memory
-    public write(address: number, value: number): void {
-      // Check if address is within bounds
-      if (address < 0 || address >= 768) {
-        throw new Error(
-          `Memory Access Error: Address ${address} out of bounds`
-        );
+    public write(
+      address: number,
+      value: number,
+      process: PCB | null = null
+    ): void {
+      // If a process is provided, use its boundaries for validation
+      if (process) {
+        const base = process.base;
+        const limit = process.limit;
+        if (address < base || address > limit) {
+          throw new Error(
+            `Memory Access Error: Address ${address} out of bounds for PID ${process.pid}`
+          );
+        }
+      } else {
+        // If no process is provided, just check if the address is within the total memory bounds
+        if (address < 0 || address >= 768) {
+          throw new Error(
+            `Memory Access Error: Address ${address} out of overall memory bounds`
+          );
+        }
       }
+
       this.memory.setByte(address, value);
+      console.log(`DEBUG: Writing value ${value} to memory address ${address}`);
     }
 
     // Read a block of memory (for retrieving programs)

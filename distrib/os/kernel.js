@@ -20,7 +20,7 @@ var TSOS;
             TSOS.Control.hostLog("bootstrap", "host");
             // Use hostLog because we ALWAYS want this, even if neOS.
             // Initialize memory manager
-            this.memoryManager = new TSOS.MemoryManager(768, neOS.MemoryAccessor);
+            this.memoryManager = new TSOS.MemoryManager(neOS.MemoryAccessor);
             neOS.MemoryManager = this.memoryManager;
             // Initialize our global queues.
             neOS.KernelInterruptQueue = new TSOS.Queue();

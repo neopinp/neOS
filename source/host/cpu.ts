@@ -28,7 +28,15 @@ namespace TSOS {
         console.log("MemoryAccessor in CPU constructor:", this.memoryAccessor); // Debug statement
       }
     }
-    public init(): void {}
+    public init(): void {
+      this.PC = 0;
+      this.Acc = 0;
+      this.Xreg = 0;
+      this.Yreg = 0;
+      this.Zflag = 0;
+      this.instructionRegister = 0;
+      this.isExecuting = false;
+    }
 
     public cycle(): void {
       if (this.isExecuting) {
@@ -38,12 +46,9 @@ namespace TSOS {
         Control.updatePCBDisplay();
         Control.updateCPUDisplay(this);
 
-        // Check if we're in scheduling mode before managing the quantum
+        // Only schedule if the scheduler is explicitly enabled
         if (TSOS.Scheduler.isScheduling) {
-          TSOS.Scheduler.quantumCounter++;
-          if (Scheduler.quantumCounter >= Scheduler.quantum) {
-            Scheduler.handleQuantumExpiration();
-          }
+          TSOS.Scheduler.incrementQuantumCounter();
         }
       } else {
         neOS.Kernel.krnTrace("Cpu is idle");
@@ -54,17 +59,17 @@ namespace TSOS {
       const lowByte = this.memoryAccessor.read(this.PC + 1);
       const highByte = this.memoryAccessor.read(this.PC + 2);
       const address = (highByte << 8) | lowByte;
-
-      // Adjust address by the base address of the current process
+    
+      // Ensure the process's base address is considered
       const baseAddress = neOS.CurrentProcess ? neOS.CurrentProcess.base : 0;
       const effectiveAddress = baseAddress + address;
-
-      // Debugging to print address and effectiveAddress
+    
+      // Debugging output
       console.log(
-        `DEBUG: Address = ${address}, Effective Address = ${effectiveAddress}`
+        `DEBUG: Address = ${address}, Effective Address = ${effectiveAddress}, Base = ${baseAddress}`
       );
-
-      // Check if address is within bounds
+    
+      // Check if the effective address is within the process's bounds
       if (
         effectiveAddress < baseAddress ||
         effectiveAddress > baseAddress + 255
@@ -73,9 +78,10 @@ namespace TSOS {
         TSOS.Dispatcher.terminateProcessById(neOS.CurrentProcess.pid);
         return -1;
       }
-
+    
       return effectiveAddress;
     }
+    
 
     // Execute the fetched instruction
     public execute(instruction: number): void {
@@ -156,9 +162,10 @@ namespace TSOS {
           neOS.StdOut.putText(
             `Process ${neOS.CurrentProcess.pid} has terminated.`
           );
-          neOS.StdOut.advanceLine(); // Move to a new line after termination message
           neOS.CurrentProcess.state = "Terminated";
-          this.isExecuting = false;
+          neOS.CPU.isExecuting = false;
+          neOS.CurrentProcess = null;
+          neOS.CPU.reset();
           neOS.OsShell.putPrompt();
           break;
 
@@ -238,6 +245,17 @@ namespace TSOS {
 
     public setPC(address: number): void {
       this.PC = address;
+    }
+    // Cpu.ts
+    public reset(): void {
+      this.PC = 0;
+      this.Acc = 0;
+      this.Xreg = 0;
+      this.Yreg = 0;
+      this.Zflag = 0;
+      this.instructionRegister = 0;
+      this.isExecuting = false;
+      console.log("CPU reset complete");
     }
   }
 }

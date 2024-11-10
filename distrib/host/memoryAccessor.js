@@ -4,26 +4,35 @@ var TSOS;
         memory;
         memorySize;
         constructor(memory) {
-            this.memory = TSOS.Memory.getInstance();
-            this.memorySize = this.memory.getMemoryArray().length;
+            this.memory = memory;
         }
-        // Read a byte from memory
         read(address) {
-            if (address < 0 || address >= 768) {
-                console.error(`Memory Access Error: Address ${address} out of bounds`);
-                return undefined; // Return undefined if the address is invalid
+            if (address >= 0 && address < this.memory.memoryArray.length) {
+                const value = this.memory.getByte(address);
+                return value;
             }
-            const value = this.memory.getByte(address);
-            console.log(`DEBUG: Reading from memory address ${address}: ${value}`);
-            return value;
+            else {
+                throw new Error("Memory access violation at address " + address);
+            }
         }
         // Write a byte to memory
-        write(address, value) {
-            // Check if address is within bounds
-            if (address < 0 || address >= 768) {
-                throw new Error(`Memory Access Error: Address ${address} out of bounds`);
+        write(address, value, process = null) {
+            // If a process is provided, use its boundaries for validation
+            if (process) {
+                const base = process.base;
+                const limit = process.limit;
+                if (address < base || address > limit) {
+                    throw new Error(`Memory Access Error: Address ${address} out of bounds for PID ${process.pid}`);
+                }
+            }
+            else {
+                // If no process is provided, just check if the address is within the total memory bounds
+                if (address < 0 || address >= 768) {
+                    throw new Error(`Memory Access Error: Address ${address} out of overall memory bounds`);
+                }
             }
             this.memory.setByte(address, value);
+            console.log(`DEBUG: Writing value ${value} to memory address ${address}`);
         }
         // Read a block of memory (for retrieving programs)
         readBlock(start, end) {

@@ -28,7 +28,15 @@ var TSOS;
                 console.log("MemoryAccessor in CPU constructor:", this.memoryAccessor); // Debug statement
             }
         }
-        init() { }
+        init() {
+            this.PC = 0;
+            this.Acc = 0;
+            this.Xreg = 0;
+            this.Yreg = 0;
+            this.Zflag = 0;
+            this.instructionRegister = 0;
+            this.isExecuting = false;
+        }
         cycle() {
             if (this.isExecuting) {
                 const instruction = this.memoryAccessor.read(this.PC);
@@ -36,12 +44,9 @@ var TSOS;
                 this.execute(instruction);
                 TSOS.Control.updatePCBDisplay();
                 TSOS.Control.updateCPUDisplay(this);
-                // Check if we're in scheduling mode before managing the quantum
+                // Only schedule if the scheduler is explicitly enabled
                 if (TSOS.Scheduler.isScheduling) {
-                    TSOS.Scheduler.quantumCounter++;
-                    if (TSOS.Scheduler.quantumCounter >= TSOS.Scheduler.quantum) {
-                        TSOS.Scheduler.handleQuantumExpiration();
-                    }
+                    TSOS.Scheduler.incrementQuantumCounter();
                 }
             }
             else {
@@ -52,12 +57,12 @@ var TSOS;
             const lowByte = this.memoryAccessor.read(this.PC + 1);
             const highByte = this.memoryAccessor.read(this.PC + 2);
             const address = (highByte << 8) | lowByte;
-            // Adjust address by the base address of the current process
+            // Ensure the process's base address is considered
             const baseAddress = neOS.CurrentProcess ? neOS.CurrentProcess.base : 0;
             const effectiveAddress = baseAddress + address;
-            // Debugging to print address and effectiveAddress
-            console.log(`DEBUG: Address = ${address}, Effective Address = ${effectiveAddress}`);
-            // Check if address is within bounds
+            // Debugging output
+            console.log(`DEBUG: Address = ${address}, Effective Address = ${effectiveAddress}, Base = ${baseAddress}`);
+            // Check if the effective address is within the process's bounds
             if (effectiveAddress < baseAddress ||
                 effectiveAddress > baseAddress + 255) {
                 console.error(`Memory access out of bounds: ${effectiveAddress}`);
@@ -128,9 +133,10 @@ var TSOS;
                 case 0x00: // BRK: End of process
                     neOS.StdOut.advanceLine();
                     neOS.StdOut.putText(`Process ${neOS.CurrentProcess.pid} has terminated.`);
-                    neOS.StdOut.advanceLine(); // Move to a new line after termination message
                     neOS.CurrentProcess.state = "Terminated";
-                    this.isExecuting = false;
+                    neOS.CPU.isExecuting = false;
+                    neOS.CurrentProcess = null;
+                    neOS.CPU.reset();
                     neOS.OsShell.putPrompt();
                     break;
                 case 0xec: // CPX: Compare a byte in memory to the X register
@@ -201,6 +207,17 @@ var TSOS;
         }
         setPC(address) {
             this.PC = address;
+        }
+        // Cpu.ts
+        reset() {
+            this.PC = 0;
+            this.Acc = 0;
+            this.Xreg = 0;
+            this.Yreg = 0;
+            this.Zflag = 0;
+            this.instructionRegister = 0;
+            this.isExecuting = false;
+            console.log("CPU reset complete");
         }
     }
     TSOS.Cpu = Cpu;

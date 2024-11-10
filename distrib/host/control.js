@@ -180,7 +180,7 @@ var TSOS;
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
             //console.log("Initializing Memory...");
-            neOS.Memory = TSOS.Memory.getInstance();
+            neOS.Memory = new TSOS.Memory();
             neOS.Memory.init();
             //console.log("Memory initialized:", neOS.Memory);
             neOS.MemoryAccessor = new TSOS.MemoryAccessor(neOS.Memory);

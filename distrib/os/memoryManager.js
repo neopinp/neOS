@@ -1,74 +1,34 @@
 var TSOS;
 (function (TSOS) {
     class MemoryManager {
-        memorySize;
         memoryAccessor;
         nextPID;
-        allocatedMemoryBlocks; // Store allocated memory
-        freeMemoryBlocks; // Track free memory
-        constructor(memorySize, memoryAccessor) {
-            this.memorySize = memorySize;
+        constructor(memoryAccessor) {
             this.memoryAccessor = memoryAccessor;
             this.nextPID = 0;
-            this.allocatedMemoryBlocks = []; // Track memory allocation
-            this.freeMemoryBlocks = [
-                { start: 0, end: 255 },
-                { start: 256, end: 511 },
-                { start: 512, end: 768 },
-            ];
         }
-        // Find a free memory block, prefer baseAddress if provided (for $0000)
-        findFreeMemoryBlock(programSize) {
-            const fixedSegments = [0x0000, 0x0100, 0x0200];
-            for (const segmentStart of fixedSegments) {
-                const block = this.freeMemoryBlocks.find((block) => block.start === segmentStart &&
-                    block.end - block.start + 1 >= programSize);
-                if (block) {
-                    return segmentStart;
-                }
-            }
-            return null;
-        }
-        // Update the free memory block list after allocating memory
-        updateFreeMemory(baseAddress, programSize) {
-            this.freeMemoryBlocks = this.freeMemoryBlocks
-                .map((block) => {
-                if (block.start === baseAddress) {
-                    const remainingBlockStart = block.start + programSize;
-                    if (remainingBlockStart <= block.end) {
-                        return { start: remainingBlockStart, end: block.end };
-                    }
-                    else {
-                        return null;
-                    }
-                }
-                else {
-                    return block;
-                }
-            })
-                .filter((block) => block !== null);
-        }
-        // Store a program in memory and return the new PCB
         storeProgram(program) {
             const programSize = program.length;
-            // Find a free memory block with enough space
-            const baseAddress = this.findFreeMemoryBlock(programSize);
-            if (baseAddress !== null) {
-                for (let i = 0; i < programSize; i++) {
-                    this.memoryAccessor.write(baseAddress + i, program[i]);
-                }
-                this.updateFreeMemory(baseAddress, programSize);
-                const pid = this.nextPID++;
-                const segment = this.calculateSegment(baseAddress);
-                const limit = baseAddress + 255;
-                const pcb = new TSOS.PCB(pid, baseAddress, limit, 1, //priority
-                `Program_${pid}`, segment);
-                pcb.state = "Resident";
-                // Add PCB to the global process list
-                neOS.ProcessList.push(pcb);
-                return pcb;
+            // Find a free segment (0x0000, 0x0100, 0x0200)
+            const baseAddress = this.findFreeSegment(256);
+            if (baseAddress === null) {
+                console.error("No available memory segment.");
+                return null;
             }
-            return null; // No memory available
+            // Create a PCB for the new process
+            const pid = this.nextPID++;
+            const segment = this.calculateSegment(baseAddress);
+            const pcb = new TSOS.PCB(pid, baseAddress, baseAddress + 255, 1, `program_${pid}`, segment);
+            pcb.state = "Resident";
+            // TMRW - WITHOUT THIS LINE BELOW, PROCESSES ARE NOT CORRECTLY ADDED TO MEMORY IN PROPER LOCATION - WHY DOES THE FIRST PROCESS LOAD ANYWAYS IF THE BELOW LINE IS ABSENT  
+            // THERE IS A LOT OF USE OF PROCESSLIST - SHOULD I BE USING A DIF METHOD OR READY/RESIDENT INSTEAD
+            neOS.ProcessList.push(pcb);
+            for (let i = 0; i < programSize; i++) {
+                this.memoryAccessor.write(baseAddress + i, program[i], pcb);
+            }
+            TSOS.Control.updatePCBDisplay();
+            neOS.MemoryAccessor.displayMemory();
+            return pcb;
         }
         calculateSegment(baseAddress) {
             if (baseAddress === 0x0000)
@@ -79,45 +39,26 @@ var TSOS;
                 return 3;
             return -1;
         }
-        // Retrieve a loaded program by PID
-        retrieveProgram(pid) {
-            const memoryBlock = this.allocatedMemoryBlocks.find((block) => block.pid === pid);
-            if (memoryBlock) {
-                const blockSize = memoryBlock.end - memoryBlock.start + 1;
-                if (blockSize === 256) {
-                    return this.memoryAccessor.readBlock(memoryBlock.start, memoryBlock.end);
+        // Find a free memory block, prefer baseAddress if provided (for $0000)
+        findFreeSegment(programSize) {
+            const segmentSize = 256;
+            const segments = [0x0000, 0x0100, 0x0200];
+            for (const segment of segments) {
+                const occupied = neOS.ProcessList.some((pcb) => pcb.base === segment);
+                if (!occupied && programSize <= segmentSize) {
+                    return segment;
                 }
             }
-            return null;
+            return null; // No free segment available
         }
         freeProcessMemory(pid) {
-            const pcb = neOS.ProcessList.find(p => p.pid === pid);
-            if (!pcb) {
-                console.log(`Error: No process found with PID ${pid}.`);
-                return;
+            const pcb = neOS.ProcessList.find((p) => p.pid === pid);
+            if (pcb) {
+                for (let i = pcb.base; i <= pcb.limit; i++) {
+                    this.memoryAccessor.write(i, 0); // Clear memory
+                }
+                neOS.ProcessList = neOS.ProcessList.filter((p) => p.pid !== pid);
             }
-            const baseAddress = pcb.base;
-            const limit = pcb.limit;
-            for (let i = baseAddress; i <= limit; i++) {
-                this.memoryAccessor.write(i, 0);
-            }
-            // Make free block findable again
-            this.freeMemoryBlocks.push({ start: baseAddress, end: limit });
-            // Remove the process from the ProcessList
-            const processIndex = neOS.ProcessList.findIndex(p => p.pid === pid);
-            if (processIndex !== -1) {
-                neOS.ProcessList.splice(processIndex, 1);
-            }
-            TSOS.Control.updatePCBDisplay();
-            neOS.MemoryAccessor.displayMemory();
-            console.log(`Memory for process ${pid} has been successfully freed.`);
-        }
-        resetFreeMemoryBlocks() {
-            this.freeMemoryBlocks = [
-                { start: 0, end: 255 },
-                { start: 256, end: 511 },
-                { start: 512, end: 767 },
-            ];
         }
     }
     TSOS.MemoryManager = MemoryManager;
