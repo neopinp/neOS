@@ -12,8 +12,8 @@ namespace TSOS {
 
     constructor(memorySize: number, memoryAccessor: MemoryAccessor) {
       this.memorySize = memorySize;
-      this.memoryAccessor = memoryAccessor; // Use MemoryAccessor to access memory
-      this.nextPID = 0; // Start with PID: 0
+      this.memoryAccessor = memoryAccessor; 
+      this.nextPID = 0; 
       this.allocatedMemoryBlocks = []; // Track memory allocation
       this.freeMemoryBlocks = [
         { start: 0, end: 255 },
@@ -64,15 +64,12 @@ namespace TSOS {
       const baseAddress = this.findFreeMemoryBlock(programSize);
 
       if (baseAddress !== null) {
-        // Write the program into memory
         for (let i = 0; i < programSize; i++) {
           this.memoryAccessor.write(baseAddress + i, program[i]);
         }
 
-        // Mark this memory block as allocated
         this.updateFreeMemory(baseAddress, programSize);
 
-        // Create a new process with a unique PID
         const pid = this.nextPID++;
         const segment = this.calculateSegment(baseAddress);
         const limit = baseAddress + 255;
@@ -121,7 +118,6 @@ namespace TSOS {
     }
 
     public freeProcessMemory(pid: number): void {
-      // Step 1: Find the process by its PID
       const pcb = neOS.ProcessList.find(p => p.pid === pid);
       if (!pcb) {
         console.log(`Error: No process found with PID ${pid}.`);
@@ -131,21 +127,17 @@ namespace TSOS {
       const baseAddress = pcb.base;
       const limit = pcb.limit;
     
-      // Step 2: Clear the memory content from base to limit
       for (let i = baseAddress; i <= limit; i++) {
         this.memoryAccessor.write(i, 0);
       }
-    
-      // Step 3: Mark this memory block as free
+      // Make free block findable again
       this.freeMemoryBlocks.push({ start: baseAddress, end: limit});
   
-      // Step 5: Remove the process from the ProcessList
+      // Remove the process from the ProcessList
       const processIndex = neOS.ProcessList.findIndex(p => p.pid === pid);
       if (processIndex !== -1) {
         neOS.ProcessList.splice(processIndex, 1);
       }
-    
-      // Step 6: Update the PCB display and memory display
       TSOS.Control.updatePCBDisplay();
       neOS.MemoryAccessor.displayMemory();
     

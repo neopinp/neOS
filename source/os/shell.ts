@@ -606,21 +606,18 @@ namespace TSOS {
             neOS.StdOut.advanceLine();
             neOS.StdOut.putText(`Error: Process ${pid} already terminated.`);
           } else {
-            // Step 1: Terminate the process
+
             pcb.state = "Terminated";
             neOS.StdOut.advanceLine();
             neOS.StdOut.putText(`Process ${pid} terminated successfully.`);
-    
-            // Step 2: Free the memory used by this process
+            // Free the Process Memory 
             neOS.MemoryManager.freeProcessMemory(pid);
     
-            // Step 4: If the process was running, stop the CPU
             if (neOS.CurrentProcess && neOS.CurrentProcess.pid === pid) {
               neOS.CurrentProcess = null;
               neOS.CPU.isExecuting = false;
             }
     
-            // Step 5: Update the PCB and memory displays
             TSOS.Control.updatePCBDisplay();
             neOS.MemoryAccessor.displayMemory();
           }

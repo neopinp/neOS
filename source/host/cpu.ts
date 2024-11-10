@@ -4,9 +4,6 @@ namespace TSOS {
     public instructionRegister: number = 0;
     public base: number = 0;
     public limit: number;
-    public quantum: number = 6;
-    public quantumCounter: number = 0;
-    public quantumLimit: number;
 
     constructor(
       public PC: number = 0,
@@ -35,31 +32,15 @@ namespace TSOS {
 
     public cycle(): void {
       if (this.isExecuting) {
-        if (!this.memoryAccessor) {
-          console.error("MemoryAccessor is NULL");
-          return;
-        }
-        if (this.PC < this.base || this.PC > this.limit) {
-          console.error(
-            `memory violation for process ${neOS.CurrentProcess.pid}`
-          );
-          this.isExecuting = false;
-          neOS.CurrentProcess.state = "Terminated";
-          TSOS.Control.updatePCBDisplay();
-          return;
-        }
         const instruction = this.memoryAccessor.read(this.PC);
-        console.log(
-          `DEBUG: Executing instruction: ${instruction} at PC: ${this.PC}`
-        ); // Debug instruction
-
         this.instructionRegister = instruction;
         this.execute(instruction);
-        TSOS.Control.updatePCBDisplay();
-        TSOS.Control.updateCPUDisplay(this);
-        this.quantumCounter++;
-        if (this.quantumCounter <= 0) {
-          this.handleQuantumExpiration();
+        Control.updatePCBDisplay();
+        Control.updateCPUDisplay(this);
+
+        TSOS.Scheduler.quantumCounter++;
+        if (Scheduler.quantumCounter >= Scheduler.quantum) {
+          Scheduler.handleQuantumExpiration();
         }
       } else {
         neOS.Kernel.krnTrace("Cpu is idle");
@@ -86,7 +67,7 @@ namespace TSOS {
         effectiveAddress > baseAddress + 255
       ) {
         console.error(`Memory access out of bounds: ${effectiveAddress}`);
-        this.terminateProcess();
+        TSOS.Dispatcher.terminateProcessById(neOS.CurrentProcess.pid);
         return -1;
       }
 
@@ -109,9 +90,8 @@ namespace TSOS {
 
         case 0x8d: // STA: Store Accumulator in memory
           address = this.getAddress();
-          if (this.checkMemoryAccess(address)) {
-            this.memoryAccessor.write(address, this.Acc);
-          }
+          this.memoryAccessor.write(address, this.Acc);
+
           this.PC += 3;
           this.memoryAccessor.displayMemory();
           break;
@@ -122,7 +102,7 @@ namespace TSOS {
             console.error(
               `Memory access violation at address ${address} for process ${neOS.CurrentProcess.pid}`
             );
-            this.terminateProcess();
+            TSOS.Dispatcher.terminateProcessById(neOS.CurrentProcess.pid);
             return;
           }
           memoryValue = this.memoryAccessor.read(address);
@@ -142,7 +122,7 @@ namespace TSOS {
             console.error(
               `Memory access violation at address ${address} for process ${neOS.CurrentProcess.pid}`
             );
-            this.terminateProcess();
+            TSOS.Dispatcher.terminateProcessById(neOS.CurrentProcess.pid);
             return;
           }
           memoryValue = this.memoryAccessor.read(address);
@@ -158,10 +138,9 @@ namespace TSOS {
 
         case 0xac: // LDY: Load Y register from memory
           address = this.getAddress();
-          if (this.checkMemoryAccess(address)) {
-            memoryValue = this.memoryAccessor.read(address);
-            this.Yreg = memoryValue;
-          }
+          memoryValue = this.memoryAccessor.read(address);
+          this.Yreg = memoryValue;
+
           this.PC += 3;
           break;
 
@@ -186,7 +165,7 @@ namespace TSOS {
             console.error(
               `Memory access violation at address ${address} for process ${neOS.CurrentProcess.pid}`
             );
-            this.terminateProcess();
+            TSOS.Dispatcher.terminateProcessById(neOS.CurrentProcess.pid);
             return;
           }
           memoryValue = this.memoryAccessor.read(address);
@@ -256,69 +235,6 @@ namespace TSOS {
 
     public setPC(address: number): void {
       this.PC = address;
-    }
-
-    public terminateProcess(): void {
-      if (neOS.CurrentProcess) {
-        neOS.CurrentProcess.state = "Terminated";
-        this.isExecuting = false;
-        neOS.CurrentProcess.freeProcessMemory();
-        TSOS.Control.updatePCBDisplay();
-        TSOS.Control.updateCPUDisplay(this);
-      }
-    }
-    public checkMemoryAccess(address: number): boolean {
-      if (address < this.base || address > this.limit) {
-        console.error(
-          `Memory access violation for process ${neOS.CurrentProcess.pid} at address ${address}.`
-        );
-        this.terminateProcess();
-        return false;
-      }
-      return true;
-    }
-
-    public saveCurrentProcessState(): void {
-      const currentProcess = neOS.CurrentProcess;
-      currentProcess.pc = this.PC;
-      currentProcess.acc = this.Acc;
-      currentProcess.xReg = this.Xreg;
-      currentProcess.yReg = this.Yreg;
-      currentProcess.zFlag = this.Zflag;
-      currentProcess.ir = this.instructionRegister;
-    }
-
-    private scheduleNextProcess(): void {
-      const readyProcesses = neOS.ProcessList.filter(
-        (p) => p.state === "Ready"
-      );
-
-      if (readyProcesses.length === 0) {
-        console.log("No ready processes.");
-        return;
-      }
-
-      const nextProcess = readyProcesses[0];
-      nextProcess.state = "Running";
-      neOS.CurrentProcess.state = "Ready";
-      neOS.CurrentProcess = nextProcess;
-
-      this.loadProcessState(nextProcess); // Load state of next process
-    }
-
-    public loadProcessState(process: TSOS.PCB): void {
-      this.PC = process.pc;
-      this.Acc = process.acc;
-      this.Xreg = process.xReg;
-      this.Yreg = process.yReg;
-      this.Zflag = process.zFlag;
-      this.instructionRegister = process.ir;
-      this.isExecuting = true;
-    }
-    public handleQuantumExpiration(): void {
-      this.quantumCounter = 0;
-      this.saveCurrentProcessState();
-      this.scheduleNextProcess();
     }
   }
 }
