@@ -5,13 +5,30 @@ namespace TSOS {
     public static quantum: number = 6;
     public static quantumCounter: number = 0;
     public static readyQueue: TSOS.PCB[] = [];
+    public static isScheduling = true;
 
+
+
+    public static addtoResidentList(pcb: TSOS.PCB): void {
+      this.residentList.push(pcb);
+      console.log(`Process ${pcb.pid} added to Resident List.`);
+    }
     // Ready Queue
+
     public static addToReadyQueue(pcb: TSOS.PCB): void {
       pcb.state = "Ready";
       this.readyQueue.push(pcb);
       console.log(`Process ${pcb.pid} added to Ready Queue.`);
     }
+    public static clearReadyQueue() {
+      this.readyQueue = [];
+    }
+    
+
+    public static removeFromReadyQueue(pid: number): void {
+      this.readyQueue = this.readyQueue.filter(pcb => pcb.pid !== pid);
+    }
+    
 
     public static startScheduling(): void {
       const firstProcess = this.getNextProcess();

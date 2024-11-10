@@ -36,10 +36,16 @@ var TSOS;
                 this.execute(instruction);
                 TSOS.Control.updatePCBDisplay();
                 TSOS.Control.updateCPUDisplay(this);
-                // Increment the quantum counter
+                // Check if we're in scheduling mode before managing the quantum
+                if (TSOS.Scheduler.isScheduling) {
+                    TSOS.Scheduler.quantumCounter++;
+                    if (TSOS.Scheduler.quantumCounter >= TSOS.Scheduler.quantum) {
+                        TSOS.Scheduler.handleQuantumExpiration();
+                    }
+                }
             }
             else {
-                neOS.Kernel.krnTrace("CPU is idle");
+                neOS.Kernel.krnTrace("Cpu is idle");
             }
         }
         getAddress() {

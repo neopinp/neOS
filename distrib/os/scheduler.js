@@ -6,11 +6,22 @@ var TSOS;
         static quantum = 6;
         static quantumCounter = 0;
         static readyQueue = [];
+        static isScheduling = true;
+        static addtoResidentList(pcb) {
+            this.residentList.push(pcb);
+            console.log(`Process ${pcb.pid} added to Resident List.`);
+        }
         // Ready Queue
         static addToReadyQueue(pcb) {
             pcb.state = "Ready";
             this.readyQueue.push(pcb);
             console.log(`Process ${pcb.pid} added to Ready Queue.`);
+        }
+        static clearReadyQueue() {
+            this.readyQueue = [];
+        }
+        static removeFromReadyQueue(pid) {
+            this.readyQueue = this.readyQueue.filter(pcb => pcb.pid !== pid);
         }
         static startScheduling() {
             const firstProcess = this.getNextProcess();

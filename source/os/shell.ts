@@ -490,6 +490,28 @@ namespace TSOS {
       neOS.waitingForRiddleAnswer = true;
       neOS.correctAnswer = "red";
     }
+    public shellPS(args: string[]) {
+      if (neOS.ProcessList.length > 0) {
+        neOS.StdOut.advanceLine();
+        neOS.StdOut.putText("PID  \tBase  \tLimit  \tState");
+        neOS.StdOut.advanceLine();
+        for (let i = 0; i < neOS.ProcessList.length; i++) {
+          const pcb = neOS.ProcessList[i];
+
+          const base =
+            "$" + pcb.base.toString(16).padStart(4, "0").toUpperCase();
+          const limit =
+            "$" + pcb.limit.toString(16).padStart(4, "0").toUpperCase();
+          neOS.StdOut.putText(
+            `${pcb.pid}   \t${base} \t${limit} \t${pcb.state}`
+          );
+          neOS.StdOut.advanceLine();
+        }
+      } else {
+        neOS.StdOut.advanceLine();
+        neOS.StdOut.putText("No running processes.");
+      }
+    }
 
     public checkRiddleAnswer(answer: string) {
       const trimmedAnswer = answer.toLowerCase().trim();
@@ -549,8 +571,7 @@ namespace TSOS {
 
           // Load the program into memory and create a PCB
           const pcb = neOS.MemoryManager.storeProgram(program);
-          TSOS.Scheduler.addToReadyQueue(pcb);
-
+          TSOS.Scheduler.addtoResidentList(pcb);
 
           if (pcb) {
             neOS.StdOut.advanceLine();
@@ -583,26 +604,54 @@ namespace TSOS {
     }
 
     // base and limit shown here
-    public shellPS(args: string[]) {
-      if (neOS.ProcessList.length > 0) {
-        neOS.StdOut.advanceLine();
-        neOS.StdOut.putText("PID  \tBase  \tLimit  \tState");
-        neOS.StdOut.advanceLine();
-        for (let i = 0; i < neOS.ProcessList.length; i++) {
-          const pcb = neOS.ProcessList[i];
+    public shellRun(args: string[]) {
+      if (args.length > 0) {
+        const pid = parseInt(args[0], 10);
+        const pcb = TSOS.Scheduler.residentList.find((p) => p.pid === pid);
 
-          const base =
-            "$" + pcb.base.toString(16).padStart(4, "0").toUpperCase();
-          const limit =
-            "$" + pcb.limit.toString(16).padStart(4, "0").toUpperCase();
-          neOS.StdOut.putText(
-            `${pcb.pid}   \t${base} \t${limit} \t${pcb.state}`
-          );
+        if (pcb) {
+          if (pcb.state === "Terminated") {
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText(
+              `Error: Process ${pid} has already terminated.`
+            );
+            return;
+          } else if (pcb.state === "Running") {
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText(`Error: Process ${pid} is already running.`);
+            return;
+          } else if (pcb.state === "Resident") {
+            // Disable the scheduler for a single process run
+            TSOS.Scheduler.isScheduling = false;
+
+            // Set the process state to "Running" and assign it to the CPU
+            pcb.state = "Running";
+            neOS.CurrentProcess = pcb;
+
+            // Reset the CPU state
+            neOS.CPU.setPC(pcb.base);
+            neOS.CPU.isExecuting = true;
+
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText(`Process ${pid} is now running.`);
+
+            // Directly execute the process without the scheduler
+            while (neOS.CPU.isExecuting && pcb.state !== "Terminated") {
+              neOS.CPU.cycle();
+            }
+
+            // Mark the process as terminated after it completes
+            pcb.state = "Terminated";
+            TSOS.Control.updatePCBDisplay();
+            neOS.MemoryAccessor.displayMemory();
+          }
+        } else {
           neOS.StdOut.advanceLine();
+          neOS.StdOut.putText(`Error: No process found with PID ${pid}`);
         }
       } else {
         neOS.StdOut.advanceLine();
-        neOS.StdOut.putText("No running processes.");
+        neOS.StdOut.putText("Usage: run <pid>");
       }
     }
 
@@ -637,50 +686,6 @@ namespace TSOS {
         }
       } else {
         neOS.StdOut.putText("Usage: kill <pid>. Please supply a PID.");
-      }
-    }
-
-    public shellRun(args: string[]) {
-      if (args.length > 0) {
-        const pid = parseInt(args[0], 10);
-        const pcb = neOS.ProcessList.find((p) => p.pid === pid);
-
-        if (pcb) {
-          if (pcb.state === "Terminated") {
-            neOS.StdOut.advanceLine();
-            neOS.StdOut.putText(
-              `Error: Process ${pid} has already terminated.`
-            );
-          } else if (pcb.state === "Running") {
-            neOS.StdOut.advanceLine();
-            neOS.StdOut.putText(`Error: Process ${pid} is already running.`);
-          } else {
-            // Set the process to "Running" and assign it to the CPU
-            pcb.state = "Running";
-            neOS.CurrentProcess = pcb;
-
-            // Reset the PC to the base of the process
-            neOS.CPU.setPC(pcb.base);
-
-            if (TSOS.Control.singleStepMode) {
-              neOS.CPU.isExecuting = false;
-              neOS.StdOut.advanceLine();
-              neOS.StdOut.putText(
-                `Process ${pid} is ready for single-step execution.`
-              );
-            } else {
-              neOS.CPU.isExecuting = true;
-              neOS.StdOut.advanceLine();
-              neOS.StdOut.putText(`Process ${pid} is now running.`);
-            }
-          }
-        } else {
-          neOS.StdOut.advanceLine();
-          neOS.StdOut.putText(`Error: No process found with PID ${pid}`);
-        }
-      } else {
-        neOS.StdOut.advanceLine();
-        neOS.StdOut.putText("Usage: run <pid>");
       }
     }
 
@@ -727,7 +732,7 @@ namespace TSOS {
         ); // for now...
         return;
       }
-      
+
       for (let pcb of TSOS.Scheduler.residentList) {
         if (pcb.state === "Resident") {
           TSOS.Scheduler.addToReadyQueue(pcb);

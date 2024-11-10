@@ -34,17 +34,21 @@ namespace TSOS {
       if (this.isExecuting) {
         const instruction = this.memoryAccessor.read(this.PC);
         this.instructionRegister = instruction;
-    
         this.execute(instruction);
         Control.updatePCBDisplay();
         Control.updateCPUDisplay(this);
-    
-        // Increment the quantum counter
+
+        // Check if we're in scheduling mode before managing the quantum
+        if (TSOS.Scheduler.isScheduling) {
+          TSOS.Scheduler.quantumCounter++;
+          if (Scheduler.quantumCounter >= Scheduler.quantum) {
+            Scheduler.handleQuantumExpiration();
+          }
+        }
       } else {
-        neOS.Kernel.krnTrace("CPU is idle");
+        neOS.Kernel.krnTrace("Cpu is idle");
       }
     }
-    
 
     public getAddress(): number {
       const lowByte = this.memoryAccessor.read(this.PC + 1);
