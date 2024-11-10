@@ -61,7 +61,7 @@ var TSOS;
                 const pid = this.nextPID++;
                 const segment = this.calculateSegment(baseAddress);
                 const limit = baseAddress + 255;
-                const pcb = new TSOS.PCB(pid, baseAddress, limit, pid + 1, //priority
+                const pcb = new TSOS.PCB(pid, baseAddress, limit, 1, //priority
                 `Program_${pid}`, segment);
                 pcb.state = "Resident";
                 // Add PCB to the global process list

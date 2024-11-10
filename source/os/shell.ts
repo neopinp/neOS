@@ -532,46 +532,57 @@ namespace TSOS {
     }
 
     public shellLoad(): void {
-      const programInput = (document.getElementById("taProgramInput") as HTMLTextAreaElement).value.trim();
-    
+      const programInput = (
+        document.getElementById("taProgramInput") as HTMLTextAreaElement
+      ).value.trim();
+
       // Validate that the input is a valid hexadecimal string
       const isValidHex = /^[0-9a-fA-F\s]+$/.test(programInput);
-    
+
       if (isValidHex) {
         // Remove all whitespace and split into an array of hex byte pairs (e.g., 'A9', '00', etc.)
         const programBytes = programInput.replace(/\s+/g, "").match(/.{1,2}/g);
-    
+
         if (programBytes) {
           // Convert hex byte strings to actual byte values (integers)
           const program = programBytes.map((byte) => parseInt(byte, 16));
-    
+
           // Load the program into memory and create a PCB
           const pcb = neOS.MemoryManager.storeProgram(program);
-    
+          TSOS.Scheduler.addToReadyQueue(pcb);
+
+
           if (pcb) {
             neOS.StdOut.advanceLine();
-            neOS.StdOut.putText(`Program loaded successfully with PID: ${pcb.pid}`);
+            neOS.StdOut.putText(
+              `Program loaded successfully with PID: ${pcb.pid}`
+            );
           } else {
-            neOS.StdOut.putText("Error: Not enough memory to load the program.");
+            neOS.StdOut.putText(
+              "Error: Not enough memory to load the program."
+            );
           }
         } else {
-          neOS.StdOut.putText("Error: Could not parse the program input into valid bytes.");
+          neOS.StdOut.putText(
+            "Error: Could not parse the program input into valid bytes."
+          );
         }
       } else {
-        neOS.StdOut.putText("Invalid program. Please enter a valid hexadecimal string.");
+        neOS.StdOut.putText(
+          "Invalid program. Please enter a valid hexadecimal string."
+        );
       }
-      
+
       // Update PCB display after loading a program
       TSOS.Control.updatePCBDisplay();
       neOS.MemoryAccessor.displayMemory();
     }
-    
 
     public shellBSOD(args: string[]) {
       neOS.Kernel.krnTrapError("Manual BSOD trigger.");
     }
 
-    // base and limit shown here 
+    // base and limit shown here
     public shellPS(args: string[]) {
       if (neOS.ProcessList.length > 0) {
         neOS.StdOut.advanceLine();
@@ -600,24 +611,23 @@ namespace TSOS {
       if (args.length > 0) {
         const pid = parseInt(args[0], 10);
         const pcb = neOS.ProcessList.find((p) => p.pid === pid);
-    
+
         if (pcb) {
           if (pcb.state === "Terminated") {
             neOS.StdOut.advanceLine();
             neOS.StdOut.putText(`Error: Process ${pid} already terminated.`);
           } else {
-
             pcb.state = "Terminated";
             neOS.StdOut.advanceLine();
             neOS.StdOut.putText(`Process ${pid} terminated successfully.`);
-            // Free the Process Memory 
+            // Free the Process Memory
             neOS.MemoryManager.freeProcessMemory(pid);
-    
+
             if (neOS.CurrentProcess && neOS.CurrentProcess.pid === pid) {
               neOS.CurrentProcess = null;
               neOS.CPU.isExecuting = false;
             }
-    
+
             TSOS.Control.updatePCBDisplay();
             neOS.MemoryAccessor.displayMemory();
           }
@@ -629,8 +639,6 @@ namespace TSOS {
         neOS.StdOut.putText("Usage: kill <pid>. Please supply a PID.");
       }
     }
-    
-    
 
     public shellRun(args: string[]) {
       if (args.length > 0) {
@@ -691,64 +699,46 @@ namespace TSOS {
     public shellClearem(): void {
       neOS.StdOut.advanceLine();
       neOS.StdOut.putText(`Clearing all memory segments...`);
-    
+
       // Clear all processes and reset memory
-      neOS.ProcessList.forEach(pcb => {
+      neOS.ProcessList.forEach((pcb) => {
         neOS.MemoryManager.freeProcessMemory(pcb.pid);
         pcb.state = "Terminated";
       });
-    
+
       // Clear the process list
       neOS.ProcessList = [];
-    
+
       // Clear the memory using the singleton accessor
       neOS.MemoryAccessor.clearAllMemory();
-    
+
       // Reset the free memory blocks
       neOS.MemoryManager.resetFreeMemoryBlocks();
-    
+
       TSOS.Control.updatePCBDisplay();
       neOS.MemoryAccessor.displayMemory();
       neOS.StdOut.putText("Memory cleared.");
     }
-    
-    
+
     public shellRunall(): void {
       if (neOS.CurrentProcess) {
-        // if first process is ready start executing(ready on load)
-        // handle quantum expiration -> scheduleNextProcess
-        // These looped methods should invoke change in state automatically without implementing it into shellrunall
-        // Dispatcher + Scheduler separate file?
-        // One process should be labeled "Running" while the rest are "Ready""
-        // Should I implement a ready queue + process queue + resident list first to make it easier?
         neOS.StdOut.putText(
           `Error: cannot run all procceses while a process is running`
         ); // for now...
         return;
       }
-      let allProcessesStarted = true;
-      for (let i = 0; i < neOS.ProcessList.length; i++) {
-        const pcb = neOS.ProcessList[i];
-        if (pcb.state === "terminated") {
-          continue;
-        }
-        if (pcb.state === "running") {
-          neOS.StdOut.advanceLine();
-          neOS.StdOut.putText(`Process ${pcb.pid} is now running`);
-        } else {
-          neOS.CurrentProcess = pcb;
-          neOS.CPU.setPC(pcb.base);
-          neOS.CPU.isExecuting = true;
-          neOS.CurrentProcess.state = "Running"
-          allProcessesStarted = false;
+      
+      for (let pcb of TSOS.Scheduler.residentList) {
+        if (pcb.state === "Resident") {
+          TSOS.Scheduler.addToReadyQueue(pcb);
         }
       }
-      if (allProcessesStarted) {
-        neOS.StdOut.advanceLine();
-        neOS.StdOut.putText(`All processes are now running`);
-      }
+
+      TSOS.Scheduler.startScheduling();
       TSOS.Control.updatePCBDisplay();
+      neOS.MemoryAccessor.displayMemory();
     }
+
     public shellKillall(): void {
       for (let i = 0; i < neOS.ProcessList.length; i++) {
         const pcb = neOS.ProcessList[i];
@@ -763,17 +753,17 @@ namespace TSOS {
 
     public shellQuantum(args: string[]): void {
       if (args.length > 0) {
-        const quantum = parseInt(args[0],10);
+        const quantum = parseInt(args[0], 10);
 
         if (isNaN(quantum) || quantum <= 0) {
-          neOS.StdOut.putText('Invalid quantum value.')
+          neOS.StdOut.putText("Invalid quantum value.");
         } else {
-          neOS.CPU.quantum = quantum;
+          TSOS.Scheduler.quantum = quantum;
           neOS.StdOut.advanceLine();
-          neOS.StdOut.putText(`Quantum: ${quantum} ticks`)
-        } 
+          neOS.StdOut.putText(`Quantum: ${quantum} ticks`);
+        }
       } else {
-        neOS.StdOut.putText("Usage: quantum <number>")
+        neOS.StdOut.putText("Usage: quantum <number>");
       }
     }
 

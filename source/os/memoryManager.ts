@@ -78,7 +78,7 @@ namespace TSOS {
           pid,
           baseAddress,
           limit,
-          pid + 1, //priority
+          1, //priority
           `Program_${pid}`,
           segment
         );
@@ -89,7 +89,6 @@ namespace TSOS {
         neOS.ProcessList.push(pcb);
         return pcb;
       }
-
       return null; // No memory available
     }
 

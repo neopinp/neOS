@@ -34,18 +34,18 @@ namespace TSOS {
       if (this.isExecuting) {
         const instruction = this.memoryAccessor.read(this.PC);
         this.instructionRegister = instruction;
+    
         this.execute(instruction);
         Control.updatePCBDisplay();
         Control.updateCPUDisplay(this);
-
-        TSOS.Scheduler.quantumCounter++;
-        if (Scheduler.quantumCounter >= Scheduler.quantum) {
-          Scheduler.handleQuantumExpiration();
-        }
+    
+        // Increment the quantum counter
+        TSOS.Scheduler.incrementQuantumCounter();
       } else {
-        neOS.Kernel.krnTrace("Cpu is idle");
+        neOS.Kernel.krnTrace("CPU is idle");
       }
     }
+    
 
     public getAddress(): number {
       const lowByte = this.memoryAccessor.read(this.PC + 1);
@@ -61,7 +61,7 @@ namespace TSOS {
         `DEBUG: Address = ${address}, Effective Address = ${effectiveAddress}`
       );
 
-      // Check if effective address is within bounds
+      // Check if address is within bounds
       if (
         effectiveAddress < baseAddress ||
         effectiveAddress > baseAddress + 255

@@ -36,13 +36,11 @@ var TSOS;
                 this.execute(instruction);
                 TSOS.Control.updatePCBDisplay();
                 TSOS.Control.updateCPUDisplay(this);
-                TSOS.Scheduler.quantumCounter++;
-                if (Scheduler.quantumCounter >= Scheduler.quantum) {
-                    Scheduler.handleQuantumExpiration();
-                }
+                // Increment the quantum counter
+                TSOS.Scheduler.incrementQuantumCounter();
             }
             else {
-                neOS.Kernel.krnTrace("Cpu is idle");
+                neOS.Kernel.krnTrace("CPU is idle");
             }
         }
         getAddress() {
@@ -54,7 +52,7 @@ var TSOS;
             const effectiveAddress = baseAddress + address;
             // Debugging to print address and effectiveAddress
             console.log(`DEBUG: Address = ${address}, Effective Address = ${effectiveAddress}`);
-            // Check if effective address is within bounds
+            // Check if address is within bounds
             if (effectiveAddress < baseAddress ||
                 effectiveAddress > baseAddress + 255) {
                 console.error(`Memory access out of bounds: ${effectiveAddress}`);
