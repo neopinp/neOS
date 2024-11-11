@@ -46,8 +46,10 @@ var TSOS;
                 this.isExecuting = false;
                 return;
             }
+            console.log(`\n=== CPU Cycle Start ===`);
             console.log(`Running process PID: ${neOS.CurrentProcess.pid}`);
-            neOS.CurrentProcess.state = "Running";
+            console.log(`  Current PC: ${this.PC}`);
+            console.log(`  Quantum Remaining: ${neOS.CurrentProcess.quantumRemaining}`);
             const { base, limit } = neOS.CurrentProcess;
             let instruction;
             const physicalAddress = base + this.PC;
@@ -117,7 +119,8 @@ var TSOS;
             console.log(`Executing instruction: ${instruction.toString(16)}`);
             switch (instruction) {
                 case 0xa9: // LDA: Load Accumulator with a constant
-                    value = this.memoryAccessor.read(neOS.CurrentProcess.base + this.PC + 1, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
+                    value = this.memoryAccessor.read(neOS.CurrentProcess.base + this.PC + 1, // do I have to make changes to how I save the context as well
+                    neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
                     console.log(`LDA: Loaded value ${value} into Accumulator`);
                     this.Acc = value;
                     this.PC += 2;

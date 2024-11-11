@@ -468,7 +468,6 @@ var TSOS;
                         // Set the process state to "Running"
                         pcb.state = "Running";
                         // Set CPU registers to match the PCB
-                        neOS.CPU.PC = pcb.pc;
                         neOS.CPU.Acc = pcb.acc;
                         neOS.CPU.Xreg = pcb.xReg;
                         neOS.CPU.Yreg = pcb.yReg;
@@ -523,6 +522,7 @@ var TSOS;
                 neOS.MemoryManager.freeProcessMemory(pcb.pid);
                 pcb.state = "Terminated";
             });
+            neOS.ProcessList = [];
             TSOS.Control.updatePCBDisplay();
             neOS.MemoryAccessor.displayMemory();
             neOS.StdOut.putText("Memory cleared.");

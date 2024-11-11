@@ -11,7 +11,8 @@ namespace TSOS {
     public zFlag: number;
     public state: string;
     public priority: number;
-    public name: string;
+    public partition: number;
+    public location: string;
     public quantumRemaining: number;
 
     constructor(
@@ -19,8 +20,9 @@ namespace TSOS {
       base: number,
       limit: number,
       priority: number = 1,
-      name: string = "UnnamedProcess",
-      quantumRemaining: number = 6
+      partition: number,
+      quantumRemaining: number = 6,
+      location: string = 'Memory'
     ) {
       this.pid = pid;
       this.base = base;
@@ -33,7 +35,8 @@ namespace TSOS {
       this.zFlag = 0;
       this.state = "Resident"; // Initialize to Resident when created
       this.priority = priority;
-      this.name = name;
+      this.partition = partition;
+      this.location = location;
       this.quantumRemaining = quantumRemaining;
     }
 
@@ -63,7 +66,11 @@ namespace TSOS {
       this.yReg = cpu.Yreg;
       this.zFlag = cpu.Zflag;
       this.state = "Ready"; // Change state to Ready when saving context
-      console.log(`Saved context for PID ${this.pid}. State set to Ready.`);
+      console.log(`Context saved for PID ${this.pid}:`);
+      console.log(`  PC (relative): ${this.pc}`);
+      console.log(`  Acc: ${this.acc}, X: ${this.xReg}, Y: ${this.yReg}, Z: ${this.zFlag}`);
+      console.log(`  State: ${this.state}, Base: ${this.base}, Limit: ${this.limit}`);
+      console.log(`  Quantum Remaining: ${this.quantumRemaining}`);
       TSOS.Control.updatePCBDisplay();
     }
 
@@ -71,14 +78,18 @@ namespace TSOS {
      * Load the PCB state into the CPU registers
      */
     public loadContext(cpu: Cpu): void {
-      cpu.PC = this.pc;
+      cpu.PC = this.pc + this.base;
       cpu.instructionRegister = this.ir;
       cpu.Acc = this.acc;
       cpu.Xreg = this.xReg;
       cpu.Yreg = this.yReg;
       cpu.Zflag = this.zFlag;
       this.state = "Running"; // Set state to Running when loaded
-      console.log(`Loaded context for PID ${this.pid}. State set to Running.`);
+      console.log(`Context loaded for PID ${this.pid}:`);
+      console.log(`  PC (absolute): ${cpu.PC}`);
+      console.log(`  Acc: ${cpu.Acc}, X: ${cpu.Xreg}, Y: ${cpu.Yreg}, Z: ${cpu.Zflag}`);
+      console.log(`  State: ${this.state}, Base: ${this.base}, Limit: ${this.limit}`);
+      console.log(`  Quantum Remaining: ${this.quantumRemaining}`);
       TSOS.Control.updatePCBDisplay();
     }
   }

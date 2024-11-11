@@ -35,6 +35,16 @@ namespace TSOS {
           let pidCell = document.createElement("td");
           pidCell.textContent = pcb.pid.toString(); // PID should always exist
 
+           // Memory Segment  - should be based of fixedmemorysegments
+           const segmentCell = document.createElement("td");
+           segmentCell.textContent = pcb.partition.toString();
+           // Priority  - should increment based on order of programs loaded?
+           const priorityCell = document.createElement("td");
+           priorityCell.textContent = pcb.priority.toString();
+           // Location - All Memory for now
+           const locationCell = document.createElement("td");
+           locationCell.textContent = pcb.location;
+
           // Program Counter (PC)
           let pcCell = document.createElement("td");
           pcCell.textContent =
@@ -83,6 +93,8 @@ namespace TSOS {
 
           // Append cells to the row
           row.appendChild(pidCell);
+          row.appendChild(segmentCell);
+          row.appendChild(priorityCell);
           row.appendChild(pcCell);
           row.appendChild(irCell);
           row.appendChild(accCell);
@@ -90,6 +102,8 @@ namespace TSOS {
           row.appendChild(yRegCell);
           row.appendChild(zFlagCell);
           row.appendChild(stateCell);
+          row.appendChild(locationCell);
+
 
           // Add the row to the table body
           pcbDisplayElement.appendChild(row);

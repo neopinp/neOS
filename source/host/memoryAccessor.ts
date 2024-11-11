@@ -15,8 +15,8 @@ namespace TSOS {
       if (address < base || address > limit) {
         throw new Error(`Memory access violation at address ${address}`);
       }
-      console.log(`Writing value ${value} to address ${address}`);
-      this.memory[address] = value;
+      console.log(`Writing value ${value.toString(16)} at address ${address}`);
+      this.memory.setByte(address, value);
     }
 
     public read(address: number, base: number, limit: number): number {
@@ -25,7 +25,8 @@ namespace TSOS {
           `Memory access violation at address ${address}. Outside process boundaries. ${base} ${limit} ${neOS.CurrentProcess.pc}`
         );
       }
-      return this.memory[address];
+      const value = this.memory.getByte(address);
+      return value;
     }
 
     public getMemoryArray(): number[] {

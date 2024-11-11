@@ -49,9 +49,11 @@ namespace TSOS {
         return;
       }
 
+      console.log(`\n=== CPU Cycle Start ===`);
       console.log(`Running process PID: ${neOS.CurrentProcess.pid}`);
-      neOS.CurrentProcess.state = "Running";
-
+      console.log(`  Current PC: ${this.PC}`);
+      console.log(`  Quantum Remaining: ${neOS.CurrentProcess.quantumRemaining}`);
+      
       const { base, limit } = neOS.CurrentProcess;
       let instruction: number;
       const physicalAddress = base + this.PC;
@@ -143,7 +145,7 @@ namespace TSOS {
       switch (instruction) {
         case 0xa9: // LDA: Load Accumulator with a constant
           value = this.memoryAccessor.read(
-            neOS.CurrentProcess.base + this.PC + 1,
+            neOS.CurrentProcess.base + this.PC + 1, // do I have to make changes to how I save the context as well
             neOS.CurrentProcess.base,
             neOS.CurrentProcess.limit
           );

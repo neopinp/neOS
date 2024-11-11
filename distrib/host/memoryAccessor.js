@@ -9,14 +9,15 @@ var TSOS;
             if (address < base || address > limit) {
                 throw new Error(`Memory access violation at address ${address}`);
             }
-            console.log(`Writing value ${value} to address ${address}`);
-            this.memory[address] = value;
+            console.log(`Writing value ${value.toString(16)} at address ${address}`);
+            this.memory.setByte(address, value);
         }
         read(address, base, limit) {
             if (address < base || address > limit) {
                 throw new Error(`Memory access violation at address ${address}. Outside process boundaries. ${base} ${limit} ${neOS.CurrentProcess.pc}`);
             }
-            return this.memory[address];
+            const value = this.memory.getByte(address);
+            return value;
         }
         getMemoryArray() {
             return this.memory.getMemoryArray();

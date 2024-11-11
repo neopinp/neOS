@@ -106,14 +106,6 @@ function Glados() {
 								     TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);           	   				
 									}, 3000);
 
-		setTimeout(function(){ neOS.KernelInputQueue.enqueue('r');
-								     neOS.KernelInputQueue.enqueue('u');
-								     neOS.KernelInputQueue.enqueue('n');
-								     neOS.KernelInputQueue.enqueue('a');
-								     neOS.KernelInputQueue.enqueue('l');      
-								     neOS.KernelInputQueue.enqueue('l');            
-								     TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);		
-									}, 4000);
    /*
    Manual tests:
    
