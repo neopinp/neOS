@@ -58,6 +58,7 @@ var TSOS;
             if (partition) {
                 partition.occupied = false;
                 partition.pid = null;
+                neOS.ProcessList = [];
             }
         }
     }

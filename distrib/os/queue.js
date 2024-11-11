@@ -43,6 +43,9 @@ var TSOS;
         find(callback) {
             return this.q.find(callback);
         }
+        removeProcessByPid(queue, pid) {
+            queue.q = queue.q.filter(item => item.pid !== pid);
+        }
     }
     TSOS.Queue = Queue;
 })(TSOS || (TSOS = {}));

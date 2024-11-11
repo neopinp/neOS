@@ -80,6 +80,7 @@ public storeProgram(program: number[]): { pid: number } {
       if (partition) {
         partition.occupied = false;
         partition.pid = null;
+        neOS.ProcessList = [];
       }
     }
   }

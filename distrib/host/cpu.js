@@ -37,7 +37,7 @@ var TSOS;
         }
         cycle() {
             if (!this.isExecuting) {
-                neOS.Kernel.krnTrace("CPU is idle, not executing any instruction.");
+                console.log("CPU is idle, not executing any instruction.");
                 return;
             }
             // Ensure we have a valid current process
@@ -46,55 +46,55 @@ var TSOS;
                 this.isExecuting = false;
                 return;
             }
+            console.log(`Running process PID: ${neOS.CurrentProcess.pid}`);
+            neOS.CurrentProcess.state = "Running";
             const { base, limit } = neOS.CurrentProcess;
-            // Ensure base and limit are properly defined
-            if (typeof base === "undefined" || typeof limit === "undefined") {
-                console.error(`Invalid process boundaries: base=${base}, limit=${limit}`);
-                this.isExecuting = false;
-                return;
-            }
-            console.log(`Fetching instruction at PC: ${this.PC}, Base: ${base}, Limit: ${limit}`);
-            // Fetch the next instruction
             let instruction;
             const physicalAddress = base + this.PC;
+            // Fetch the next instruction
             try {
-                console.log(`Attempting to read memory at address: ${physicalAddress}`);
-                // Check if the physical address is within bounds
-                if (physicalAddress < base || physicalAddress > limit) {
-                    console.error(`Address ${physicalAddress} is out of bounds.`);
-                    throw new Error(`Memory access violation at address ${physicalAddress}.`);
-                }
-                // Attempt to read the memory
                 instruction = this.memoryAccessor.read(physicalAddress, base, limit);
-                // Check if the instruction is undefined
-                if (typeof instruction === "undefined") {
-                    console.error(`Fetched instruction is undefined at address ${physicalAddress}`);
-                    throw new Error(`Undefined instruction at address ${physicalAddress}`);
-                }
                 console.log(`Fetched instruction: ${instruction.toString(16)} at address: ${physicalAddress}`);
                 this.instructionRegister = instruction;
             }
             catch (error) {
                 console.error("Memory read error:", error);
-                this.isExecuting = false;
+                neOS.CurrentProcess.state = "Terminated";
+                neOS.Scheduler.scheduleNextProcess(false);
                 return;
             }
-            // Execute the instruction
+            // Execute the fetched instruction
             try {
                 this.execute(instruction);
             }
             catch (error) {
                 console.error("Execution error:", error);
-                this.isExecuting = false;
+                neOS.CurrentProcess.state = "Terminated";
+                neOS.Scheduler.scheduleNextProcess(false);
                 return;
             }
-            // Update the current process PCB state
-            neOS.CurrentProcess.pc = this.PC;
-            neOS.CurrentProcess.acc = this.Acc;
-            neOS.CurrentProcess.xReg = this.Xreg;
-            neOS.CurrentProcess.yReg = this.Yreg;
-            neOS.CurrentProcess.zFlag = this.Zflag;
-            neOS.CurrentProcess.ir = this.instructionRegister;
+            // Check if the process terminated during execution
+            if (neOS.CurrentProcess.state === "Terminated") {
+                console.log(`Process PID ${neOS.CurrentProcess.pid} has terminated.`);
+                neOS.Scheduler.scheduleNextProcess(false);
+                return;
+            }
+            // Decrease the quantum and check if it has expired
+            neOS.CurrentProcess.quantumRemaining--;
+            console.log(`Quantum remaining for PID ${neOS.CurrentProcess.pid}: ${neOS.CurrentProcess.quantumRemaining}`);
+            // Perform a context switch if the quantum has expired
+            if (neOS.CurrentProcess.quantumRemaining <= 0) {
+                console.log(`Quantum expired for PID ${neOS.CurrentProcess.pid}`);
+                // Save context and requeue the current process if not terminated
+                if (neOS.CurrentProcess.state !== "Terminated") {
+                    console.log(`Re-enqueuing process PID: ${neOS.CurrentProcess.pid}`);
+                    neOS.CurrentProcess.saveContext(this);
+                    neOS.readyQueue.enqueue(neOS.CurrentProcess);
+                }
+                neOS.Scheduler.scheduleNextProcess(false);
+                return;
+            }
+            // Update PCB and CPU displays after execution
             TSOS.Control.updatePCBDisplay();
             TSOS.Control.updateCPUDisplay(this);
         }
@@ -109,6 +109,7 @@ var TSOS;
             return address;
         }
         // Execute the fetched instruction
+        // increment quantum counter
         execute(instruction) {
             let address;
             let memoryValue;
@@ -116,89 +117,99 @@ var TSOS;
             console.log(`Executing instruction: ${instruction.toString(16)}`);
             switch (instruction) {
                 case 0xa9: // LDA: Load Accumulator with a constant
-                    console.log(`LDA: Loading value from address ${neOS.CurrentProcess.base + this.PC + 1}`);
                     value = this.memoryAccessor.read(neOS.CurrentProcess.base + this.PC + 1, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
-                    console.log(`LDA: Loaded value ${value}`);
+                    console.log(`LDA: Loaded value ${value} into Accumulator`);
                     this.Acc = value;
                     this.PC += 2;
                     break;
-                case 0x8d: // STA: Store Accumulator in memory
-                    address = this.getAddress(); // Get the memory address to store the Accumulator value
-                    console.log(`STA: Storing Acc value ${this.Acc} at address ${address + neOS.CurrentProcess.base}`);
-                    this.memoryAccessor.write(address, this.Acc, neOS.CurrentProcess.base, neOS.CurrentProcess.limit); // Write the Accumulator value to memory
+                case 0xad: // LDA Absolute
+                    address = this.getAddress();
+                    this.Acc = this.memoryAccessor.read(address, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
+                    console.log(`LDA Absolute: Loaded value ${this.Acc} from address ${address}`);
                     this.PC += 3;
-                    this.memoryAccessor.displayMemory();
+                    break;
+                case 0x8d: // STA: Store Accumulator in memory
+                    address = this.getAddress();
+                    console.log(`STA: Storing Acc value ${this.Acc} at address ${address}`);
+                    this.memoryAccessor.write(address, this.Acc, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
+                    this.PC += 3;
                     break;
                 case 0x6d: // ADC: Add with Carry
                     address = this.getAddress();
                     memoryValue = this.memoryAccessor.read(address, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
                     this.Acc += memoryValue;
+                    console.log(`ADC: Added value ${memoryValue} to Accumulator, new Acc = ${this.Acc}`);
                     this.PC += 3;
                     break;
-                case 0xa2: // LDX: Load X register with a constant
-                    console.log(`LDX: Loading value from address ${neOS.CurrentProcess + this.PC + 1}`);
+                case 0xa2: // LDX: Load X Register with a constant
                     value = this.memoryAccessor.read(neOS.CurrentProcess.base + this.PC + 1, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
+                    console.log(`LDX: Loaded value ${value} into X register`);
                     this.Xreg = value;
                     this.PC += 2;
                     break;
-                case 0xae: // LDX: Load X register from memory
+                case 0xae: // LDX Absolute
                     address = this.getAddress();
-                    memoryValue = this.memoryAccessor.read(address, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
-                    this.Xreg = memoryValue;
+                    this.Xreg = this.memoryAccessor.read(address, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
+                    console.log(`LDX Absolute: Loaded value ${this.Xreg} from address ${address}`);
                     this.PC += 3;
                     break;
-                case 0xa0: // LDY: Load Y register with a constant
+                case 0xa0: // LDY: Load Y Register with a constant
                     value = this.memoryAccessor.read(neOS.CurrentProcess.base + this.PC + 1, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
+                    console.log(`LDY: Loaded value ${value} into Y register`);
                     this.Yreg = value;
                     this.PC += 2;
                     break;
-                case 0xac: // LDY: Load Y register from memory
+                case 0xac: // LDY Absolute
                     address = this.getAddress();
-                    memoryValue = this.memoryAccessor.read(address, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
-                    this.Yreg = memoryValue;
+                    this.Yreg = this.memoryAccessor.read(address, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
+                    console.log(`LDY Absolute: Loaded value ${this.Yreg} from address ${address}`);
                     this.PC += 3;
                     break;
                 case 0xea: // NOP: No operation
                     this.PC += 1;
                     break;
-                case 0x00: // BRK: End of process
-                    neOS.StdOut.advanceLine();
-                    neOS.StdOut.putText(`Process ${neOS.CurrentProcess.pid} has terminated.`);
-                    neOS.StdOut.advanceLine(); // Move to a new line after termination message
-                    neOS.CurrentProcess.state = "Terminated";
-                    this.isExecuting = false;
-                    neOS.OsShell.putPrompt();
-                    break;
-                case 0xec: // CPX: Compare a byte in memory to the X register
+                case 0xec: // CPX: Compare memory to X register
                     address = this.getAddress();
                     memoryValue = this.memoryAccessor.read(address, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
-                    this.Zflag = this.Xreg === memoryValue ? 1 : 0; // Set Z flag if equal
+                    this.Zflag = this.Xreg === memoryValue ? 1 : 0;
+                    console.log(`CPX: Compared X register with value ${memoryValue}, Zflag = ${this.Zflag}`);
                     this.PC += 3;
                     break;
-                case 0xd0: // BNE: Branch if Z flag is not set
+                case 0xd0: // BNE: Branch if Not Equal
                     const branchOffset = this.memoryAccessor.read(neOS.CurrentProcess.base + this.PC + 1, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
-                    console.log(`DEBUG: BNE - Current Z flag: ${this.Zflag}, Branch Offset: ${branchOffset}`);
+                    console.log(`BNE: Branch Offset is ${branchOffset}, Zflag is ${this.Zflag}`);
                     if (this.Zflag === 0) {
-                        if (branchOffset > 127) {
-                            this.PC -= 256 - branchOffset; // Handle negative offset
-                        }
-                        else {
-                            this.PC += branchOffset; // Positive offset
-                        }
-                        console.log(`DEBUG: Branch taken, new PC: ${this.PC}`);
-                    }
-                    else {
-                        console.log(`DEBUG: No branch taken.`);
+                        this.PC += branchOffset > 127 ? branchOffset - 256 : branchOffset;
+                        console.log(`BNE: Branch taken. New PC: ${this.PC}`);
                     }
                     this.PC += 2;
                     break;
-                case 0xee: // INC: Increment the value of a byte in memory
+                case 0xee: // INC: Increment value in memory
                     address = this.getAddress();
                     memoryValue = this.memoryAccessor.read(address, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
                     memoryValue++;
                     this.memoryAccessor.write(address, memoryValue, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
+                    console.log(`INC: Incremented value at address ${address} to ${memoryValue}`);
                     this.PC += 3;
                     break;
+                case 0x00: // BRK: End of process
+                    if (neOS.CurrentProcess) {
+                        console.log(`BRK: Process ${neOS.CurrentProcess.pid} terminating`);
+                        neOS.CurrentProcess.state = "Terminated";
+                        neOS.readyQueue.q = neOS.readyQueue.q.filter((process) => process.pid !== neOS.CurrentProcess.pid);
+                        // Check if there are remaining processes in the queue
+                        if (!neOS.readyQueue.isEmpty()) {
+                            console.log("Scheduling the next process...");
+                            neOS.Scheduler.scheduleNextProcess(false); // Skip saving context since it's terminated
+                        }
+                        else {
+                            console.log("All processes have terminated.");
+                            neOS.CPU.isExecuting = false;
+                            neOS.OsShell.putPrompt();
+                        }
+                    }
+                    return;
+                // Schedule the next process if there are remaining process
                 case 0xff: // SYS: System Call
                     if (this.Xreg === 1) {
                         neOS.StdOut.putText(this.Yreg.toString());
@@ -217,22 +228,9 @@ var TSOS;
                     this.PC += 1;
                     break;
                 default:
-                    neOS.Kernel.krnTrace(`Unknown instruction: ${instruction.toString(16)}`);
+                    console.error(`Unknown opcode: ${instruction.toString(16)}`);
                     throw new Error(`Unknown opcode: ${instruction.toString(16)}`);
             }
-            if (neOS.CurrentProcess) {
-                neOS.CurrentProcess.pc = this.PC;
-                neOS.CurrentProcess.acc = this.Acc;
-                neOS.CurrentProcess.xReg = this.Xreg;
-                neOS.CurrentProcess.yReg = this.Yreg;
-                neOS.CurrentProcess.zFlag = this.Zflag;
-                neOS.CurrentProcess.ir = this.instructionRegister; // Capture the instruction
-            }
-            this.memoryAccessor.displayMemory();
-            TSOS.Control.updatePCBDisplay();
-        }
-        setPC(address) {
-            this.PC = address;
         }
     }
     TSOS.Cpu = Cpu;

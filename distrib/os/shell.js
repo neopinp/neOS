@@ -115,10 +115,16 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id.");
             this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellPS, "ps", "<string> - List running processes.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellClearem, "clearem", "<string> - clear all memory segments");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "<string> - set quantum");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellRunAll, "runall", "<string> - run all ready processes");
+            this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // new shell command
-            sc = new TSOS.ShellCommand(this.shellListPCB, "list", "<string> - List running processes.");
-            this.commandList[this.commandList.length] = sc;
             // kill <id> - kills the specified process id.
             // new shell command
             // test new command functionalities
@@ -430,6 +436,7 @@ var TSOS;
                             console.log("Limit Address:", neOS.CurrentProcess.limit);
                         }
                         TSOS.Control.updatePCBDisplay();
+                        neOS.StdOut.advanceLine();
                         neOS.StdOut.putText(`Program loaded with PID ${pid}`);
                     }
                     else {
@@ -443,25 +450,6 @@ var TSOS;
         }
         shellBSOD(args) {
             neOS.Kernel.krnTrapError("Manual BSOD trigger.");
-        }
-        shellListPCB(args) {
-            if (neOS.ProcessList.length > 0) {
-                neOS.StdOut.advanceLine();
-                neOS.StdOut.putText("PID  \tBase  \tLimit  \tState");
-                neOS.StdOut.advanceLine();
-                for (let i = 0; i < neOS.ProcessList.length; i++) {
-                    const pcb = neOS.ProcessList[i];
-                    // Format base and limit as four-character hex strings with a leading '$'
-                    const base = "$" + pcb.base.toString(16).padStart(4, "0").toUpperCase();
-                    const limit = "$" + pcb.limit.toString(16).padStart(4, "0").toUpperCase();
-                    neOS.StdOut.putText(`${pcb.pid}   \t${base} \t${limit} \t${pcb.state}`);
-                    neOS.StdOut.advanceLine();
-                }
-            }
-            else {
-                neOS.StdOut.advanceLine();
-                neOS.StdOut.putText("No running Processes.");
-            }
         }
         shellRun(args) {
             if (args.length > 0) {
@@ -486,6 +474,7 @@ var TSOS;
                         neOS.CPU.Yreg = pcb.yReg;
                         neOS.CPU.Zflag = pcb.zFlag;
                         neOS.CPU.isExecuting = true;
+                        neOS.StdOut.advanceLine();
                         neOS.StdOut.putText(`Process ${pid} is now running.`);
                     }
                 }
@@ -500,17 +489,43 @@ var TSOS;
         shellRunAll(args) {
             while (!neOS.residentQueue.isEmpty()) {
                 const pcb = neOS.residentQueue.dequeue();
-                pcb.state = "ready";
+                pcb.state = "Ready";
                 neOS.readyQueue.enqueue(pcb);
             }
-            neOS.Scheduler.schedule();
+            TSOS.Control.updatePCBDisplay();
+            neOS.CurrentProcess = null;
+            neOS.Scheduler.scheduleNextProcess();
+            neOS.StdOut.putText("All processes are now running.");
         }
         shellPS(args) {
-            neOS.StdOut.advanceLine();
-            neOS.readyQueue.forEach((pcb) => {
-                neOS.StdOut.putText(`PID: ${pcb.pid}, State: ${pcb.state}`);
+            if (neOS.ProcessList.length > 0) {
                 neOS.StdOut.advanceLine();
+                neOS.StdOut.putText("PID  \tBase  \tLimit  \tState");
+                neOS.StdOut.advanceLine();
+                for (let i = 0; i < neOS.ProcessList.length; i++) {
+                    const pcb = neOS.ProcessList[i];
+                    const base = "$" + pcb.base.toString(16).padStart(4, "0").toUpperCase();
+                    const limit = "$" + pcb.limit.toString(16).padStart(4, "0").toUpperCase();
+                    neOS.StdOut.putText(`${pcb.pid}   \t${base} \t${limit} \t${pcb.state}`);
+                    neOS.StdOut.advanceLine();
+                }
+            }
+            else {
+                neOS.StdOut.advanceLine();
+                neOS.StdOut.putText("No running processes.");
+            }
+        }
+        shellClearem() {
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText(`Clearing all memory segments...`);
+            // Clear all processes and reset memory
+            neOS.ProcessList.forEach((pcb) => {
+                neOS.MemoryManager.freeProcessMemory(pcb.pid);
+                pcb.state = "Terminated";
             });
+            TSOS.Control.updatePCBDisplay();
+            neOS.MemoryAccessor.displayMemory();
+            neOS.StdOut.putText("Memory cleared.");
         }
         shellKill(args) {
             const pid = parseInt(args[0]);

@@ -43,7 +43,11 @@ namespace TSOS {
       this.q.forEach(callback);
     }
     public find(callback: (item: T) => boolean): T | undefined {
-        return this.q.find(callback);
-      }
+      return this.q.find(callback);
+    }
+    public removeProcessByPid(queue: TSOS.Queue<any>, pid: number): void {
+      queue.q = queue.q.filter(item => item.pid !== pid);
+    }
+    
   }
 }
