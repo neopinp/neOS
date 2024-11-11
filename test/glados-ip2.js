@@ -71,14 +71,7 @@ function Glados() {
       neOS.KernelInputQueue.enqueue('o');
       neOS.KernelInputQueue.enqueue('a');
       neOS.KernelInputQueue.enqueue('d');
-      TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);
-
-      neOS.KernelInputQueue.enqueue('r');
-      neOS.KernelInputQueue.enqueue('u');
-      neOS.KernelInputQueue.enqueue('n');
-      neOS.KernelInputQueue.enqueue(' ');
-      neOS.KernelInputQueue.enqueue('0');      
-      TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);      
+      TSOS.Kernel.prototype.krnInterruptHandler(KEYBOARD_IRQ, [13, false]);   
 
 
       // Load another valid user program.

@@ -12,13 +12,15 @@ namespace TSOS {
     public state: string;
     public priority: number; 
     public name: string;
+    public quantumRemaining: number;
 
     constructor(
       pid: number,
       base: number,
       limit: number,
       priority: number = 1,
-      name: string = "UnnamedProcess"
+      name: string = "UnnamedProcess",
+      quantumRemaining: number = 6
     ) {
       this.pid = pid;
       this.base = base;
@@ -29,9 +31,10 @@ namespace TSOS {
       this.xReg = 0; 
       this.yReg = 0; 
       this.zFlag = 0; 
-      this.state = "Ready"; 
+      this.state = "Resident"; 
       this.priority = priority; 
       this.name = name; // Set process name
+      this.quantumRemaining = quantumRemaining;
     }
 
     // Add a method to reset the PCB (useful for when the process is reset)
@@ -43,6 +46,7 @@ namespace TSOS {
       this.yReg = 0;
       this.zFlag = 0;
       this.state = "Ready";
+      this.quantumRemaining = 6; 
     }
   }
 }

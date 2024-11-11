@@ -14,6 +14,8 @@ const APP_VERSION = "0.07"; // What did you expect?
 const TIMER_IRQ = 0; // Pages 23 (timer), 9 (interrupts), and 561 (interrupt priority).
 // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
 const KEYBOARD_IRQ = 1;
+const INTERRUPT_PROCESS_KILL = 1;
+const INTERRUPT_CONTEXT_SWITCH = 2;
 //
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
@@ -50,6 +52,10 @@ var neOS = {
     correctAnswer: '',
     CurrentProcess: null,
     ProcessList: [],
+    readyQueue: null,
+    residentQueue: null,
+    Scheduler: null,
+    Dispatcher: null,
     onDocumentLoad: function () {
         TSOS.Control.hostInit();
     }

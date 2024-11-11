@@ -2,7 +2,7 @@ var TSOS;
 (function (TSOS) {
     class Memory {
         memoryArray;
-        constructor(memorySize = 256) {
+        constructor(memorySize = 768) {
             this.memoryArray = new Array(memorySize).fill(0);
         }
         init() {

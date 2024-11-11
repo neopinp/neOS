@@ -19,6 +19,8 @@ const APP_VERSION: string = "0.07";   // What did you expect?
 const TIMER_IRQ: number = 0;  // Pages 23 (timer), 9 (interrupts), and 561 (interrupt priority).
                               // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
 const KEYBOARD_IRQ: number = 1;
+const INTERRUPT_PROCESS_KILL = 1;
+const INTERRUPT_CONTEXT_SWITCH = 2;
 
 
 //
@@ -37,8 +39,8 @@ var neOS = {
    FontHeightMargin: 4,
    Trace: true,  
    Kernel: null as TSOS.Kernel,
-   KernelInterruptQueue: null as TSOS.Queue,
-   KernelInputQueue: null as TSOS.Queue,
+   KernelInterruptQueue: null as TSOS.Queue<TSOS.Interrupt> | null,
+   KernelInputQueue: null as TSOS.Queue<string> | null,
    KernelBuffers: [] as any[],
    StdIn: null as TSOS.Console,
    StdOut: null as TSOS.Console,
@@ -57,6 +59,10 @@ var neOS = {
    correctAnswer: '',
    CurrentProcess: null,
    ProcessList: [] as TSOS.PCB[],
+   readyQueue: null as TSOS.Queue<TSOS.PCB> | null,
+   residentQueue: null as TSOS.Queue<TSOS.PCB> | null,
+   Scheduler: null as TSOS.Scheduler,
+   Dispatcher: null as TSOS.Dispatcher,
    onDocumentLoad: function() {
       TSOS.Control.hostInit();
    }

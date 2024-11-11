@@ -1,132 +1,85 @@
 namespace TSOS {
   export class MemoryManager {
-    private memorySize: number;
     private memoryAccessor: MemoryAccessor;
     private nextPID: number;
-    private allocatedMemoryBlocks: {
-      pid: number;
-      start: number;
-      end: number;
-    }[]; // Store allocated memory
-    private freeMemoryBlocks: { start: number; end: number }[]; // Track free memory
+    private partitions: {
+      pid: number | null;
+      base: number;
+      limit: number;
+      occupied: boolean;
+    }[];
+    private currentPartitionIndex: number;
 
-    constructor(memorySize: number, memoryAccessor: MemoryAccessor) {
-      this.memorySize = memorySize;
-      this.memoryAccessor = memoryAccessor; // Use MemoryAccessor to access memory
-      this.nextPID = 0; // Start with PID: 0
-      this.allocatedMemoryBlocks = []; // Track memory allocation
-      this.freeMemoryBlocks = [{ start: 0, end: memorySize - 1 }]; // Initially, the whole memory is free
+    constructor(memoryAccessor: MemoryAccessor) {
+      this.memoryAccessor = memoryAccessor;
+      this.nextPID = 0;
+      this.currentPartitionIndex = 0;
+
+      // Initialize partitions with base and limit addresses
+      this.partitions = [
+        { pid: -1, base: 0, limit: 255, occupied: false },
+        { pid: -1, base: 256, limit: 511, occupied: false },
+        { pid: -1, base: 512, limit: 767, occupied: false },
+      ];
     }
 
-    // Find a free memory block, prefer baseAddress if provided (for $0000)
-    private findFreeMemoryBlock(
-      programSize: number,
-      baseAddress?: number
-    ): number | null {
-      // Try to use the provided base address (if available) first
-      if (baseAddress !== undefined) {
-        const block = this.freeMemoryBlocks.find(
-          (block) =>
-            block.start === baseAddress &&
-            block.end - block.start + 1 >= programSize
-        );
-        if (block) {
-          return baseAddress;
-        }
+    // Store a program in memory and return the process info
+public storeProgram(program: number[]): { pid: number } {
+  const programSize = program.length;
+  console.log("Storing program of size:", program.length);
+
+  for (let i = 0; i < this.partitions.length; i++) {
+    const partitionIndex = (this.currentPartitionIndex + i) % this.partitions.length;
+    const partition = this.partitions[partitionIndex];
+
+    if (!partition.occupied && programSize <= (partition.limit - partition.base + 1)) {
+      const base = partition.base;
+      const limit = partition.limit;
+
+      console.log(`Using partition ${partitionIndex}, Base: ${base}, Limit: ${limit}`);
+      
+      // Write the program into memory
+      for (let j = 0; j < programSize; j++) {
+        this.memoryAccessor.write(base + j, program[j], base, limit);
+        console.log(`Writing value ${program[j].toString(16)} at address ${base + j}`);
       }
 
-      // Otherwise, find the first available free block that fits the program size
-      for (const block of this.freeMemoryBlocks) {
-        const blockSize = block.end - block.start + 1;
-        if (blockSize >= programSize) {
-          return block.start;
-        }
+      // Display memory contents after writing
+      this.memoryAccessor.displayMemory();
+
+      partition.occupied = true;
+      const pid = this.nextPID++;
+      partition.pid = pid;
+
+      const newPCB = new TSOS.PCB(pid, base, limit);
+      newPCB.state = "Resident";
+      neOS.residentQueue.enqueue(newPCB);
+      TSOS.Control.updatePCBDisplay();
+
+      if (!neOS.CurrentProcess) {
+        neOS.CurrentProcess = newPCB;
       }
 
-      return null; // Return null if no free memory block is found
+      this.currentPartitionIndex = (partitionIndex + 1) % this.partitions.length;
+
+      return { pid };
     }
+  }
 
-    // Update the free memory block list after allocating memory
-    private updateFreeMemory(baseAddress: number, programSize: number) {
-      this.freeMemoryBlocks = this.freeMemoryBlocks
-        .map((block) => {
-          if (block.start === baseAddress) {
-            const remainingBlockStart = block.start + programSize;
-            if (remainingBlockStart <= block.end) {
-              return { start: remainingBlockStart, end: block.end };
-            } else {
-              return null;
-            }
-          } else {
-            return block;
-          }
-        })
-        .filter((block) => block !== null);
-    }
+  console.error("No available partition to store the program");
+  return { pid: -1 };
+}
 
-    // Store a program in memory and return PID and base address
-    public storeProgram(program: number[]): {
-      pid: number;
-      baseAddress: number;
-    } {
-      const programSize = program.length;
 
-      // Always try to load at $0000 if it's the first program
-      const baseAddress = this.findFreeMemoryBlock(programSize, 0x0000);
-
-      if (baseAddress !== null) {
-        // Load the program into memory via the MemoryAccessor
-        for (let i = 0; i < programSize; i++) {
-          this.memoryAccessor.write(baseAddress + i, program[i]);
-        }
-
-        // Create a new process with a unique PID
-        const pid = this.nextPID++;
-        this.allocatedMemoryBlocks.push({
-          pid,
-          start: baseAddress,
-          end: baseAddress + programSize - 1,
-        });
-
-        // Update the free memory blocks to reflect the new allocation
-        this.updateFreeMemory(baseAddress, programSize);
-
-        return { pid, baseAddress }; // Return the PID and base address of the new process
-      }
-
-      return { pid: -1, baseAddress: -1 }; // Return -1 if not enough memory to load the program
-    }
-
-    // Retrieve a loaded program by PID
-    public retrieveProgram(pid: number): number[] | null {
-      const memoryBlock = this.allocatedMemoryBlocks.find(
-        (block) => block.pid === pid
-      );
-      if (memoryBlock) {
-        return this.memoryAccessor.readBlock(
-          memoryBlock.start,
-          memoryBlock.end
-        );
-      }
-      return null;
-    }
-
+    // Free a partition when a process terminates
     public freeProcessMemory(pid: number): void {
-      const memoryBlock = this.allocatedMemoryBlocks.find(
-        (block) => block.pid === pid
+      // Find the partition based on PID and free it
+      const partition = this.partitions.find(
+        (partition) => partition.pid === pid
       );
-
-      if (memoryBlock) {
-        // Mark the memory as free by adding it back to the free memory blocks
-        this.freeMemoryBlocks.push({
-          start: memoryBlock.start,
-          end: memoryBlock.end,
-        });
-
-        // Remove the memory block from allocated memory blocks
-        this.allocatedMemoryBlocks = this.allocatedMemoryBlocks.filter(
-          (block) => block.pid !== pid
-        );
+      if (partition) {
+        partition.occupied = false;
+        partition.pid = null;
       }
     }
   }

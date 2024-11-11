@@ -19,15 +19,18 @@ var TSOS;
             // Page 8. {
             TSOS.Control.hostLog("bootstrap", "host");
             // Use hostLog because we ALWAYS want this, even if neOS.
+            neOS.KernelInterruptQueue = new TSOS.Queue();
+            neOS.KernelInputQueue = new TSOS.Queue();
+            neOS.KernelBuffers = [];
             // Initialize memory manager
-            this.memoryManager = new TSOS.MemoryManager(256, neOS.MemoryAccessor);
+            this.memoryManager = new TSOS.MemoryManager(neOS.MemoryAccessor);
             neOS.MemoryManager = this.memoryManager;
             // Initialize our global queues.
             neOS.KernelInterruptQueue = new TSOS.Queue();
             // A (currently) non-priority queue for interrupt requests (IRQs).
+            neOS.KernelInputQueue = new TSOS.Queue();
             neOS.KernelBuffers = new Array();
             // Buffers... for the kernel.
-            neOS.KernelInputQueue = new TSOS.Queue();
             // Where device input lands before being processed out somewhere.
             // Initialize the console.
             neOS.Console = new TSOS.Console();
@@ -36,6 +39,12 @@ var TSOS;
             // Initialize standard input and output to the neOS.Console.
             neOS.StdIn = neOS.Console;
             neOS.StdOut = neOS.Console;
+            // Scheduling
+            neOS.Scheduler = new TSOS.Scheduler();
+            neOS.Dispatcher = new TSOS.Dispatcher();
+            // Queues 
+            neOS.readyQueue = new TSOS.Queue();
+            neOS.residentQueue = new TSOS.Queue();
             // Load the Keyboard Device Driver
             this.krnTrace("Loading the keyboard device driver.");
             neOS.krnKeyboardDriver = new TSOS.DeviceDriverKeyboard();
@@ -122,6 +131,12 @@ var TSOS;
                     neOS.krnKeyboardDriver.isr(params); // Kernel mode device driver
                     neOS.StdIn.handleInput();
                     break;
+                case INTERRUPT_PROCESS_KILL:
+                    this.killProcess(params[0]);
+                    break;
+                case INTERRUPT_CONTEXT_SWITCH:
+                    neOS.Scheduler.contextSwitch();
+                    break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
             }
@@ -135,7 +150,7 @@ var TSOS;
         // System Calls... that generate software interrupts via tha Application Programming Interface library routines.
         //
         // Some ideas:
-        // - ReadConsole
+        // - 1Console
         // - WriteConsole
         // - CreateProcess
         // - ExitProcess
@@ -183,14 +198,15 @@ var TSOS;
             // Then shut down the OS.
             this.krnShutdown();
         }
-        startNewProcess(name) {
-            const pid = neOS.ProcessList.length > 0
-                ? neOS.ProcessList[neOS.ProcessList.length - 1].pid + 1
-                : 1;
-            const pcb = new TSOS.PCB(pid, 0x0000, 256, 1, name); // Adjust the base, limit, priority as needed
-            neOS.ProcessList.push(pcb); // Add the full PCB to the process list
-            neOS.StdOut.advanceLine();
-            neOS.StdOut.putText(`Process "${name}" started with PID ${pid}.`);
+        killProcess(pid) {
+            const processIndex = neOS.ProcessList.findIndex((p) => p.pid === pid);
+            if (processIndex !== -1) {
+                neOS.ProcessList.splice(processIndex, 1);
+                neOS.StdOut.putText(`Process with PID ${pid} killed.`);
+            }
+            else {
+                neOS.StdOut.putText(`No process found with PID ${pid}.`);
+            }
         }
     }
     TSOS.Kernel = Kernel;

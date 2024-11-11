@@ -168,7 +168,7 @@ var TSOS;
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
             //console.log("Initializing Memory...");
-            neOS.Memory = new TSOS.Memory(256);
+            neOS.Memory = new TSOS.Memory();
             neOS.Memory.init();
             //console.log("Memory initialized:", neOS.Memory);
             neOS.MemoryAccessor = new TSOS.MemoryAccessor(neOS.Memory);
@@ -216,7 +216,7 @@ var TSOS;
                     if (this.singleStepMode) {
                         // Only execute if the current process is valid
                         if (neOS.CurrentProcess && neOS.CurrentProcess.state !== "Terminated") {
-                            const instruction = neOS.CPU.memoryAccessor.read(neOS.CPU.PC); // Fetch the instruction based on the current PC
+                            const instruction = neOS.MemoryAccessor.read(neOS.CPU.PC, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
                             // Execute the instruction
                             try {
                                 neOS.CPU.execute(instruction);

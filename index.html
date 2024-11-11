@@ -34,8 +34,11 @@
     <script type="text/javascript" src="distrib/os/shellCommand.js"></script>
     <script type="text/javascript" src="distrib/os/userCommand.js"></script>
     <script type="text/javascript" src="distrib/os/memoryManager.js"></script>
-    <script type="text/javascript" src="distrib/os/kernel.js"></script>
 
+    <script type="text/javascript" src="distrib/os/kernel.js"></script>
+    <!-- scheduler and dispatcher -->
+    <script type="text/javascript" src="distrib/os/scheduler.js"></script>
+    <script type="text/javascript" src="distrib/os/dispatcher.js"></script>
     <!-- Other Routines -->
     <script type="text/javascript" src="distrib/utils.js"></script>
     <!-- Uncomment the line below to enable GLaDOS testing. -->
@@ -115,13 +118,12 @@
           ></canvas>
         </div>
       </div>
-        <div
-        style="flex: display; flex-direction: column;">
-          <button class="normal_button" id="singleStep">
-            Enable Single Step
-          </button>
-          <button class="normal_button" id="stepElement">step</button>
-        </div>
+      <div style="flex: display; flex-direction: column">
+        <button class="normal_button" id="singleStep">
+          Enable Single Step
+        </button>
+        <button class="normal_button" id="stepElement">step</button>
+      </div>
 
       <!-- Top Row -->
 

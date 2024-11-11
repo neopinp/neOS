@@ -18,7 +18,7 @@ var TSOS;
             return this.q.length;
         }
         isEmpty() {
-            return (this.q.length == 0);
+            return this.q.length == 0;
         }
         enqueue(element) {
             this.q.push(element);
@@ -36,6 +36,12 @@ var TSOS;
                 retVal += "[" + this.q[i] + "] ";
             }
             return retVal;
+        }
+        forEach(callback) {
+            this.q.forEach(callback);
+        }
+        find(callback) {
+            return this.q.find(callback);
         }
     }
     TSOS.Queue = Queue;

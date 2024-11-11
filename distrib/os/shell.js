@@ -413,41 +413,32 @@ var TSOS;
         }
         shellLoad() {
             const programInput = document.getElementById("taProgramInput").value.trim();
-            // Validate that the input is a valid hexadecimal string
             const isValidHex = /^[0-9a-fA-F\s]+$/.test(programInput);
             if (isValidHex) {
-                // Remove all whitespace and split into an array of hex byte pairs (e.g., 'A9', '00', etc.)
                 const programBytes = programInput.replace(/\s+/g, "").match(/.{1,2}/g);
                 if (programBytes) {
-                    // Convert hex byte strings to actual byte values (integers)
-                    const program = programBytes.map(byte => parseInt(byte, 16));
-                    // Load the program into memory starting at the available address
-                    const { pid, baseAddress } = neOS.MemoryManager.storeProgram(program);
+                    const program = programBytes.map((byte) => parseInt(byte, 16));
+                    const { pid } = neOS.MemoryManager.storeProgram(program);
                     if (pid >= 0) {
-                        // Create a new Process Control Block (PCB) for the loaded program
-                        const pcb = new TSOS.PCB(pid, baseAddress, baseAddress + program.length - 1, 1, `Program_${pid}`);
-                        pcb.state = "Ready";
-                        neOS.ProcessList.push(pcb); // Add PCB to process list
-                        // Output success message to the console
-                        neOS.StdOut.advanceLine();
-                        neOS.StdOut.putText(`Program loaded successfully with PID: ${pid}`);
-                        // Debugging: Log the loaded program to ensure bytes are correct
-                        for (let i = 0; i < program.length; i++) {
+                        // Retrieve the newly created PCB from the residentQueue
+                        const newPCB = neOS.residentQueue.find((p) => p.pid === pid);
+                        if (newPCB) {
+                            neOS.CurrentProcess = newPCB;
+                            neOS.ProcessList.push(newPCB); // Add to the global ProcessList
+                            console.log("Current Process set:", neOS.CurrentProcess);
+                            console.log("Base Address:", neOS.CurrentProcess.base);
+                            console.log("Limit Address:", neOS.CurrentProcess.limit);
                         }
+                        TSOS.Control.updatePCBDisplay();
+                        neOS.StdOut.putText(`Program loaded with PID ${pid}`);
                     }
                     else {
-                        // Handle memory allocation failure
-                        neOS.StdOut.putText("Error: Not enough memory to load the program");
+                        neOS.StdOut.putText("Error: Could not load the program into memory.");
                     }
-                }
-                else {
-                    // Handle case where the hex parsing didn't work correctly
-                    neOS.StdOut.putText("Error: Could not parse the program input into valid bytes.");
                 }
             }
             else {
-                // Invalid input, display an error message
-                neOS.StdOut.putText("Invalid program. Please enter a valid hexadecimal string.");
+                neOS.StdOut.putText("Error: Invalid hexadecimal input.");
             }
         }
         shellBSOD(args) {
@@ -472,75 +463,76 @@ var TSOS;
                 neOS.StdOut.putText("No running Processes.");
             }
         }
-        // new command
-        shellKill(args) {
-            if (args.length > 0) {
-                const pid = parseInt(args[0], 10);
-                const pcb = neOS.ProcessList.find((p) => p.pid === pid);
-                if (pcb) {
-                    if (pcb.state === "Terminated") {
-                        neOS.StdOut.advanceLine();
-                        neOS.StdOut.putText(`Error: Process ${pid} already terminated.`);
-                    }
-                    else {
-                        pcb.state = "Terminated";
-                        neOS.StdOut.putText(`Process ${pid} terminated successfully.`);
-                        if (neOS.CurrentProcess && neOS.CurrentProcess.pid === pid) {
-                            neOS.CPU.isExecuting = false;
-                            neOS.CurrentProcess = null;
-                        }
-                        neOS.MemoryManager.freeProcessMemory(pid);
-                    }
-                }
-                else {
-                    neOS.StdOut.putText(`Error: No process found with PID ${pid}.`);
-                }
-            }
-            else {
-                neOS.StdOut.putText("Usage: kill <pid>. Please supply a PID.");
-            }
-        }
         shellRun(args) {
             if (args.length > 0) {
                 const pid = parseInt(args[0], 10);
-                const pcb = neOS.ProcessList.find((p) => p.pid === pid);
+                const pcb = neOS.residentQueue.find((p) => p.pid === pid);
                 if (pcb) {
                     if (pcb.state === "Terminated") {
-                        neOS.StdOut.advanceLine();
                         neOS.StdOut.putText(`Error: Process ${pid} has already terminated.`);
                     }
                     else if (pcb.state === "Running") {
-                        neOS.StdOut.advanceLine();
                         neOS.StdOut.putText(`Error: Process ${pid} is already running.`);
                     }
                     else {
                         // Set the process to "Running"
-                        pcb.state = "Running";
                         neOS.CurrentProcess = pcb;
-                        neOS.CPU.setPC(pcb.base);
-                        // Check if single-step mode is enabled
-                        if (TSOS.Control.singleStepMode) {
-                            // Do not set isExecuting to true; it will be done on step
-                            neOS.CPU.isExecuting = false; // Ensure it's not executing
-                            neOS.StdOut.advanceLine();
-                            neOS.StdOut.putText(`Process ${pid} is ready for single-step execution.`);
-                        }
-                        else {
-                            // If single-step mode is not enabled, allow execution
-                            neOS.CPU.isExecuting = true;
-                            neOS.StdOut.advanceLine();
-                            neOS.StdOut.putText(`Process ${pid} is now running.`);
-                        }
+                        // Set the process state to "Running"
+                        pcb.state = "Running";
+                        // Set CPU registers to match the PCB
+                        neOS.CPU.PC = pcb.pc;
+                        neOS.CPU.Acc = pcb.acc;
+                        neOS.CPU.Xreg = pcb.xReg;
+                        neOS.CPU.Yreg = pcb.yReg;
+                        neOS.CPU.Zflag = pcb.zFlag;
+                        neOS.CPU.isExecuting = true;
+                        neOS.StdOut.putText(`Process ${pid} is now running.`);
                     }
                 }
                 else {
-                    neOS.StdOut.advanceLine();
                     neOS.StdOut.putText(`Error: No process found with PID ${pid}`);
                 }
             }
             else {
-                neOS.StdOut.advanceLine();
                 neOS.StdOut.putText("Usage: run <pid>");
+            }
+        }
+        shellRunAll(args) {
+            while (!neOS.residentQueue.isEmpty()) {
+                const pcb = neOS.residentQueue.dequeue();
+                pcb.state = "ready";
+                neOS.readyQueue.enqueue(pcb);
+            }
+            neOS.Scheduler.schedule();
+        }
+        shellPS(args) {
+            neOS.StdOut.advanceLine();
+            neOS.readyQueue.forEach((pcb) => {
+                neOS.StdOut.putText(`PID: ${pcb.pid}, State: ${pcb.state}`);
+                neOS.StdOut.advanceLine();
+            });
+        }
+        shellKill(args) {
+            const pid = parseInt(args[0]);
+            const pcb = neOS.ProcessList.find((p) => p.pid === pid);
+            if (pcb) {
+                pcb.state = "Terminated";
+                neOS.CPU.isExecuting = false;
+                neOS.StdOut.putText(`Process ${pid} killed.`);
+            }
+            else {
+                neOS.StdOut.putText(`No process found with PID ${pid}.`);
+            }
+            TSOS.Control.updatePCBDisplay();
+        }
+        shellQuantum(args) {
+            const newQuantum = parseInt(args[0]);
+            if (newQuantum > 0) {
+                neOS.Scheduler.defaultQuantum = newQuantum;
+                neOS.StdOut.putText(`Quantum set to ${newQuantum} cycles.`);
+            }
+            else {
+                neOS.StdOut.putText("Invalid quantum value.");
             }
         }
         shellMan(args) {

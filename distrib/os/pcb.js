@@ -13,7 +13,8 @@ var TSOS;
         state;
         priority;
         name;
-        constructor(pid, base, limit, priority = 1, name = "UnnamedProcess") {
+        quantumRemaining;
+        constructor(pid, base, limit, priority = 1, name = "UnnamedProcess", quantumRemaining = 6) {
             this.pid = pid;
             this.base = base;
             this.limit = limit;
@@ -23,9 +24,10 @@ var TSOS;
             this.xReg = 0;
             this.yReg = 0;
             this.zFlag = 0;
-            this.state = "Ready";
+            this.state = "Resident";
             this.priority = priority;
             this.name = name; // Set process name
+            this.quantumRemaining = quantumRemaining;
         }
         // Add a method to reset the PCB (useful for when the process is reset)
         reset() {
@@ -36,6 +38,7 @@ var TSOS;
             this.yReg = 0;
             this.zFlag = 0;
             this.state = "Ready";
+            this.quantumRemaining = 6;
         }
     }
     TSOS.PCB = PCB;

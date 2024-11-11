@@ -11,7 +11,7 @@ namespace TSOS {
   export class Kernel {
     public memoryManager: MemoryManager;
 
-    constructor() { 
+    constructor() {
       console.log("Kernel constructed.");
     }
 
@@ -19,23 +19,26 @@ namespace TSOS {
     //
     public krnBootstrap() {
       // Page 8. {
-      Control.hostLog("bootstrap", "host"); 
+      Control.hostLog("bootstrap", "host");
       // Use hostLog because we ALWAYS want this, even if neOS.
+      neOS.KernelInterruptQueue = new TSOS.Queue<TSOS.Interrupt>();
+      neOS.KernelInputQueue = new TSOS.Queue<string>();
+      neOS.KernelBuffers = [];
       // Initialize memory manager
-      this.memoryManager = new MemoryManager(256, neOS.MemoryAccessor);
+      this.memoryManager = new MemoryManager(neOS.MemoryAccessor);
       neOS.MemoryManager = this.memoryManager;
 
-
       // Initialize our global queues.
-      neOS.KernelInterruptQueue = new Queue(); 
+      neOS.KernelInterruptQueue = new TSOS.Queue<TSOS.Interrupt>();
       // A (currently) non-priority queue for interrupt requests (IRQs).
-      neOS.KernelBuffers = new Array(); 
+      neOS.KernelInputQueue = new TSOS.Queue<string>();
+
+      neOS.KernelBuffers = new Array();
       // Buffers... for the kernel.
-      neOS.KernelInputQueue = new Queue(); 
       // Where device input lands before being processed out somewhere.
 
       // Initialize the console.
-      neOS.Console = new Console(); 
+      neOS.Console = new Console();
       // The command line interface / console I/O device.
       neOS.Console.init();
 
@@ -43,11 +46,20 @@ namespace TSOS {
       neOS.StdIn = neOS.Console;
       neOS.StdOut = neOS.Console;
 
+      // Scheduling
+      neOS.Scheduler = new TSOS.Scheduler();
+      neOS.Dispatcher = new TSOS.Dispatcher();
+
+      // Queues 
+
+      neOS.readyQueue = new TSOS.Queue<TSOS.PCB>();
+      neOS.residentQueue = new TSOS.Queue<TSOS.PCB>();
+
       // Load the Keyboard Device Driver
       this.krnTrace("Loading the keyboard device driver.");
-      neOS.krnKeyboardDriver = new DeviceDriverKeyboard(); 
+      neOS.krnKeyboardDriver = new DeviceDriverKeyboard();
       // Construct it.
-      neOS.krnKeyboardDriver.driverEntry(); 
+      neOS.krnKeyboardDriver.driverEntry();
       // Call the driverEntry() initialization routine.
       this.krnTrace(neOS.krnKeyboardDriver.status);
 
@@ -136,6 +148,12 @@ namespace TSOS {
           neOS.krnKeyboardDriver.isr(params); // Kernel mode device driver
           neOS.StdIn.handleInput();
           break;
+        case INTERRUPT_PROCESS_KILL:
+          this.killProcess(params[0]);
+          break;
+        case INTERRUPT_CONTEXT_SWITCH:
+          neOS.Scheduler.contextSwitch();
+          break;
         default:
           this.krnTrapError(
             "Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]"
@@ -149,12 +167,11 @@ namespace TSOS {
       // Or do it elsewhere in the Kernel. We don't really need this.
     }
 
-
     //
     // System Calls... that generate software interrupts via tha Application Programming Interface library routines.
     //
     // Some ideas:
-    // - ReadConsole
+    // - 1Console
     // - WriteConsole
     // - CreateProcess
     // - ExitProcess
@@ -207,20 +224,15 @@ namespace TSOS {
 
       // Then shut down the OS.
       this.krnShutdown();
-
     }
-
-    public startNewProcess(name: string) {
-      const pid =
-        neOS.ProcessList.length > 0
-          ? neOS.ProcessList[neOS.ProcessList.length - 1].pid + 1
-          : 1;
-          const pcb = new TSOS.PCB(pid, 0x0000, 256, 1, name); // Adjust the base, limit, priority as needed
-    
-      neOS.ProcessList.push(pcb);  // Add the full PCB to the process list
-      neOS.StdOut.advanceLine();
-      neOS.StdOut.putText(`Process "${name}" started with PID ${pid}.`);
+    public killProcess(pid: number): void {
+      const processIndex = neOS.ProcessList.findIndex((p) => p.pid === pid);
+      if (processIndex !== -1) {
+        neOS.ProcessList.splice(processIndex, 1);
+        neOS.StdOut.putText(`Process with PID ${pid} killed.`);
+      } else {
+        neOS.StdOut.putText(`No process found with PID ${pid}.`);
+      }
     }
-    
   }
 }

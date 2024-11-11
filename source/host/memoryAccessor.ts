@@ -6,40 +6,22 @@ namespace TSOS {
       this.memory = memory;
     }
 
-    // Read a byte from memory
-    public read(address: number): number {
-      if (address >= 0 && address < this.memory.memoryArray.length) {
-        const value = this.memory.getByte(address);
-        return value;
-      } else {
-        throw new Error("Memory access violation at address " + address);
+    public write(address: number, value: number, base: number, limit: number): void {
+      if (address < base || address > limit) {
+        throw new Error(`Memory access violation at address ${address}`);
       }
+      console.log(`Writing value ${value.toString(16)} to address ${address}`);
+      this.memory[address] = value;
     }
+    
 
-    // Write a byte to memory
-    public write(address: number, value: number): void {
-      if (address >= 0 && address < this.memory.memoryArray.length) {
-        this.memory.setByte(address, value);
-        // Log memory access
-      } else {
-        throw new Error("Memory access violation at address " + address);
+    public read(address: number, base: number, limit: number): number {
+      if (address < base || address > limit) {
+        throw new Error(`Memory access violation at address ${address}. Outside process boundaries. ${base} ${limit} ${neOS.CurrentProcess.pc}`);
       }
+      return this.memory[address];
     }
-
-    // Read a block of memory (for retrieving programs)
-    public readBlock(startAddress: number, endAddress: number): number[] {
-      if (startAddress >= 0 && endAddress < this.memory.memoryArray.length) {
-        return this.memory.memoryArray.slice(startAddress, endAddress + 1);
-      } else {
-        throw new Error(
-          "Memory access violation between addresses " +
-            startAddress +
-            " and " +
-            endAddress
-        );
-      }
-    }
-
+    
     public getMemoryArray(): number[] {
       return this.memory.getMemoryArray();
     }
