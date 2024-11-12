@@ -44,6 +44,10 @@ namespace TSOS {
            // Location - All Memory for now
            const locationCell = document.createElement("td");
            locationCell.textContent = pcb.location;
+           // Current Quantum
+           const quantumCell = document.createElement("td");
+           quantumCell.textContent = pcb.quantumRemaining.toString();
+
 
           // Program Counter (PC)
           let pcCell = document.createElement("td");
@@ -94,7 +98,7 @@ namespace TSOS {
           // Append cells to the row
           row.appendChild(pidCell);
           row.appendChild(segmentCell);
-          row.appendChild(priorityCell);
+          row.appendChild(quantumCell);
           row.appendChild(pcCell);
           row.appendChild(irCell);
           row.appendChild(accCell);
