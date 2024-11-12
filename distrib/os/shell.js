@@ -560,11 +560,13 @@ var TSOS;
                 neOS.Scheduler.defaultQuantum = newQuantum;
                 neOS.StdIn.advanceLine();
                 neOS.StdOut.putText(`Quantum set to ${newQuantum} cycles.`);
+                TSOS.Control.updatePCBDisplay();
             }
             else {
                 neOS.StdIn.advanceLine();
                 neOS.StdOut.putText("Invalid quantum value.");
             }
+            TSOS.Control.updatePCBDisplay();
         }
         shellMan(args) {
             if (args.length > 0) {
