@@ -673,6 +673,7 @@ namespace TSOS {
       TSOS.Control.updatePCBDisplay();
       neOS.CurrentProcess = null;
       neOS.Scheduler.scheduleNextProcess();
+      neOS.StdIn.advanceLine();
       neOS.StdOut.putText("All processes are now running.");
     }
 

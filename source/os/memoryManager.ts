@@ -62,7 +62,6 @@ namespace TSOS {
             limit,
             1,
             partitionIndex,
-            neOS.Scheduler.defaultQuantum
           );
           newPCB.state = "Resident";
           neOS.residentQueue.enqueue(newPCB);

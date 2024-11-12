@@ -37,7 +37,7 @@ var TSOS;
                     partition.occupied = true;
                     const pid = this.nextPID++;
                     partition.pid = pid;
-                    const newPCB = new TSOS.PCB(pid, base, limit, 1, partitionIndex, neOS.Scheduler.defaultQuantum);
+                    const newPCB = new TSOS.PCB(pid, base, limit, 1, partitionIndex);
                     newPCB.state = "Resident";
                     neOS.residentQueue.enqueue(newPCB);
                     TSOS.Control.updatePCBDisplay();
