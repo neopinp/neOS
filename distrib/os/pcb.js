@@ -15,7 +15,7 @@ var TSOS;
         partition;
         location;
         quantumRemaining;
-        constructor(pid, base, limit, priority = 1, partition, quantumRemaining = 6, location = "Memory") {
+        constructor(pid, base, limit, priority = 1, partition, location = "Memory") {
             this.pid = pid;
             this.base = base;
             this.limit = limit;
@@ -29,7 +29,7 @@ var TSOS;
             this.priority = priority;
             this.partition = partition;
             this.location = location;
-            this.quantumRemaining = quantumRemaining;
+            this.quantumRemaining = neOS.Scheduler.defaultQuantum;
         }
         /**
          * Reset the PCB to its initial state

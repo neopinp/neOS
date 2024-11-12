@@ -21,7 +21,6 @@ namespace TSOS {
       limit: number,
       priority: number = 1,
       partition: number,
-      quantumRemaining: number = 6,
       location: string = "Memory"
     ) {
       this.pid = pid;
@@ -37,7 +36,7 @@ namespace TSOS {
       this.priority = priority;
       this.partition = partition;
       this.location = location;
-      this.quantumRemaining = quantumRemaining;
+      this.quantumRemaining = neOS.Scheduler.defaultQuantum;
     }
 
     /**

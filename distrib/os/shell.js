@@ -115,6 +115,8 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id.");
             this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellKillAll, "killall", "<string> - Kills all the processes");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellPS, "ps", "<string> - List running processes.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellClearem, "clearem", "<string> - clear all memory segments");
@@ -485,17 +487,6 @@ var TSOS;
                 neOS.StdOut.putText("Usage: run <pid>");
             }
         }
-        shellRunAll(args) {
-            while (!neOS.residentQueue.isEmpty()) {
-                const pcb = neOS.residentQueue.dequeue();
-                pcb.state = "Ready";
-                neOS.readyQueue.enqueue(pcb);
-            }
-            TSOS.Control.updatePCBDisplay();
-            neOS.CurrentProcess = null;
-            neOS.Scheduler.scheduleNextProcess();
-            neOS.StdOut.putText("All processes are now running.");
-        }
         shellPS(args) {
             if (neOS.ProcessList.length > 0) {
                 neOS.StdOut.advanceLine();
@@ -533,20 +524,44 @@ var TSOS;
             if (pcb) {
                 pcb.state = "Terminated";
                 neOS.CPU.isExecuting = false;
+                neOS.StdIn.advanceLine();
                 neOS.StdOut.putText(`Process ${pid} killed.`);
             }
             else {
+                neOS.StdIn.advanceLine();
                 neOS.StdOut.putText(`No process found with PID ${pid}.`);
             }
             TSOS.Control.updatePCBDisplay();
+        }
+        shellRunAll() {
+            while (!neOS.residentQueue.isEmpty()) {
+                const pcb = neOS.residentQueue.dequeue();
+                pcb.state = "Ready";
+                neOS.readyQueue.enqueue(pcb);
+            }
+            TSOS.Control.updatePCBDisplay();
+            neOS.CurrentProcess = null;
+            neOS.Scheduler.scheduleNextProcess();
+            neOS.StdOut.putText("All processes are now running.");
+        }
+        shellKillAll() {
+            neOS.ProcessList.forEach((pcb) => {
+                pcb.state = "Terminated";
+            });
+            TSOS.Control.updatePCBDisplay();
+            neOS.MemoryAccessor.displayMemory();
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText("All Processes Terminated");
         }
         shellQuantum(args) {
             const newQuantum = parseInt(args[0]);
             if (newQuantum > 0) {
                 neOS.Scheduler.defaultQuantum = newQuantum;
+                neOS.StdIn.advanceLine();
                 neOS.StdOut.putText(`Quantum set to ${newQuantum} cycles.`);
             }
             else {
+                neOS.StdIn.advanceLine();
                 neOS.StdOut.putText("Invalid quantum value.");
             }
         }
