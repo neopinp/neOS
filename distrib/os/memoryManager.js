@@ -28,7 +28,7 @@ var TSOS;
                     const base = partition.base;
                     const limit = partition.limit;
                     console.log(`Using partition ${partitionIndex}, Base: ${base}, Limit: ${limit}`);
-                    // Write the program into memory
+                    // Write the program into memory using absolute addressing
                     for (let j = 0; j < programSize; j++) {
                         this.memoryAccessor.write(base + j, program[j], base, limit);
                     }

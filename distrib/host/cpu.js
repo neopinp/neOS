@@ -1,30 +1,17 @@
 var TSOS;
 (function (TSOS) {
     class Cpu {
-        PC;
-        Acc;
-        Xreg;
-        Yreg;
-        Zflag;
-        isExecuting;
-        memoryAccessor; // Use the memoryAccessor instead of a direct memory instance
+        PC = 0;
+        Acc = 0;
+        Xreg = 0;
+        Yreg = 0;
+        Zflag = 0;
         instructionRegister = 0;
-        constructor(PC = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, isExecuting = false) {
-            this.PC = PC;
-            this.Acc = Acc;
-            this.Xreg = Xreg;
-            this.Yreg = Yreg;
-            this.Zflag = Zflag;
-            this.isExecuting = isExecuting;
-            console.log("neOS.MemoryAccessor before assignment in CPU:", neOS.MemoryAccessor);
-            // Check if MemoryAccessor is null before assigning
-            if (neOS.MemoryAccessor === null) {
-                console.error("MemoryAccessor is null in CPU constructor! Aborting initialization.");
-            }
-            else {
-                this.memoryAccessor = neOS.MemoryAccessor;
-                console.log("MemoryAccessor in CPU constructor:", this.memoryAccessor); // Debug statement
-            }
+        isExecuting = false;
+        memoryAccessor;
+        constructor(memoryAccessor) {
+            this.memoryAccessor = memoryAccessor;
+            this.init(); // Initialize registers to zero
         }
         init() {
             this.PC = 0;
@@ -52,7 +39,7 @@ var TSOS;
             console.log(`  Quantum Remaining: ${neOS.CurrentProcess.quantumRemaining}`);
             const { base, limit } = neOS.CurrentProcess;
             let instruction;
-            const physicalAddress = base + this.PC;
+            const physicalAddress = this.PC + neOS.CurrentProcess.base;
             // Fetch the next instruction
             try {
                 instruction = this.memoryAccessor.read(physicalAddress, base, limit);
@@ -87,13 +74,16 @@ var TSOS;
             // Perform a context switch if the quantum has expired
             if (neOS.CurrentProcess.quantumRemaining <= 0) {
                 console.log(`Quantum expired for PID ${neOS.CurrentProcess.pid}`);
+                // Before saving context
+                console.log(`Context switch: Saving PID ${neOS.CurrentProcess.pid}`);
+                console.log(`Current PC: ${this.PC}, Base: ${neOS.CurrentProcess.base}`);
                 // Save context and requeue the current process if not terminated
                 if (neOS.CurrentProcess.state !== "Terminated") {
                     console.log(`Re-enqueuing process PID: ${neOS.CurrentProcess.pid}`);
                     neOS.CurrentProcess.saveContext(this);
                     neOS.readyQueue.enqueue(neOS.CurrentProcess);
+                    neOS.Scheduler.scheduleNextProcess(false);
                 }
-                neOS.Scheduler.scheduleNextProcess(false);
                 return;
             }
             // Update PCB and CPU displays after execution
@@ -119,8 +109,7 @@ var TSOS;
             console.log(`Executing instruction: ${instruction.toString(16)}`);
             switch (instruction) {
                 case 0xa9: // LDA: Load Accumulator with a constant
-                    value = this.memoryAccessor.read(neOS.CurrentProcess.base + this.PC + 1, // do I have to make changes to how I save the context as well
-                    neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
+                    value = this.memoryAccessor.read(neOS.CurrentProcess.base + this.PC + 1, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
                     console.log(`LDA: Loaded value ${value} into Accumulator`);
                     this.Acc = value;
                     this.PC += 2;
@@ -144,7 +133,7 @@ var TSOS;
                     console.log(`ADC: Added value ${memoryValue} to Accumulator, new Acc = ${this.Acc}`);
                     this.PC += 3;
                     break;
-                case 0xa2: // LDX: Load X Register with a constant
+                case 0xa2:
                     value = this.memoryAccessor.read(neOS.CurrentProcess.base + this.PC + 1, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
                     console.log(`LDX: Loaded value ${value} into X register`);
                     this.Xreg = value;
@@ -156,7 +145,7 @@ var TSOS;
                     console.log(`LDX Absolute: Loaded value ${this.Xreg} from address ${address}`);
                     this.PC += 3;
                     break;
-                case 0xa0: // LDY: Load Y Register with a constant
+                case 0xa0:
                     value = this.memoryAccessor.read(neOS.CurrentProcess.base + this.PC + 1, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
                     console.log(`LDY: Loaded value ${value} into Y register`);
                     this.Yreg = value;
@@ -178,8 +167,8 @@ var TSOS;
                     console.log(`CPX: Compared X register with value ${memoryValue}, Zflag = ${this.Zflag}`);
                     this.PC += 3;
                     break;
-                case 0xd0: // BNE: Branch if Not Equal
-                    const branchOffset = this.memoryAccessor.read(neOS.CurrentProcess.base + this.PC + 1, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
+                case 0xd0:
+                    const branchOffset = this.memoryAccessor.read(this.PC + 1 + neOS.CurrentProcess.base, neOS.CurrentProcess.base, neOS.CurrentProcess.limit);
                     console.log(`BNE: Branch Offset is ${branchOffset}, Zflag is ${this.Zflag}`);
                     if (this.Zflag === 0) {
                         this.PC += branchOffset > 127 ? branchOffset - 256 : branchOffset;

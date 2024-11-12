@@ -22,7 +22,7 @@ namespace TSOS {
       priority: number = 1,
       partition: number,
       quantumRemaining: number = 6,
-      location: string = 'Memory'
+      location: string = "Memory"
     ) {
       this.pid = pid;
       this.base = base;
@@ -59,38 +59,52 @@ namespace TSOS {
      * Save the current state of the CPU registers into the PCB
      */
     public saveContext(cpu: Cpu): void {
+      // Ensure PC is within valid range before subtracting base
       this.pc = cpu.PC;
+
       this.ir = cpu.instructionRegister;
       this.acc = cpu.Acc;
       this.xReg = cpu.Xreg;
       this.yReg = cpu.Yreg;
       this.zFlag = cpu.Zflag;
-      this.state = "Ready"; // Change state to Ready when saving context
-      console.log(`Context saved for PID ${this.pid}:`);
-      console.log(`  PC (relative): ${this.pc}`);
-      console.log(`  Acc: ${this.acc}, X: ${this.xReg}, Y: ${this.yReg}, Z: ${this.zFlag}`);
-      console.log(`  State: ${this.state}, Base: ${this.base}, Limit: ${this.limit}`);
-      console.log(`  Quantum Remaining: ${this.quantumRemaining}`);
+      this.state = "Ready";
+      console.log(`--- Saving Context for PID ${this.pid} ---`);
+      console.log(
+        `Saved PC (relative): ${this.pc}, Base: ${this.base}, Limit: ${this.limit}`
+      );
+      console.log(
+        `Acc: ${this.acc}, X: ${this.xReg}, Y: ${this.yReg}, Z: ${this.zFlag}`
+      );
+      console.log(
+        `State: ${this.state}, Quantum Remaining: ${this.quantumRemaining}`
+      );
+      console.log(neOS.CurrentProcess);
       TSOS.Control.updatePCBDisplay();
     }
-
     /**
      * Load the PCB state into the CPU registers
      */
     public loadContext(cpu: Cpu): void {
-      cpu.PC = this.pc + this.base;
+      cpu.PC = this.pc;
       cpu.instructionRegister = this.ir;
       cpu.Acc = this.acc;
       cpu.Xreg = this.xReg;
       cpu.Yreg = this.yReg;
       cpu.Zflag = this.zFlag;
-      this.state = "Running"; // Set state to Running when loaded
-      console.log(`Context loaded for PID ${this.pid}:`);
-      console.log(`  PC (absolute): ${cpu.PC}`);
-      console.log(`  Acc: ${cpu.Acc}, X: ${cpu.Xreg}, Y: ${cpu.Yreg}, Z: ${cpu.Zflag}`);
-      console.log(`  State: ${this.state}, Base: ${this.base}, Limit: ${this.limit}`);
-      console.log(`  Quantum Remaining: ${this.quantumRemaining}`);
-      TSOS.Control.updatePCBDisplay();
+      this.state = "Running";
+
+      // Add logging to debug
+      console.log(`--- Loading Context for PID ${this.pid} ---`);
+      console.log(
+        `Loaded PC (absolute): ${cpu.PC}, Base: ${this.base}, Limit: ${this.limit}`
+      );
+      console.log(
+        `Acc: ${cpu.Acc}, X: ${cpu.Xreg}, Y: ${cpu.Yreg}, Z: ${cpu.Zflag}`
+      );
+      console.log(
+        `State: ${this.state}, Quantum Remaining: ${this.quantumRemaining}`
+      );
+      console.log(neOS.CurrentProcess);
     }
   }
 }

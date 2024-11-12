@@ -226,7 +226,7 @@ namespace TSOS {
       neOS.MemoryAccessor = new TSOS.MemoryAccessor(neOS.Memory);
       //console.log("MemoryAccessor initialized:", neOS.MemoryAccessor);
 
-      neOS.CPU = new TSOS.Cpu();
+      neOS.CPU = new TSOS.Cpu(neOS.MemoryAccessor);
       neOS.CPU.init();
 
       neOS.Kernel = new TSOS.Kernel();
