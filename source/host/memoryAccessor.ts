@@ -1,45 +1,32 @@
 namespace TSOS {
   export class MemoryAccessor {
     private memory: Memory;
-    public memorySize: number;
 
     constructor(memory: Memory) {
-      this.memory = Memory.getInstance();
-      this.memorySize = this.memory.getMemoryArray().length;
+      this.memory = memory;
     }
 
-    // Read a byte from memory
-    public read(address: number): number {
-      if (address >= 0 && address < this.memory.memoryArray.length) {
-        const value = this.memory.getByte(address);
-        return value;
-      } else {
-        throw new Error("Memory access violation at address " + address);
+    public write(
+      address: number,
+      value: number,
+      base: number,
+      limit: number
+    ): void {
+      if (address < base || address > limit) {
+        throw new Error(`Memory access violation at address ${address}`);
       }
+      console.log(`Writing value ${value.toString(16)} at address ${address}`);
+      this.memory.setByte(address, value);
     }
 
-    // Write a byte to memory
-    public write(address: number, value: number): void {
-      if (address >= 0 && address < this.memory.memoryArray.length) {
-        this.memory.setByte(address, value);
-        // Log memory access
-      } else {
-        throw new Error("Memory access violation at address " + address);
-      }
-    }
-
-    // Read a block of memory (for retrieving programs)
-    public readBlock(startAddress: number, endAddress: number): number[] {
-      if (startAddress >= 0 && endAddress < this.memory.memoryArray.length) {
-        return this.memory.memoryArray.slice(startAddress, endAddress + 1);
-      } else {
+    public read(address: number, base: number, limit: number): number {
+      if (address < base || address > limit) {
         throw new Error(
-          "Memory access violation between addresses " +
-            startAddress +
-            " and " +
-            endAddress
+          `Memory access violation at address ${address}. Outside process boundaries. ${base} ${limit} ${neOS.CurrentProcess.pc}`
         );
       }
+      const value = this.memory.getByte(address);
+      return value;
     }
 
     public getMemoryArray(): number[] {
@@ -76,40 +63,25 @@ namespace TSOS {
           .toUpperCase()}`;
         row.appendChild(addressCell);
 
-          for (let j = 0; j < maxDataColumns; j++) {
-            let dataCell = document.createElement("td");
-
-            if (i + j < this.memory.memoryArray.length) {
-              let dataValue = this.memory
-                .getByte(i + j)
-                .toString(16)
-                .padStart(2, "0")
-                .toUpperCase();
-              dataCell.textContent = dataValue;
-            } else {
-              // If we're out of bounds, leave the cell blank
-              dataCell.textContent = "--";
-            }
-
-            row.appendChild(dataCell);
+        // Populate row with memory data
+        for (let j = 0; j < maxDataColumns; j++) {
+          const dataCell = document.createElement("td");
+          if (i + j < memoryArray.length) {
+            const value = memoryArray[i + j];
+            dataCell.textContent = value
+              .toString(16)
+              .padStart(2, "0")
+              .toUpperCase();
+          } else {
+            dataCell.textContent = "--"; // Empty cell if out of bounds
           }
-
-          memoryTableBody.appendChild(row);
+          row.appendChild(dataCell);
         }
-      } else {
-        console.error("Memory table body not found");
+
+        memoryTableBody.appendChild(row);
       }
-    }
-    public clearMemoryBlock(start: number, end: number): void {
-      for (let i = start; i <= end; i++) {
-        this.memory.setByte(i, 0);
-      }
-    }
-    public clearAllMemory(): void {
-      for (let i = 0; i < this.memorySize; i++) {
-        this.write(i, 0);
-      }
-      console.log("Memory cleared successfully.");
+
+      console.log("Memory display updated.");
     }
   }
 }
