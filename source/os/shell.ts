@@ -177,6 +177,7 @@ namespace TSOS {
         " - Load a user program"
       );
       this.commandList[this.commandList.length] = sc;
+      TSOS.Control.updatePCBDisplay();
 
       sc = new ShellCommand(
         this.shellKill,
@@ -190,28 +191,6 @@ namespace TSOS {
         "<string> - List running processes."
       );
       this.commandList[this.commandList.length] = sc;
-      sc = new ShellCommand(
-        this.shellClearem,
-        "clearem",
-        "<string> - clear all memory segments"
-      );
-      this.commandList[this.commandList.length] = sc;
-
-      sc = new ShellCommand(
-        this.shellQuantum,
-        "quantum",
-        "<string> - set quantum"
-      );
-      this.commandList[this.commandList.length] = sc;
-
-      sc = new ShellCommand(
-        this.shellRunAll,
-        "runall",
-        "<string> - run all ready processes"
-      );
-      this.commandList[this.commandList.length] = sc;
-      // ps  - list the running processes and their IDs
-      // new shell command
 
       // kill <id> - kills the specified process id.
       // new shell command
@@ -489,6 +468,28 @@ namespace TSOS {
       neOS.waitingForRiddleAnswer = true;
       neOS.correctAnswer = "red";
     }
+    public shellPS(args: string[]) {
+      if (neOS.ProcessList.length > 0) {
+        neOS.StdOut.advanceLine();
+        neOS.StdOut.putText("PID  \tBase  \tLimit  \tState");
+        neOS.StdOut.advanceLine();
+        for (let i = 0; i < neOS.ProcessList.length; i++) {
+          const pcb = neOS.ProcessList[i];
+
+          const base =
+            "$" + pcb.base.toString(16).padStart(4, "0").toUpperCase();
+          const limit =
+            "$" + pcb.limit.toString(16).padStart(4, "0").toUpperCase();
+          neOS.StdOut.putText(
+            `${pcb.pid}   \t${base} \t${limit} \t${pcb.state}`
+          );
+          neOS.StdOut.advanceLine();
+        }
+      } else {
+        neOS.StdOut.advanceLine();
+        neOS.StdOut.putText("No running processes.");
+      }
+    }
 
     public checkRiddleAnswer(answer: string) {
       const trimmedAnswer = answer.toLowerCase().trim();
@@ -530,101 +531,69 @@ namespace TSOS {
       }
     }
 
+
+    
+
+
     public shellLoad() {
-      const programInput = (
-        document.getElementById("taProgramInput") as HTMLTextAreaElement
-      ).value.trim();
+      const programInput = (document.getElementById("taProgramInput") as HTMLTextAreaElement).value.trim();
+    
+      // Validate that the input is a valid hexadecimal string
       const isValidHex = /^[0-9a-fA-F\s]+$/.test(programInput);
 
       if (isValidHex) {
         const programBytes = programInput.replace(/\s+/g, "").match(/.{1,2}/g);
 
         if (programBytes) {
-          const program = programBytes.map((byte) => parseInt(byte, 16));
-          const { pid } = neOS.MemoryManager.storeProgram(program);
-
+          // Convert hex byte strings to actual byte values (integers)
+          const program = programBytes.map(byte => parseInt(byte, 16));
+    
+          // Load the program into memory starting at the available address
+          const { pid, baseAddress } = neOS.MemoryManager.storeProgram(program);
+    
           if (pid >= 0) {
-            // Retrieve the newly created PCB from the residentQueue
-            const newPCB = neOS.residentQueue.find((p) => p.pid === pid);
-            if (newPCB) {
-              neOS.CurrentProcess = newPCB;
-              neOS.ProcessList.push(newPCB); // Add to the global ProcessList
-              console.log("Current Process set:", neOS.CurrentProcess);
-              console.log("Base Address:", neOS.CurrentProcess.base);
-              console.log("Limit Address:", neOS.CurrentProcess.limit);
-            }
-            TSOS.Control.updatePCBDisplay();
+            // Create a new Process Control Block (PCB) for the loaded program
+            const pcb = new PCB(pid, baseAddress, baseAddress + program.length - 1, 1, `Program_${pid}`);
+            pcb.state = "Ready";
+            neOS.ProcessList.push(pcb); // Add PCB to process list
+    
+            // Output success message to the console
             neOS.StdOut.advanceLine();
-            neOS.StdOut.putText(`Program loaded with PID ${pid}`);
+            neOS.StdOut.putText(`Program loaded successfully with PID: ${pid}`);
+            
+            // Debugging: Log the loaded program to ensure bytes are correct
+            for (let i = 0; i < program.length; i++) {
+            }
           } else {
-            neOS.StdOut.putText(
-              "Error: Could not load the program into memory."
-            );
+            // Handle memory allocation failure
+            neOS.StdOut.putText("Error: Not enough memory to load the program");
           }
+        } else {
+          // Handle case where the hex parsing didn't work correctly
+          neOS.StdOut.putText("Error: Could not parse the program input into valid bytes.");
         }
       } else {
-        neOS.StdOut.putText("Error: Invalid hexadecimal input.");
+        // Invalid input, display an error message
+        neOS.StdOut.putText("Invalid program. Please enter a valid hexadecimal string.");
       }
+
+      // Update PCB display after loading a program
+      TSOS.Control.updatePCBDisplay();
+      neOS.MemoryAccessor.displayMemory();
     }
 
     public shellBSOD(args: string[]) {
       neOS.Kernel.krnTrapError("Manual BSOD trigger.");
     }
 
-    public shellRun(args: string[]) {
-      if (args.length > 0) {
-        const pid = parseInt(args[0], 10);
-        const pcb = neOS.residentQueue.find((p) => p.pid === pid);
-
-        if (pcb) {
-          if (pcb.state === "Terminated") {
-            neOS.StdOut.putText(
-              `Error: Process ${pid} has already terminated.`
-            );
-          } else if (pcb.state === "Running") {
-            neOS.StdOut.putText(`Error: Process ${pid} is already running.`);
-          } else {
-            // Set the process to "Running"
-            neOS.CurrentProcess = pcb;
-            // Set the process state to "Running"
-            pcb.state = "Running";
-            // Set CPU registers to match the PCB
-            neOS.CPU.Acc = pcb.acc;
-            neOS.CPU.Xreg = pcb.xReg;
-            neOS.CPU.Yreg = pcb.yReg;
-            neOS.CPU.Zflag = pcb.zFlag;
-            neOS.CPU.isExecuting = true;
-            neOS.StdOut.advanceLine();
-            neOS.StdOut.putText(`Process ${pid} is now running.`);
-          }
-        } else {
-          neOS.StdOut.putText(`Error: No process found with PID ${pid}`);
-        }
-      } else {
-        neOS.StdOut.putText("Usage: run <pid>");
-      }
-    }
-
-    public shellRunAll(args: string[]): void {
-      while (!neOS.residentQueue.isEmpty()) {
-        const pcb = neOS.residentQueue.dequeue();
-        pcb.state = "Ready";
-        neOS.readyQueue.enqueue(pcb);
-      }
-      TSOS.Control.updatePCBDisplay();
-      neOS.CurrentProcess = null;
-      neOS.Scheduler.scheduleNextProcess();
-      neOS.StdOut.putText("All processes are now running.");
-    }
-
-    public shellPS(args: string[]) {
+    public shellListPCB(args: string[]) {
       if (neOS.ProcessList.length > 0) {
         neOS.StdOut.advanceLine();
         neOS.StdOut.putText("PID  \tBase  \tLimit  \tState");
         neOS.StdOut.advanceLine();
         for (let i = 0; i < neOS.ProcessList.length; i++) {
           const pcb = neOS.ProcessList[i];
-
+          // Format base and limit as four-character hex strings with a leading '$'
           const base =
             "$" + pcb.base.toString(16).padStart(4, "0").toUpperCase();
           const limit =
@@ -633,10 +602,11 @@ namespace TSOS {
             `${pcb.pid}   \t${base} \t${limit} \t${pcb.state}`
           );
           neOS.StdOut.advanceLine();
+          neOS.StdOut.putText(`Error: No process found with PID ${pid}`);
         }
       } else {
         neOS.StdOut.advanceLine();
-        neOS.StdOut.putText("No running processes.");
+        neOS.StdOut.putText("No running Processes.");
       }
     }
     public shellClearem(): void {
@@ -655,27 +625,76 @@ namespace TSOS {
     }
 
     public shellKill(args: string[]): void {
-      const pid = parseInt(args[0]);
-      const pcb = neOS.ProcessList.find((p) => p.pid === pid);
-      if (pcb) {
-        pcb.state = "Terminated";
-        neOS.CPU.isExecuting = false;
-        neOS.StdOut.putText(`Process ${pid} killed.`);
+      if (args.length > 0) {
+        const pid = parseInt(args[0], 10);
+        const pcb = neOS.ProcessList.find((p) => p.pid === pid);
+
+        
+
+        if (pcb) {
+          if (pcb.state === "Terminated") {
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText(`Error: Process ${pid} already terminated.`);
+          } else {
+            pcb.state = "Terminated";
+            neOS.StdOut.putText(`Process ${pid} terminated successfully.`);
+            if (neOS.CurrentProcess && neOS.CurrentProcess.pid === pid) {
+              neOS.CPU.isExecuting = false;
+              neOS.CurrentProcess = null;
+            }
+            neOS.MemoryManager.freeProcessMemory(pid);
+          }
+        } else {
+          neOS.StdOut.putText(`Error: No process found with PID ${pid}.`);
+        }
       } else {
         neOS.StdOut.putText(`No process found with PID ${pid}.`);
       }
       TSOS.Control.updatePCBDisplay();
     }
 
-    public shellQuantum(args: string[]): void {
-      const newQuantum = parseInt(args[0]);
-      if (newQuantum > 0) {
-        neOS.Scheduler.defaultQuantum = newQuantum;
-        neOS.StdOut.putText(`Quantum set to ${newQuantum} cycles.`);
+    public shellRun(args: string[]) {
+      if (args.length > 0) {
+        const pid = parseInt(args[0], 10);
+        const pcb = neOS.ProcessList.find((p) => p.pid === pid);
+    
+        if (pcb) {
+          if (pcb.state === "Terminated") {
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText(`Error: Process ${pid} has already terminated.`);
+          } else if (pcb.state === "Running") {
+            neOS.StdOut.advanceLine();
+            neOS.StdOut.putText(`Error: Process ${pid} is already running.`);
+          } else {
+            // Set the process to "Running"
+            pcb.state = "Running";
+            neOS.CurrentProcess = pcb;
+            neOS.CPU.setPC(pcb.base);
+    
+            // Check if single-step mode is enabled
+            if (TSOS.Control.singleStepMode) {
+              // Do not set isExecuting to true; it will be done on step
+              neOS.CPU.isExecuting = false; // Ensure it's not executing
+              neOS.StdOut.advanceLine();
+              neOS.StdOut.putText(`Process ${pid} is ready for single-step execution.`);
+            } else {
+              // If single-step mode is not enabled, allow execution
+              neOS.CPU.isExecuting = true;
+              neOS.StdOut.advanceLine();
+              neOS.StdOut.putText(`Process ${pid} is now running.`);
+            }
+          }
+        } else {
+          neOS.StdOut.advanceLine();
+          neOS.StdOut.putText(`Error: No process found with PID ${pid}`);
+        }
       } else {
-        neOS.StdOut.putText("Invalid quantum value.");
+        neOS.StdOut.advanceLine();
+        neOS.StdOut.putText("Usage: run <pid>");
       }
     }
+    
+    
 
     public shellMan(args: string[]) {
       if (args.length > 0) {
@@ -689,6 +708,76 @@ namespace TSOS {
         neOS.StdOut.putText("Usage: man <topic>. Please supply a topic.");
       }
     }
+    public shellClearem(): void {
+      neOS.StdOut.advanceLine();
+      neOS.StdOut.putText(`Clearing all memory segments...`);
+
+      // Clear all processes and reset memory
+      neOS.ProcessList.forEach((pcb) => {
+        neOS.MemoryManager.freeProcessMemory(pcb.pid);
+        pcb.state = "Terminated";
+      });
+
+      // Clear the process list
+      neOS.ProcessList = [];
+
+      // Clear the memory using the singleton accessor
+      neOS.MemoryAccessor.clearAllMemory();
+
+      // Reset the free memory blocks
+      neOS.MemoryManager.resetFreeMemoryBlocks();
+
+      TSOS.Control.updatePCBDisplay();
+      neOS.MemoryAccessor.displayMemory();
+      neOS.StdOut.putText("Memory cleared.");
+    }
+
+    public shellRunall(): void {
+      if (neOS.CurrentProcess) {
+        neOS.StdOut.putText(
+          `Error: cannot run all procceses while a process is running`
+        ); // for now...
+        return;
+      }
+
+      for (let pcb of TSOS.Scheduler.residentList) {
+        if (pcb.state === "Resident") {
+          TSOS.Scheduler.addToReadyQueue(pcb);
+        }
+      }
+
+      TSOS.Scheduler.startScheduling();
+      TSOS.Control.updatePCBDisplay();
+      neOS.MemoryAccessor.displayMemory();
+    }
+
+    public shellKillall(): void {
+      for (let i = 0; i < neOS.ProcessList.length; i++) {
+        const pcb = neOS.ProcessList[i];
+        neOS.CurrentProcess = pcb;
+        neOS.CPU.isExecuting = false;
+        pcb.state = "Terminated";
+      }
+      neOS.StdOut.advanceLine();
+      neOS.StdOut.putText("Terminated all processes");
+      TSOS.Control.updatePCBDisplay();
+    }
+
+    public shellQuantum(args: string[]): void {
+      if (args.length > 0) {
+        const quantum = parseInt(args[0], 10);
+
+        if (isNaN(quantum) || quantum <= 0) {
+          neOS.StdOut.putText("Invalid quantum value.");
+        } else {
+          TSOS.Scheduler.quantum = quantum;
+          neOS.StdOut.advanceLine();
+          neOS.StdOut.putText(`Quantum: ${quantum} ticks`);
+        }
+      } else {
+        neOS.StdOut.putText("Usage: quantum <number>");
+      }
+    }
 
     public handleTabCompletion(): void {
       const input = neOS.Console.buffer.trim();
@@ -699,14 +788,13 @@ namespace TSOS {
           .map((cmd) => cmd.command)
           .filter((command) => command.startsWith(input));
 
-        // If there are multiple matches, show them
         if (this.tabCompletionMatches.length > 1) {
           neOS.StdOut.advanceLine();
           neOS.StdOut.putText(this.tabCompletionMatches.join(", "));
           neOS.StdOut.advanceLine();
           this.putPrompt();
           this.redrawInput();
-          return; // Don't autocomplete, just show the possible matches
+          return;
         }
         // If there's exactly one match, autocomplete the command
         else if (this.tabCompletionMatches.length === 1) {

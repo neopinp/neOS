@@ -5,7 +5,15 @@ namespace TSOS {
     public limit: number;
     public pc: number;
     public ir: number;
+    public pid: number;
+    public base: number;
+    public limit: number;
+    public pc: number;
+    public ir: number;
     public acc: number;
+    public xReg: number;
+    public yReg: number;
+    public zFlag: number;
     public xReg: number;
     public yReg: number;
     public zFlag: number;

@@ -2,6 +2,8 @@ namespace TSOS {
   export class Cpu {
     public memoryAccessor: MemoryAccessor; // Use the memoryAccessor instead of a direct memory instance
     public instructionRegister: number = 0;
+    public base: number = 0;
+    public limit: number;
 
     constructor(
       public PC: number = 0,
@@ -36,100 +38,37 @@ namespace TSOS {
       this.instructionRegister = 0;
       this.isExecuting = false;
     }
+
     public cycle(): void {
-      if (!this.isExecuting) {
-        console.log("CPU is idle, not executing any instruction.");
-        return;
+      // Log the state of the CPU registers
+
+      // Ensure MemoryAccessor is not null before accessing
+      if (!this.memoryAccessor) {
+        console.error("MemoryAccessor is NULL in CPU cycle! Cannot execute.");
+        return; // Stop execution if memoryAccessor is not set
       }
 
-      // Ensure we have a valid current process
-      if (!neOS.CurrentProcess) {
-        console.error("No current process found. Stopping execution.");
-        this.isExecuting = false;
-        return;
-      }
-
-      console.log(`\n=== CPU Cycle Start ===`);
-      console.log(`Running process PID: ${neOS.CurrentProcess.pid}`);
-      console.log(`  Current PC: ${this.PC}`);
-      console.log(`  Quantum Remaining: ${neOS.CurrentProcess.quantumRemaining}`);
-      
-      const { base, limit } = neOS.CurrentProcess;
-      let instruction: number;
-      const physicalAddress = base + this.PC;
-
-      // Fetch the next instruction
-      try {
-        instruction = this.memoryAccessor.read(physicalAddress, base, limit);
-        console.log(
-          `Fetched instruction: ${instruction.toString(
-            16
-          )} at address: ${physicalAddress}`
-        );
+      if (this.isExecuting) {
+        // Log that execution is continuing
+        // Fetch the next instruction from memory
+        const instruction = this.memoryAccessor.read(this.PC); // Use memoryAccessor to read memory
         this.instructionRegister = instruction;
-      } catch (error) {
-        console.error("Memory read error:", error);
-        neOS.CurrentProcess.state = "Terminated";
-        neOS.Scheduler.scheduleNextProcess(false);
-        return;
-      }
 
-      // Execute the fetched instruction
-      try {
+        // Execute the instruction
         this.execute(instruction);
-      } catch (error) {
-        console.error("Execution error:", error);
-        neOS.CurrentProcess.state = "Terminated";
-        neOS.Scheduler.scheduleNextProcess(false);
-        return;
+        TSOS.Control.updatePCBDisplay();
+        TSOS.Control.updateCPUDisplay(this); 
+
+      } else {
+        // If CPU is not executing, log it
+        neOS.Kernel.krnTrace("CPU is idle, not executing any instruction.");
       }
-
-      // Check if the process terminated during execution
-      if (neOS.CurrentProcess.state === "Terminated") {
-        console.log(`Process PID ${neOS.CurrentProcess.pid} has terminated.`);
-        neOS.Scheduler.scheduleNextProcess(false);
-        return;
-      }
-
-      // Decrease the quantum and check if it has expired
-      neOS.CurrentProcess.quantumRemaining--;
-      console.log(
-        `Quantum remaining for PID ${neOS.CurrentProcess.pid}: ${neOS.CurrentProcess.quantumRemaining}`
-      );
-
-      // Perform a context switch if the quantum has expired
-      if (neOS.CurrentProcess.quantumRemaining <= 0) {
-        console.log(`Quantum expired for PID ${neOS.CurrentProcess.pid}`);
-
-        // Save context and requeue the current process if not terminated
-        if (neOS.CurrentProcess.state !== "Terminated") {
-          console.log(`Re-enqueuing process PID: ${neOS.CurrentProcess.pid}`);
-          neOS.CurrentProcess.saveContext(this);
-          neOS.readyQueue.enqueue(neOS.CurrentProcess);
-        }
-        neOS.Scheduler.scheduleNextProcess(false);
-        return;
-      }
-
-      // Update PCB and CPU displays after execution
-      TSOS.Control.updatePCBDisplay();
-      TSOS.Control.updateCPUDisplay(this);
     }
 
-    // Helper to get the memory address (combine two bytes)
     public getAddress(): number {
-      const base = neOS.CurrentProcess.base;
-      const limit = neOS.CurrentProcess.limit;
-      const lowByte = this.memoryAccessor.read(base + this.PC + 1, base, limit);
-      const highByte = this.memoryAccessor.read(
-        base + this.PC + 2,
-        base,
-        limit
-      );
-
-      let address = (highByte << 8) | lowByte; // Combine the two bytes
-
-      address += base;
+      const lowByte = this.memoryAccessor.read(this.PC + 1);
+      const highByte = this.memoryAccessor.read(this.PC + 2);
+      const address = (highByte << 8) | lowByte; // Combine the two bytes
       return address;
     }
 
@@ -168,26 +107,14 @@ namespace TSOS {
           break;
 
         case 0x8d: // STA: Store Accumulator in memory
-          address = this.getAddress();
-          console.log(
-            `STA: Storing Acc value ${this.Acc} at address ${address}`
-          );
-          this.memoryAccessor.write(
-            address,
-            this.Acc,
-            neOS.CurrentProcess.base,
-            neOS.CurrentProcess.limit
-          );
+          address = this.getAddress(); // Get the memory address to store the Accumulator value
+          this.memoryAccessor.write(address, this.Acc); // Write the Accumulator value to memory
           this.PC += 3;
           break;
 
         case 0x6d: // ADC: Add with Carry
           address = this.getAddress();
-          memoryValue = this.memoryAccessor.read(
-            address,
-            neOS.CurrentProcess.base,
-            neOS.CurrentProcess.limit
-          );
+          memoryValue = this.memoryAccessor.read(address);
           this.Acc += memoryValue;
           console.log(
             `ADC: Added value ${memoryValue} to Accumulator, new Acc = ${this.Acc}`
@@ -208,14 +135,8 @@ namespace TSOS {
 
         case 0xae: // LDX Absolute
           address = this.getAddress();
-          this.Xreg = this.memoryAccessor.read(
-            address,
-            neOS.CurrentProcess.base,
-            neOS.CurrentProcess.limit
-          );
-          console.log(
-            `LDX Absolute: Loaded value ${this.Xreg} from address ${address}`
-          );
+          memoryValue = this.memoryAccessor.read(address);
+          this.Xreg = memoryValue;
           this.PC += 3;
           break;
 
@@ -232,14 +153,8 @@ namespace TSOS {
 
         case 0xac: // LDY Absolute
           address = this.getAddress();
-          this.Yreg = this.memoryAccessor.read(
-            address,
-            neOS.CurrentProcess.base,
-            neOS.CurrentProcess.limit
-          );
-          console.log(
-            `LDY Absolute: Loaded value ${this.Yreg} from address ${address}`
-          );
+          memoryValue = this.memoryAccessor.read(address);
+          this.Yreg = memoryValue;
           this.PC += 3;
           break;
         case 0xea: // NOP: No operation
@@ -248,15 +163,9 @@ namespace TSOS {
 
         case 0xec: // CPX: Compare memory to X register
           address = this.getAddress();
-          memoryValue = this.memoryAccessor.read(
-            address,
-            neOS.CurrentProcess.base,
-            neOS.CurrentProcess.limit
-          );
-          this.Zflag = this.Xreg === memoryValue ? 1 : 0;
-          console.log(
-            `CPX: Compared X register with value ${memoryValue}, Zflag = ${this.Zflag}`
-          );
+          memoryValue = this.memoryAccessor.read(address);
+          this.Zflag = this.Xreg === memoryValue ? 1 : 0; // Set Z flag if equal
+
           this.PC += 3;
           break;
 
@@ -321,15 +230,12 @@ namespace TSOS {
 
         case 0xff: // SYS: System Call
           if (this.Xreg === 1) {
+            // Output the numeric value in Yreg as a string
             neOS.StdOut.putText(this.Yreg.toString());
           } else if (this.Xreg === 2) {
-            let strAddress = this.Yreg;
+            let strAddress = this.Yreg + neOS.CurrentProcess.base; // Adjust for base address
             let outputStr = "";
-            let currentChar = this.memoryAccessor.read(
-              strAddress + neOS.CurrentProcess.base,
-              neOS.CurrentProcess.base,
-              neOS.CurrentProcess.limit
-            );
+            let currentChar = this.memoryAccessor.read(strAddress);
             while (currentChar !== 0x00) {
               outputStr += String.fromCharCode(currentChar);
               strAddress++;
@@ -339,15 +245,33 @@ namespace TSOS {
                 neOS.CurrentProcess.limit
               );
             }
+
+            // Output the final string
             neOS.StdOut.putText(outputStr);
           }
           this.PC += 1;
           break;
 
         default:
-          console.error(`Unknown opcode: ${instruction.toString(16)}`);
+          neOS.Kernel.krnTrace(
+            `Unknown instruction: ${instruction.toString(16)}`
+          );
           throw new Error(`Unknown opcode: ${instruction.toString(16)}`);
       }
+      if (neOS.CurrentProcess) {
+        neOS.CurrentProcess.pc = this.PC;
+        neOS.CurrentProcess.acc = this.Acc;
+        neOS.CurrentProcess.xReg = this.Xreg;
+        neOS.CurrentProcess.yReg = this.Yreg;
+        neOS.CurrentProcess.zFlag = this.Zflag;
+        neOS.CurrentProcess.ir = this.instructionRegister; // Capture the instruction
+      }
+      this.memoryAccessor.displayMemory();
+      TSOS.Control.updatePCBDisplay();
+    }
+
+    public setPC(address: number): void {
+      this.PC = address;
     }
   }
 }
