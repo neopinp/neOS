@@ -679,9 +679,9 @@ namespace TSOS {
     public shellKillAll(): void {
         neOS.ProcessList.forEach((pcb) => {
           pcb.state = "Terminated";
+          neOS.CPU.isExecuting = false;
         });
         TSOS.Control.updatePCBDisplay();
-        neOS.MemoryAccessor.displayMemory();
         neOS.StdOut.advanceLine();
         neOS.StdOut.putText("All Processes Terminated")
       
