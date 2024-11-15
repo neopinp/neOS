@@ -103,7 +103,7 @@ Originally, the TTY system was designed for text-based input and output. Similar
 \subsection{Explain	the	difference	between	internal and external fragmentation.}
 Internal fragmentation happens when memory is allocated in block larger than what is required. The memory that is not used inside the allocated block becomes useless if the process does not require the whole block. External fragmentation happens when there is enough free memory, but the free memory is scattered in different blocks. Even though there is enough free memory, there are no single blocks large enough for the request. 
 Overall, internal fragmentation contains wasted space within memory blocks, while external fragmentation has wasted space between memory blocks. 
-\subsection{Given five memory partitions of 100KB, 500KB, 200KB, 300KB, and 600LB (in that order), how would optimal, first-fit best-fit, and worst-fit algorithms place processes of 212KB, 417KB, 112KB, and 426KB (in that order)?}
+\subsection{Given five memory partitions of 100KB, 500KB, 200KB, 300KB, and 600KB (in that order), how would optimal, first-fit best-fit, and worst-fit algorithms place processes of 212KB, 417KB, 112KB, and 426KB (in that order)?}
 
 For optimal placement, it would work like this: 
 212KB : 300KB 
@@ -180,7 +180,7 @@ a. Draw four Gantt charts that illustrate the execution of these processes using
     \centering
     \begin{tabular}{cccccc}
         P1 & P2 & P3 & P4 & P5 & \\
-        0  &10  & 11 &  13&  14&19 \\
+        0  &10  & 11 &  13&  14&18 \\
     \end{tabular}
     \caption{FCFS}
     \label{tab:my_label}
@@ -189,7 +189,7 @@ a. Draw four Gantt charts that illustrate the execution of these processes using
     \centering
     \begin{tabular}{cccccc}
         P2 & P4 & P3 & P5 & P1 & \\
-        0 & 1 & 2 & 4 & 9 & 19\\
+        0 & 1 & 2 & 4 & 9 & 18\\
     \end{tabular}
     \caption{SJF}
     \label{tab:my_label}
@@ -197,8 +197,8 @@ a. Draw four Gantt charts that illustrate the execution of these processes using
 \begin{table}[H]
     \centering
     \begin{tabular}{cccccc}
-        P2 & P5 & P1 & P3 & P4 & \\
-        0 & 1 & 6 & 16 & 18 & 19\\
+        P2 & P5 & P1 & P3 & P4 \\
+        0 & 1 & 6 & 16 &  18\\
     \end{tabular}
     \caption{Non-preemptive Priority}
     \label{tab:my_label}
@@ -229,11 +229,11 @@ b. What is the turnaround time of each process for each of the scheduling algori
     \centering
     \begin{tabular}{cccccc}
          Process&  FCFS&  SJF&  Priority&  RR& \\
-         P1&  10&  19&  16&  19& \\
+         P1&  18&  18&  15&  18& \\
          P2&  11&  1&  1&  1& \\
-         P3&  13&  4&  18&  12& \\
-         P4&  14&  2&  19&  3& \\
-         P5& 19&  9& 6& 13& \\
+         P3&  13&  3&  17&  7& \\
+         P4&  14&  0&  18&  4& \\
+         P5& 19&  8& 6& 13& \\
     \end{tabular}
     \caption{Turnaround Time}
     \label{tab:my_label}
@@ -244,11 +244,11 @@ c. What is the waiting time of each process for each of these scheduling algorit
     \centering
     \begin{tabular}{ccccc}
         Process & FCFS & SJF & Priority &RR \\
-         P1&  0&  9&  6& 9\\
-         P2&  10&  0&  0& 0\\
-         P3&  11&  2&  16& 10\\
-         P4&  13&  1&  18&2 \\
-         P5&  14&  4&  1& 8\\
+         P1&  0&  8&  6& 9\\
+         P2&  9&  0&  0& 0\\
+         P3&  10&  2&  16& 10\\
+         P4&  12&  1&  18&2 \\
+         P5&  13&  4&  1& 8\\
     \end{tabular}
     \caption{Waiting Time}
     \label{tab:my_label}
@@ -275,6 +275,13 @@ d. Which of the algorithms results in the minimum average waiting time (over all
 %   Appendix
 %----------------------------------------------------------------------------------------
 
-\section{Appendix}
+\section{Lab 6}
+\subsection{1. What? 2. Why?}
+Not sure how to answer these 
+\pagebreak
+
+\section{Lab 7}
+\subsection{1. Matt Smith: a great Doctor, or the greatest Doctor? Bonus: What about Jodie?}
+The only greatest doctor is my dad.
 
 \end{document}
