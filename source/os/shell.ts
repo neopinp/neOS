@@ -181,42 +181,98 @@ namespace TSOS {
       sc = new ShellCommand(
         this.shellKill,
         "kill",
-        "<string> - Kills the specificed process id."
+        "<pid> - Kills the specificed process id."
       );
       this.commandList[this.commandList.length] = sc;
       sc = new ShellCommand( 
         this.shellKillAll,
         "killall",
-        "<string> - Kills all the processes"
+        "- Kills all the processes"
       )
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
         this.shellPS,
         "ps",
-        "<string> - List running processes."
+        "- List running processes."
       );
       this.commandList[this.commandList.length] = sc;
       sc = new ShellCommand(
         this.shellClearem,
         "clearem",
-        "<string> - clear all memory segments"
+        "- Clear all memory segments"
       );
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
         this.shellQuantum,
         "quantum",
-        "<string> - set quantum"
+        "<int> - Set quantum"
       );
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
         this.shellRunAll,
         "runall",
-        "<string> - run all ready processes"
+        "- Run all ready processes"
       );
       this.commandList[this.commandList.length] = sc;
+
+      sc = new ShellCommand(
+        this.shellFormat,
+        "format",
+        "- Initalize all blocks in all sectors/tracks"
+      )
+      this.commandList[this.commandList.length] = sc;
+      sc = new ShellCommand(
+        this.shellCreate,
+        "create",
+        "- Create the file <filename>"
+      )
+      this.commandList[this.commandList.length] = sc;
+
+      sc = new ShellCommand(
+        this.shellRead,
+        "read",
+        "- Read and display the contents of filename"
+      )
+      this.commandList[this.commandList.length] = sc;
+      sc = new ShellCommand(
+        this.shellWrite,
+        "write",
+        "- Write <filename> 'data'"
+      )
+      this.commandList[this.commandList.length] = sc;
+      sc = new ShellCommand(
+        this.shellDelete,
+        "delete",
+        "- Remove <filename> from storage"
+      )
+      this.commandList[this.commandList.length] = sc;
+
+      sc = new ShellCommand(
+        this.shellCopy,
+        "copy",
+        "- <current filename> <new filename> - copy"
+      )
+      this.commandList[this.commandList.length] = sc;
+
+      sc = new ShellCommand(
+        this.shellRename,
+        "rename",
+        "- <current filename> <new filename> - rename"
+      )
+      this.commandList[this.commandList.length] = sc;
+
+      sc = new ShellCommand(
+        this.shellls,
+        "ls",
+        "- list the files that are currently stored on the disk "
+      )
+      this.commandList[this.commandList.length] = sc;
+
+
+
       // ps  - list the running processes and their IDs
       // new shell command
 
@@ -363,6 +419,7 @@ namespace TSOS {
     // called from here, so kept here to avoid violating the law of least astonishment.
     //
     public shellInvalidCommand() {
+      neOS.StdOut.advanceLine();
       neOS.StdOut.putText("Invalid Command. ");
       if (neOS.SarcasticMode) {
         neOS.StdOut.putText("Unbelievable. You, [subject name here],");
@@ -700,6 +757,28 @@ namespace TSOS {
         neOS.StdOut.putText("Invalid quantum value.");
       }
       TSOS.Control.updatePCBDisplay();
+    }
+    public shellFormat() {
+    }
+    public shellCreate() {
+    }
+    public shellRead() {
+
+    }
+    public shellWrite() {
+
+    }
+    public shellDelete() {
+
+    }
+    public shellCopy() {
+
+    }
+
+    public shellRename() {
+
+    }
+    public shellls() {
 
     }
 

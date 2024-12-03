@@ -113,17 +113,33 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(() => this.shellLoad(), "load", " - Load a user program");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellKill, "kill", "<string> - Kills the specificed process id.");
+            sc = new TSOS.ShellCommand(this.shellKill, "kill", "<pid> - Kills the specificed process id.");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellKillAll, "killall", "<string> - Kills all the processes");
+            sc = new TSOS.ShellCommand(this.shellKillAll, "killall", "- Kills all the processes");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellPS, "ps", "<string> - List running processes.");
+            sc = new TSOS.ShellCommand(this.shellPS, "ps", "- List running processes.");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellClearem, "clearem", "<string> - clear all memory segments");
+            sc = new TSOS.ShellCommand(this.shellClearem, "clearem", "- Clear all memory segments");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "<string> - set quantum");
+            sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "<int> - Set quantum");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellRunAll, "runall", "<string> - run all ready processes");
+            sc = new TSOS.ShellCommand(this.shellRunAll, "runall", "- Run all ready processes");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellFormat, "format", "- Initalize all blocks in all sectors/tracks");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellCreate, "create", "- Create the file <filename>");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellRead, "read", "- Read and display the contents of filename");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellWrite, "write", "- Write <filename> 'data'");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellDelete, "delete", "- Remove <filename> from storage");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellCopy, "copy", "- <current filename> <new filename> - copy");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellRename, "rename", "- <current filename> <new filename> - rename");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellls, "ls", "- list the files that are currently stored on the disk ");
             this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // new shell command
@@ -263,6 +279,7 @@ var TSOS;
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
         shellInvalidCommand() {
+            neOS.StdOut.advanceLine();
             neOS.StdOut.putText("Invalid Command. ");
             if (neOS.SarcasticMode) {
                 neOS.StdOut.putText("Unbelievable. You, [subject name here],");
@@ -567,6 +584,22 @@ var TSOS;
                 neOS.StdOut.putText("Invalid quantum value.");
             }
             TSOS.Control.updatePCBDisplay();
+        }
+        shellFormat() {
+        }
+        shellCreate() {
+        }
+        shellRead() {
+        }
+        shellWrite() {
+        }
+        shellDelete() {
+        }
+        shellCopy() {
+        }
+        shellRename() {
+        }
+        shellls() {
         }
         shellMan(args) {
             if (args.length > 0) {
