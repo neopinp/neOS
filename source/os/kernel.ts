@@ -50,7 +50,7 @@ namespace TSOS {
       neOS.Scheduler = new TSOS.Scheduler();
       neOS.Dispatcher = new TSOS.Dispatcher();
 
-      // Queues 
+      // Queues
 
       neOS.readyQueue = new TSOS.Queue<TSOS.PCB>();
       neOS.residentQueue = new TSOS.Queue<TSOS.PCB>();
@@ -62,6 +62,12 @@ namespace TSOS {
       neOS.krnKeyboardDriver.driverEntry();
       // Call the driverEntry() initialization routine.
       this.krnTrace(neOS.krnKeyboardDriver.status);
+
+      // Initialize Disk System
+      this.krnTrace("Loading the disk system driver.");
+      neOS.DiskDriver = new TSOS.DiskSystemDeviceDriver();
+      neOS.DiskDriver.driverEntry();
+      this.krnTrace(neOS.DiskDriver.status);
 
       //
       // ... more?

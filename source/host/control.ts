@@ -232,11 +232,7 @@ namespace TSOS {
 
       neOS.CPU = new TSOS.Cpu(neOS.MemoryAccessor);
       neOS.CPU.init();
-
-      // Initialize Disk System
-      neOS.DiskDriver = new TSOS.DiskSystemDeviceDriver(5, 64);
-      neOS.DiskDriver.initializeDisk();
-
+      
       neOS.Kernel = new TSOS.Kernel();
       neOS.Kernel.krnBootstrap();
 

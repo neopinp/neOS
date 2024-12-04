@@ -1,13 +1,22 @@
+/* ----------------------------------
+   DiskDriver.ts
+   ---------------------------------- */
 var TSOS;
 (function (TSOS) {
-    class DiskSystemDeviceDriver {
+    class DiskSystemDeviceDriver extends TSOS.DeviceDriver {
         blockCount;
         blockSize;
-        constructor(blockCount, blockSize) {
+        constructor(blockCount = 5, blockSize = 64) {
+            super();
             this.blockCount = blockCount;
             this.blockSize = blockSize;
-            this.initializeDisk();
+            this.driverEntry = this.diskDriverEntry; // Assign the driverEntry property to the method
         }
+        diskDriverEntry = () => {
+            console.log("Disk System Driver loaded.");
+            this.initializeDisk();
+            this.status = "loaded";
+        };
         // Initalize Disk
         initializeDisk(clear = true) {
             for (let i = 0; i < this.blockCount; i++) {
@@ -18,7 +27,7 @@ var TSOS;
         }
         // Write to Disk
         writeBlock(index, data) {
-            if (index < 0 || index >= 5) {
+            if (index < 0 || index >= this.blockCount) {
                 console.error("Invalid block index");
                 return false;
             }
@@ -31,7 +40,7 @@ var TSOS;
         }
         // Read to Disk
         readBlock(index) {
-            if (index < 0 || index >= 5) {
+            if (index < 0 || index >= this.blockCount) {
                 console.error("Invalid block index");
                 return "";
             }

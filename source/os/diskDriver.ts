@@ -1,11 +1,23 @@
+/* ----------------------------------
+   DiskDriver.ts
+   ---------------------------------- */
+
 namespace TSOS {
-  export class DiskSystemDeviceDriver {
+  export class DiskSystemDeviceDriver extends DeviceDriver {
     constructor(
-      private blockCount: number,
-      private blockSize: number,
+      private blockCount: number = 5,
+      private blockSize: number = 64
     ) {
-      this.initializeDisk();
+      super();
+      this.driverEntry = this.diskDriverEntry; // Assign the driverEntry property to the method
+
     }
+
+    private diskDriverEntry = (): void => {
+      console.log("Disk System Driver loaded.");
+      this.initializeDisk();
+      this.status = "loaded";
+    };
 
     // Initalize Disk
     initializeDisk(clear: boolean = true) {
@@ -17,8 +29,8 @@ namespace TSOS {
     }
 
     // Write to Disk
-    writeBlock(index: number, data: string): boolean {
-      if (index < 0 || index >= 5) {
+    public writeBlock(index: number, data: string): boolean {
+      if (index < 0 || index >= this.blockCount) {
         console.error("Invalid block index");
         return false;
       }
@@ -30,8 +42,8 @@ namespace TSOS {
       return true;
     }
     // Read to Disk
-    readBlock(index: number): string {
-      if (index < 0 || index >= 5) {
+    public readBlock(index: number): string {
+      if (index < 0 || index >= this.blockCount) {
         console.error("Invalid block index");
         return "";
       }
@@ -40,12 +52,12 @@ namespace TSOS {
 
     // Helper Methods
     // Check Blocks
-    isBlockEmpty(index: number): boolean {
+    public isBlockEmpty(index: number): boolean {
       const blockData = sessionStorage.getItem(`block${index}`);
       return blockData?.trim() === "";
     }
 
-    clearBlock(index: number): boolean {
+    public clearBlock(index: number): boolean {
       if (index < 0 || index >= this.blockCount) {
         console.error("Invalid block index");
         return false;
@@ -53,5 +65,6 @@ namespace TSOS {
       sessionStorage.setItem(`block${index}`, "".padEnd(this.blockSize, " "));
       return true;
     }
+
   }
 }
