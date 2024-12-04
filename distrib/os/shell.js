@@ -9,37 +9,9 @@
 // TODO: Write a base class / prototype for system services and let Shell inherit from it.
 var TSOS;
 (function (TSOS) {
-    class SystemService {
-        name;
-        status;
-        constructor(name) {
-            this.name = name;
-            this.status = "stopped";
-        }
-        start() {
-            this.status = "running";
-            neOS.StdOut.putText(`${this.name} service started.`);
-        }
-        stop() {
-            this.status = "stopped";
-            neOS.StdOut.putText(`${this.name} service stopped.`);
-        }
-        log(msg) {
-            neOS.StdOut.putText(`${this.name}: ${msg}`);
-        }
-        handleError(msg) {
-            neOS.StdOut.putText(`Error in ${this.name}: ${msg}`);
-            this.stop();
-        }
-    }
-    TSOS.SystemService = SystemService;
-})(TSOS || (TSOS = {}));
-(function (TSOS) {
-    class Shell extends TSOS.SystemService {
+    class Shell {
         //properties for tab completion of similar letters
-        lastTabInput = "";
         tabCompletionMatches = [];
-        tabCompletionPointer = 0;
         //properties for tab completion
         commandHistory = [];
         historyPointer = -1;
@@ -66,9 +38,6 @@ var TSOS;
             list: "List all the running processes and the corresponding IDS <string>.",
             kill: "Kills the specified process id <string>",
         };
-        constructor() {
-            super("Shell");
-        }
         init() {
             var sc;
             //
@@ -117,13 +86,13 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellKillAll, "killall", "- Kills all the processes");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellPS, "ps", "- List running processes.");
+            sc = new TSOS.ShellCommand(this.shellPS, "ps", "<string> - List running processes.");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellClearem, "clearem", "- Clear all memory segments");
+            sc = new TSOS.ShellCommand(this.shellClearem, "clearem", "<string> - clear all memory segments");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "<int> - Set quantum");
+            sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "<string> - set quantum");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellRunAll, "runall", "- Run all ready processes");
+            sc = new TSOS.ShellCommand(this.shellRunAll, "runall", "<string> - run all ready processes");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellFormat, "format", "- Initalize all blocks in all sectors/tracks");
             this.commandList[this.commandList.length] = sc;

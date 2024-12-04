@@ -51,6 +51,7 @@ var neOS = {
    MemoryManager: null as TSOS.MemoryManager,
    SarcasticMode: false,
    krnKeyboardDriver: null as TSOS.DeviceDriverKeyboard,
+   DiskDriver: null as TSOS.DiskSystemDeviceDriver,
    hardwareClockID: null as number,
    Glados: null as any,
    GLaDOS: null as any,

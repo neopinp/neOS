@@ -10,38 +10,9 @@
 // TODO: Write a base class / prototype for system services and let Shell inherit from it.
 
 namespace TSOS {
-  export class SystemService {
-    public name: string;
-    public status: string;
-
-    constructor(name: string) {
-      this.name = name;
-      this.status = "stopped";
-    }
-    public start(): void {
-      this.status = "running";
-      neOS.StdOut.putText(`${this.name} service started.`);
-    }
-    public stop(): void {
-      this.status = "stopped";
-      neOS.StdOut.putText(`${this.name} service stopped.`);
-    }
-    public log(msg: string): void {
-      neOS.StdOut.putText(`${this.name}: ${msg}`);
-    }
-    public handleError(msg: string): void {
-      neOS.StdOut.putText(`Error in ${this.name}: ${msg}`);
-      this.stop();
-    }
-  }
-}
-
-namespace TSOS {
-  export class Shell extends SystemService {
+  export class Shell {
     //properties for tab completion of similar letters
-    private lastTabInput: string = "";
     private tabCompletionMatches: string[] = [];
-    private tabCompletionPointer: number = 0;
     //properties for tab completion
     private commandHistory: string[] = [];
     private historyPointer: number = -1;
@@ -71,10 +42,6 @@ namespace TSOS {
       list: "List all the running processes and the corresponding IDS <string>.",
       kill: "Kills the specified process id <string>",
     };
-
-    constructor() {
-      super("Shell");
-    }
 
     public init() {
       var sc: ShellCommand;
@@ -184,7 +151,7 @@ namespace TSOS {
         "<pid> - Kills the specificed process id."
       );
       this.commandList[this.commandList.length] = sc;
-      sc = new ShellCommand( 
+            sc = new ShellCommand( 
         this.shellKillAll,
         "killall",
         "- Kills all the processes"
@@ -194,85 +161,81 @@ namespace TSOS {
       sc = new ShellCommand(
         this.shellPS,
         "ps",
-        "- List running processes."
+        "<string> - List running processes."
       );
       this.commandList[this.commandList.length] = sc;
       sc = new ShellCommand(
         this.shellClearem,
         "clearem",
-        "- Clear all memory segments"
+        "<string> - clear all memory segments"
       );
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
         this.shellQuantum,
         "quantum",
-        "<int> - Set quantum"
+        "<string> - set quantum"
       );
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
         this.shellRunAll,
         "runall",
-        "- Run all ready processes"
+        "<string> - run all ready processes"
       );
       this.commandList[this.commandList.length] = sc;
-
       sc = new ShellCommand(
         this.shellFormat,
         "format",
         "- Initalize all blocks in all sectors/tracks"
-      )
+      );
       this.commandList[this.commandList.length] = sc;
       sc = new ShellCommand(
         this.shellCreate,
         "create",
         "- Create the file <filename>"
-      )
+      );
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
         this.shellRead,
         "read",
         "- Read and display the contents of filename"
-      )
+      );
       this.commandList[this.commandList.length] = sc;
       sc = new ShellCommand(
         this.shellWrite,
         "write",
         "- Write <filename> 'data'"
-      )
+      );
       this.commandList[this.commandList.length] = sc;
       sc = new ShellCommand(
         this.shellDelete,
         "delete",
         "- Remove <filename> from storage"
-      )
+      );
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
         this.shellCopy,
         "copy",
         "- <current filename> <new filename> - copy"
-      )
+      );
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
         this.shellRename,
         "rename",
         "- <current filename> <new filename> - rename"
-      )
+      );
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
         this.shellls,
         "ls",
         "- list the files that are currently stored on the disk "
-      )
+      );
       this.commandList[this.commandList.length] = sc;
-
-
-
       // ps  - list the running processes and their IDs
       // new shell command
 
@@ -669,7 +632,6 @@ namespace TSOS {
       }
     }
 
-
     public shellPS(args: string[]) {
       if (neOS.ProcessList.length > 0) {
         neOS.StdOut.advanceLine();
@@ -733,17 +695,16 @@ namespace TSOS {
       neOS.StdIn.advanceLine();
       neOS.StdOut.putText("All processes are now running.");
     }
-
     public shellKillAll(): void {
-        neOS.ProcessList.forEach((pcb) => {
-          pcb.state = "Terminated";
-          neOS.CPU.isExecuting = false;
-        });
-        TSOS.Control.updatePCBDisplay();
-        neOS.StdOut.advanceLine();
-        neOS.StdOut.putText("All Processes Terminated")
-      
-    }
+      neOS.ProcessList.forEach((pcb) => {
+        pcb.state = "Terminated";
+        neOS.CPU.isExecuting = false;
+      });
+      TSOS.Control.updatePCBDisplay();
+      neOS.StdOut.advanceLine();
+      neOS.StdOut.putText("All Processes Terminated")
+    
+  }
 
     public shellQuantum(args: string[]): void {
       const newQuantum = parseInt(args[0]);
