@@ -33,7 +33,7 @@ var TSOS;
                         this.memoryAccessor.write(base + j, program[j], base, limit);
                     }
                     // Display memory contents after writing
-                    this.memoryAccessor.displayMemory();
+                    TSOS.Control.displayMemory();
                     partition.occupied = true;
                     const pid = this.nextPID++;
                     partition.pid = pid;

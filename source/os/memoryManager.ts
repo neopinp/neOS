@@ -50,7 +50,7 @@ namespace TSOS {
           }
 
           // Display memory contents after writing
-          this.memoryAccessor.displayMemory();
+          TSOS.Control.displayMemory();
 
           partition.occupied = true;
           const pid = this.nextPID++;
