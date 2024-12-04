@@ -10,21 +10,26 @@ namespace TSOS {
     ) {
       super();
       this.driverEntry = this.diskDriverEntry; // Assign the driverEntry property to the method
-
     }
 
     private diskDriverEntry = (): void => {
       console.log("Disk System Driver loaded.");
-      this.initializeDisk();
       this.status = "loaded";
+      this.initializeDisk();
+      console.log("Disk System Driver loaded.");
     };
 
     // Initalize Disk
-    initializeDisk(clear: boolean = true) {
+    initializeDisk(clear: boolean = true): void {
       for (let i = 0; i < this.blockCount; i++) {
         if (clear || !sessionStorage.getItem(`block${i}`)) {
           sessionStorage.setItem(`block${i}`, "".padEnd(this.blockSize, " "));
         }
+      }
+      // Log the data for all blocks after initialization
+      console.log("Driver status:", this.status); // Logs the driver status
+      for (let i = 0; i < this.blockCount; i++) {
+        console.log(`Block ${i} data:`, sessionStorage.getItem(`block${i}`)); // Logs each block's data
       }
     }
 
@@ -65,6 +70,5 @@ namespace TSOS {
       sessionStorage.setItem(`block${index}`, "".padEnd(this.blockSize, " "));
       return true;
     }
-
   }
 }

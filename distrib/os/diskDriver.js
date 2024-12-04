@@ -14,8 +14,9 @@ var TSOS;
         }
         diskDriverEntry = () => {
             console.log("Disk System Driver loaded.");
-            this.initializeDisk();
             this.status = "loaded";
+            this.initializeDisk();
+            console.log("Disk System Driver loaded.");
         };
         // Initalize Disk
         initializeDisk(clear = true) {
@@ -23,6 +24,11 @@ var TSOS;
                 if (clear || !sessionStorage.getItem(`block${i}`)) {
                     sessionStorage.setItem(`block${i}`, "".padEnd(this.blockSize, " "));
                 }
+            }
+            // Log the data for all blocks after initialization
+            console.log("Driver status:", this.status); // Logs the driver status
+            for (let i = 0; i < this.blockCount; i++) {
+                console.log(`Block ${i} data:`, sessionStorage.getItem(`block${i}`)); // Logs each block's data
             }
         }
         // Write to Disk
