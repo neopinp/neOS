@@ -168,7 +168,10 @@ var TSOS;
                 const blockData = sessionStorage.getItem(`block${i}`) || "";
                 const isUsed = blockData.trim() ? "1" : "0"; // Mark as used or free
                 // Format the track/sector/block (T/S/B)
-                const tsb = `0:0:${i.toString()}`;
+                const track = Math.floor(i / 64); // Increment track every 64 blocks
+                const sector = Math.floor((i % 64) / 8); // Increment sector every 8 blocks
+                const block = i % 8; // Block is the remainder of the division by 8
+                const tsb = `${track}:${sector}:${block}`;
                 // Create a row for each block
                 const row = document.createElement("tr");
                 // T/S/B cell

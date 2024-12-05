@@ -151,11 +151,11 @@ namespace TSOS {
         "<pid> - Kills the specificed process id."
       );
       this.commandList[this.commandList.length] = sc;
-            sc = new ShellCommand( 
+      sc = new ShellCommand(
         this.shellKillAll,
         "killall",
         "- Kills all the processes"
-      )
+      );
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
@@ -231,7 +231,7 @@ namespace TSOS {
       this.commandList[this.commandList.length] = sc;
 
       sc = new ShellCommand(
-        this.shellls,
+        this.shellLs,
         "ls",
         "- list the files that are currently stored on the disk "
       );
@@ -546,6 +546,7 @@ namespace TSOS {
       if (args.length > 0) {
         let statusMessage = args.join(" ");
         neOS.StatusMessage = statusMessage;
+        neOS.StdIn.advanceLine();
         neOS.StdOut.putText(`Status set to: ${statusMessage}`);
 
         // Manually update the taskbar element directly for testing
@@ -568,25 +569,56 @@ namespace TSOS {
 
         if (programBytes) {
           const program = programBytes.map((byte) => parseInt(byte, 16));
-          const { pid } = neOS.MemoryManager.storeProgram(program);
 
-          if (pid >= 0) {
-            // Retrieve the newly created PCB from the residentQueue
-            const newPCB = neOS.residentQueue.find((p) => p.pid === pid);
-            if (newPCB) {
-              neOS.CurrentProcess = newPCB;
-              neOS.ProcessList.push(newPCB); // Add to the global ProcessList
-              console.log("Current Process set:", neOS.CurrentProcess);
-              console.log("Base Address:", neOS.CurrentProcess.base);
-              console.log("Limit Address:", neOS.CurrentProcess.limit);
-            }
-            TSOS.Control.updatePCBDisplay();
-            neOS.StdOut.advanceLine();
-            neOS.StdOut.putText(`Program loaded with PID ${pid}`);
-          } else {
-            neOS.StdOut.putText(
-              "Error: Could not load the program into memory."
+          if (neOS.MemoryManager.isMemoryFull()) {
+            // Attempt to allocate program on the disk
+            const programId = neOS.DiskDriver.allocateBlocksForProgram(
+              program.map((byte) => byte.toString(16).padStart(2, "0"))
             );
+            if (programId >= 0) {
+              const allocation = neOS.DiskDriver.programAllocation.find(
+                (entry) => entry.programId === programId
+              );
+              const blocks = allocation ? allocation.blocks : [];
+              // Create a PCB for the program on disk
+              const newPCB = new TSOS.PCB(programId, 0, 0, 1, "Disk", -1);
+              newPCB.state = "Resident";
+              neOS.residentQueue.enqueue(newPCB);
+              neOS.ProcessList.push(newPCB);
+              TSOS.Control.updatePCBDisplay(); // Update the PCB display
+              neOS.StdOut.advanceLine();
+              console.log(
+                `Program loaded to disk with Program ID ${programId} into blocks: [${blocks.join(
+                  ", "
+                )}]`
+              );
+            } else {
+              neOS.StdOut.putText(
+                "Error: Could not load the program. Disk is full."
+              );
+            }
+          } else {
+            // Store the program in memory
+            const { pid } = neOS.MemoryManager.storeProgram(program);
+
+            if (pid >= 0) {
+              // Retrieve the newly created PCB from the residentQueue
+              const newPCB = neOS.residentQueue.find((p) => p.pid === pid);
+              if (newPCB) {
+                neOS.CurrentProcess = newPCB;
+                neOS.ProcessList.push(newPCB); // Add to the global ProcessList
+                console.log("Current Process set:", neOS.CurrentProcess);
+                console.log("Base Address:", neOS.CurrentProcess.base);
+                console.log("Limit Address:", neOS.CurrentProcess.limit);
+              }
+              TSOS.Control.updatePCBDisplay();
+              neOS.StdOut.advanceLine();
+              neOS.StdOut.putText(`Program loaded with PID ${pid}`);
+            } else {
+              neOS.StdOut.putText(
+                "Error: Could not load the program into memory."
+              );
+            }
           }
         }
       } else {
@@ -594,7 +626,7 @@ namespace TSOS {
       }
     }
 
-    public shellBSOD(args: string[]) {
+    public shellBSOD() {
       neOS.Kernel.krnTrapError("Manual BSOD trigger.");
     }
 
@@ -664,8 +696,8 @@ namespace TSOS {
         pcb.state = "Terminated";
       });
       neOS.ProcessList = [];
-      TSOS.Control.updatePCBDisplay();
-      neOS.MemoryAccessor.displayMemory();
+      Control.updatePCBDisplay();
+      Control.displayMemory();
       neOS.StdOut.putText("Memory cleared.");
     }
 
@@ -702,9 +734,8 @@ namespace TSOS {
       });
       TSOS.Control.updatePCBDisplay();
       neOS.StdOut.advanceLine();
-      neOS.StdOut.putText("All Processes Terminated")
-    
-  }
+      neOS.StdOut.putText("All Processes Terminated");
+    }
 
     public shellQuantum(args: string[]): void {
       const newQuantum = parseInt(args[0]);
@@ -719,28 +750,146 @@ namespace TSOS {
       }
       TSOS.Control.updatePCBDisplay();
     }
+
     public shellFormat() {
+      neOS.DiskDriver.initializeDisk(true);
+      console.log("Disk formatted successfully.");
+      Control.updateDiskDisplay();
     }
-    public shellCreate() {
+    public shellCreate(args: string[]): void {
+      const filename = args[0];
+      if (!filename) {
+        neOS.StdOut.putText("Error: Filename is required.");
+        return;
+      }
+
+      if (neOS.DiskDriver.createFile(filename)) {
+        neOS.DiskDriver.listofFiles.push(filename);
+        console.log(neOS.DiskDriver.listofFiles)
+        neOS.StdOut.advanceLine();
+        neOS.StdOut.putText(`File '${filename}' created successfully.`);
+      } else {
+        neOS.StdOut.putText(`Error: Could not create file '${filename}'.`);
+      }
+
+      TSOS.Control.updateDiskDisplay();
     }
-    public shellRead() {
 
+    public shellRead(args: string[]): string {
+      const filename = args[0]
+      console.log(`Starting to read file: "${filename}"`);
+    
+      let currentBlockIndex = neOS.DiskDriver.findBlockByFileName(filename);
+      if (currentBlockIndex === -1) {
+        console.error(`Error: File '${filename}' not found or has no content.`);
+        return null;
+      }
+    
+      let content = "";
+    
+      while (currentBlockIndex !== -1) {
+        const blockData = neOS.DiskDriver.readBlock(currentBlockIndex);
+        console.log(`Reading from block ${currentBlockIndex}: "${blockData.trim()}"`);
+    
+        content += blockData.slice(3).trim(); // Skip the pointer
+        const nextPointer = blockData.slice(0, 3).trim();
+        currentBlockIndex = nextPointer === "---" ? -1 : parseInt(nextPointer, 10);
+    
+        console.log(
+          `Next block pointer: "${nextPointer}", Next block index: ${currentBlockIndex}`
+        );
+      }
+      console.log(`File '${filename}' read successfully. Content: "${content}"`);
+      neOS.StdOut.advanceLine();
+      neOS.StdOut.putText(content);
+      return content;
+      
     }
-    public shellWrite() {
+    
+    
 
+    public shellWrite(args: string[]): void {
+      const filename = args[0];
+      const data = args.slice(1).join(" ").replace(/^"|"$/g, ""); // Remove quotes from data
+      if (!filename || !data) {
+        neOS.StdOut.putText("Error: Filename and data are required.");
+        return;
+      }
+
+      if (neOS.DiskDriver.writeToFile(filename, data)) {
+        neOS.StdOut.advanceLine();
+        neOS.StdOut.putText(`Data written to file '${filename}' successfully.`);
+      } else {
+        neOS.StdOut.putText(`Error: Could not write to file '${filename}'.`);
+      }
+
+      TSOS.Control.updateDiskDisplay();
     }
-    public shellDelete() {
 
+    public shellDelete(args: string[]): void {
+      const filename = args[0];
+      if (!filename) {
+        neOS.StdOut.putText("Error: Filename is required.");
+        return;
+      }
+
+      if (neOS.DiskDriver.deleteFile(filename)) {
+        neOS.StdOut.putText(`File '${filename}' deleted successfully.`);
+      } else {
+        neOS.StdOut.putText(`Error: Could not delete file '${filename}'.`);
+      }
+
+      TSOS.Control.updateDiskDisplay();
     }
-    public shellCopy() {
 
+    public shellCopy(args: string[]): void {
+      const sourceFile = args[0];
+      const targetFile = args[1];
+      if (!sourceFile || !targetFile) {
+        neOS.StdOut.putText("Error: Source and target filenames are required.");
+        return;
+      }
+
+      if (neOS.DiskDriver.copyFile(sourceFile, targetFile)) {
+        neOS.StdOut.putText(
+          `File '${sourceFile}' copied to '${targetFile}' successfully.`
+        );
+      } else {
+        neOS.StdOut.putText(`Error: Could not copy file '${sourceFile}'.`);
+      }
+
+      TSOS.Control.updateDiskDisplay();
     }
 
-    public shellRename() {
+    public shellRename(args: string[]): void {
+      const oldName = args[0];
+      const newName = args[1];
+      if (!oldName || !newName) {
+        neOS.StdOut.putText("Error: Current and new filenames are required.");
+        return;
+      }
 
+      if (neOS.DiskDriver.renameFile(oldName, newName)) {
+        neOS.StdOut.putText(
+          `File '${oldName}' renamed to '${newName}' successfully.`
+        );
+      } else {
+        neOS.StdOut.putText(`Error: Could not rename file '${oldName}'.`);
+      }
+
+      TSOS.Control.updateDiskDisplay();
     }
-    public shellls() {
 
+    public shellLs(): void {
+      const files = neOS.DiskDriver.listFiles();
+      if (files !== '') {
+        neOS.StdOut.advanceLine();
+        neOS.StdOut.putText("Files: " + files);
+      } else {
+        neOS.StdOut.putText("No files found on the disk.");
+      }
+
+      TSOS.Control.updateDiskDisplay();
     }
 
     public shellMan(args: string[]) {

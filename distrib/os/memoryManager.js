@@ -37,7 +37,8 @@ var TSOS;
                     partition.occupied = true;
                     const pid = this.nextPID++;
                     partition.pid = pid;
-                    const newPCB = new TSOS.PCB(pid, base, limit, 1, partitionIndex);
+                    // For storing program into memory from disk, use process PID to find data and use partition index of freed memory to find the right segment/base 
+                    const newPCB = new TSOS.PCB(pid, base, limit, 1, "Memory", partitionIndex);
                     newPCB.state = "Resident";
                     neOS.residentQueue.enqueue(newPCB);
                     TSOS.Control.updatePCBDisplay();
@@ -61,6 +62,16 @@ var TSOS;
                 partition.pid = null;
                 neOS.ProcessList = [];
             }
+        }
+        isMemoryFull() {
+            for (let i = 0; i < this.partitions.length; i++) {
+                const partitionIndex = (this.currentPartitionIndex + i) % this.partitions.length;
+                const partition = this.partitions[partitionIndex];
+                if (!partition.occupied) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
     TSOS.MemoryManager = MemoryManager;

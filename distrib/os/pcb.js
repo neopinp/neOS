@@ -15,7 +15,7 @@ var TSOS;
         partition;
         location;
         quantumRemaining;
-        constructor(pid, base, limit, priority = 1, partition, location = "Memory") {
+        constructor(pid, base, limit, priority = 1, location, partition) {
             this.pid = pid;
             this.base = base;
             this.limit = limit;
