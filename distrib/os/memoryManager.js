@@ -71,7 +71,6 @@ var TSOS;
                     return false;
                 }
             }
-            return true;
         }
     }
     TSOS.MemoryManager = MemoryManager;

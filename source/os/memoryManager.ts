@@ -1,7 +1,7 @@
 namespace TSOS {
   export class MemoryManager {
     private memoryAccessor: MemoryAccessor;
-    public nextPID: number;
+    private nextPID: number;
     public partitions: {
       pid: number | null;
       base: number;
@@ -108,7 +108,6 @@ namespace TSOS {
           return false;
         }
       }
-      return true;
     }
   }
 }

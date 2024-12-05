@@ -8,7 +8,7 @@ var TSOS;
         blockSize;
         listofFiles;
         programAllocation = [];
-        constructor(blockCount = 100, // Total blocks available on the disk
+        constructor(blockCount = 20, // Total blocks available on the disk
         blockSize = 64, // Block size in bytes
         listofFiles = []) {
             super();

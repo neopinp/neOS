@@ -7,7 +7,7 @@ namespace TSOS {
     public programAllocation: { programId: number; blocks: number[] }[] = [];
 
     constructor(
-      public blockCount: number = 100, // Total blocks available on the disk
+      public blockCount: number = 20, // Total blocks available on the disk
       public blockSize: number = 64, // Block size in bytes
       public listofFiles: string[] = []
     ) {
