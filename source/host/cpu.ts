@@ -292,6 +292,7 @@ namespace TSOS {
           if (neOS.CurrentProcess) {
             console.log(`BRK: Process ${neOS.CurrentProcess.pid} terminating`);
             neOS.CurrentProcess.state = "Terminated";
+            neOS.Scheduler.handleTerminatedProcess(neOS.CurrentProcess);
 
             neOS.readyQueue.q = neOS.readyQueue.q.filter(
               (process: any) => process.pid !== neOS.CurrentProcess.pid

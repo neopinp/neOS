@@ -79,7 +79,8 @@ function Glados() {
 	Approximate Turnaround Time and Wait Time values, +/- 1 quantum (6 cycles)
 	Process 0 - Turnaround Time = 366 cycles, Wait Time = 240 cycles
 	Process 1 - Turnaround Time = 570 cycles, Wait Time = 348 cycles
-	Process 2 - Turnaround Time = 666 cycles, Wait Time = 348 cycles     
+	Process 2 - Turnaround Time = 666 cycles, Wait Time = 348 cycles
+   */
       
 
 		setTimeout(function(){ document.getElementById("taProgramInput").value = code1;

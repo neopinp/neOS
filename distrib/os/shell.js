@@ -414,42 +414,40 @@ var TSOS;
                 if (programBytes) {
                     const program = programBytes.map((byte) => parseInt(byte, 16));
                     if (neOS.MemoryManager.isMemoryFull()) {
-                        // Attempt to allocate program on the disk
+                        console.log("Memory is full. Attempting to store program on disk.");
                         const programId = neOS.DiskDriver.allocateBlocksForProgram(program.map((byte) => byte.toString(16).padStart(2, "0")));
                         if (programId >= 0) {
                             const allocation = neOS.DiskDriver.programAllocation.find((entry) => entry.programId === programId);
                             const blocks = allocation ? allocation.blocks : [];
-                            // Create a PCB for the program on disk
+                            console.log(`Program stored on disk with Program ID ${programId} in blocks: [${blocks.join(", ")}]`);
                             const newPCB = new TSOS.PCB(programId, 0, 0, 1, "Disk", -1);
                             newPCB.state = "Resident";
                             neOS.residentQueue.enqueue(newPCB);
                             neOS.ProcessList.push(newPCB);
-                            TSOS.Control.updatePCBDisplay(); // Update the PCB display
+                            TSOS.Control.updatePCBDisplay();
                             neOS.StdOut.advanceLine();
-                            console.log(`Program loaded to disk with Program ID ${programId} into blocks: [${blocks.join(", ")}]`);
                         }
                         else {
+                            console.error("Disk is full. Could not store the program.");
                             neOS.StdOut.putText("Error: Could not load the program. Disk is full.");
                         }
                     }
                     else {
-                        // Store the program in memory
+                        console.log("Memory has space. Storing program in memory.");
                         const { pid } = neOS.MemoryManager.storeProgram(program);
                         if (pid >= 0) {
-                            // Retrieve the newly created PCB from the residentQueue
                             const newPCB = neOS.residentQueue.find((p) => p.pid === pid);
                             if (newPCB) {
                                 neOS.CurrentProcess = newPCB;
-                                neOS.ProcessList.push(newPCB); // Add to the global ProcessList
-                                console.log("Current Process set:", neOS.CurrentProcess);
-                                console.log("Base Address:", neOS.CurrentProcess.base);
-                                console.log("Limit Address:", neOS.CurrentProcess.limit);
+                                neOS.ProcessList.push(newPCB);
+                                console.log(`Program loaded to memory with PID: ${pid}, Base: ${newPCB.base}, Limit: ${newPCB.limit}`);
                             }
                             TSOS.Control.updatePCBDisplay();
                             neOS.StdOut.advanceLine();
                             neOS.StdOut.putText(`Program loaded with PID ${pid}`);
                         }
                         else {
+                            console.error("Failed to store the program in memory.");
                             neOS.StdOut.putText("Error: Could not load the program into memory.");
                         }
                     }
@@ -613,7 +611,8 @@ var TSOS;
                 console.log(`Reading from block ${currentBlockIndex}: "${blockData.trim()}"`);
                 content += blockData.slice(3).trim(); // Skip the pointer
                 const nextPointer = blockData.slice(0, 3).trim();
-                currentBlockIndex = nextPointer === "---" ? -1 : parseInt(nextPointer, 10);
+                currentBlockIndex =
+                    nextPointer === "---" ? -1 : parseInt(nextPointer, 10);
                 console.log(`Next block pointer: "${nextPointer}", Next block index: ${currentBlockIndex}`);
             }
             console.log(`File '${filename}' read successfully. Content: "${content}"`);
@@ -683,7 +682,7 @@ var TSOS;
         }
         shellLs() {
             const files = neOS.DiskDriver.listFiles();
-            if (files !== '') {
+            if (files !== "") {
                 neOS.StdOut.advanceLine();
                 neOS.StdOut.putText("Files: " + files);
             }

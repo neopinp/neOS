@@ -60,7 +60,6 @@ namespace TSOS {
     public saveContext(cpu: Cpu): void {
       // Ensure PC is within valid range before subtracting base
       this.pc = cpu.PC;
-
       this.ir = cpu.instructionRegister;
       this.acc = cpu.Acc;
       this.xReg = cpu.Xreg;

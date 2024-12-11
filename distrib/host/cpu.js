@@ -188,6 +188,7 @@ var TSOS;
                     if (neOS.CurrentProcess) {
                         console.log(`BRK: Process ${neOS.CurrentProcess.pid} terminating`);
                         neOS.CurrentProcess.state = "Terminated";
+                        neOS.Scheduler.handleTerminatedProcess(neOS.CurrentProcess);
                         neOS.readyQueue.q = neOS.readyQueue.q.filter((process) => process.pid !== neOS.CurrentProcess.pid);
                         // Check if there are remaining processes in the queue
                         if (!neOS.readyQueue.isEmpty()) {

@@ -30,6 +30,9 @@ var TSOS;
             }
             return retVal;
         }
+        peek() {
+            return this.q.length > 0 ? this.q[0] : null;
+        }
         toString() {
             var retVal = "";
             for (var i in this.q) {

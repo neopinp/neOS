@@ -20,16 +20,19 @@ namespace TSOS {
       return this.q.length == 0;
     }
 
-    public enqueue(element) {
+    public enqueue(element: T): void {
       this.q.push(element);
     }
 
-    public dequeue() {
+    public dequeue(): T | null {
       var retVal = null;
       if (this.q.length > 0) {
         retVal = this.q.shift();
       }
       return retVal;
+    }
+    public peek(): T | null {
+      return this.q.length > 0 ? this.q[0] : null;
     }
 
     public toString() {
