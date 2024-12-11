@@ -61,7 +61,6 @@ namespace TSOS {
       }
       console.log("Ready Queue before dequeuing:", neOS.readyQueue.getAllProcesses());
 
-      // Dequeue the next process (now guaranteed to be in memory)
       const processToExecute = neOS.readyQueue.dequeue();
       console.log(`Dequeued process PID: ${nextProcess.pid}`);
       if (processToExecute) {
@@ -82,14 +81,11 @@ namespace TSOS {
     }
 
     // ROLL IN AND ROLL OUT FUNCTIONS FROM DISK
-
     public rollOut(victimProcess: PCB): void {
       console.log(`Rolling out process PID: ${victimProcess.pid}`);
 
-      // Save the process context to the PCB
       victimProcess.saveContext(neOS.CPU);
 
-      // Extract the program data from memory
       const programData = neOS.MemoryManager.extractProgramFromMemory(
         victimProcess.base,
         victimProcess.limit
@@ -102,7 +98,6 @@ namespace TSOS {
         return;
       }
 
-      // Save only the program data to disk
       const programID = neOS.DiskDriver.allocateBlocksForProgram(
         programData.map((byte) => byte.toString(16).padStart(2, "0")),
         victimProcess.pid
@@ -130,7 +125,6 @@ namespace TSOS {
           );
         }
 
-        // Update displays
         TSOS.Control.updatePCBDisplay();
         TSOS.Control.displayMemory();
       } else {
@@ -138,7 +132,6 @@ namespace TSOS {
           `Failed to roll out process PID: ${victimProcess.pid}. No disk space available.`
         );
 
-        // Handle failure (e.g., terminate the process)
         victimProcess.state = "Terminated";
         TSOS.Control.updatePCBDisplay();
       }
@@ -161,7 +154,6 @@ namespace TSOS {
           programBytes.push(...blockBytes);
         });
 
-        // Remove filtering of `00` bytes
         const filteredProgramBytes = programBytes;
 
         // Create a new PCB or reuse an existing one

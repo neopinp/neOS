@@ -52,7 +52,6 @@ var TSOS;
                 this.rollIn(nextProcess.pid);
             }
             console.log("Ready Queue before dequeuing:", neOS.readyQueue.getAllProcesses());
-            // Dequeue the next process (now guaranteed to be in memory)
             const processToExecute = neOS.readyQueue.dequeue();
             console.log(`Dequeued process PID: ${nextProcess.pid}`);
             if (processToExecute) {
@@ -72,15 +71,12 @@ var TSOS;
         // ROLL IN AND ROLL OUT FUNCTIONS FROM DISK
         rollOut(victimProcess) {
             console.log(`Rolling out process PID: ${victimProcess.pid}`);
-            // Save the process context to the PCB
             victimProcess.saveContext(neOS.CPU);
-            // Extract the program data from memory
             const programData = neOS.MemoryManager.extractProgramFromMemory(victimProcess.base, victimProcess.limit);
             if (!programData) {
                 console.error(`Failed to retrieve program data for PID: ${victimProcess.pid}`);
                 return;
             }
-            // Save only the program data to disk
             const programID = neOS.DiskDriver.allocateBlocksForProgram(programData.map((byte) => byte.toString(16).padStart(2, "0")), victimProcess.pid);
             if (programID !== -1) {
                 // Update the process location and partition
@@ -93,13 +89,11 @@ var TSOS;
                 for (let i = victimProcess.base; i <= victimProcess.limit; i++) {
                     neOS.MemoryAccessor.write(i, 0, victimProcess.base, victimProcess.limit);
                 }
-                // Update displays
                 TSOS.Control.updatePCBDisplay();
                 TSOS.Control.displayMemory();
             }
             else {
                 console.error(`Failed to roll out process PID: ${victimProcess.pid}. No disk space available.`);
-                // Handle failure (e.g., terminate the process)
                 victimProcess.state = "Terminated";
                 TSOS.Control.updatePCBDisplay();
             }
@@ -118,7 +112,6 @@ var TSOS;
                         .filter((byte) => !isNaN(byte)) || [];
                     programBytes.push(...blockBytes);
                 });
-                // Remove filtering of `00` bytes
                 const filteredProgramBytes = programBytes;
                 // Create a new PCB or reuse an existing one
                 const newPCB = neOS.ProcessList.find((pcb) => pcb.pid === programID) ||

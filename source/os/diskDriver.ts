@@ -78,10 +78,6 @@ namespace TSOS {
 
     // Helper Methods
     // Check Blocks
-    public isBlockEmpty(index: number): boolean {
-      const blockData = sessionStorage.getItem(`block${index}`);
-      return blockData?.trim() === "";
-    }
 
     public clearBlock(index: number): boolean {
       if (index < 0 || index >= this.blockCount) {
@@ -154,13 +150,13 @@ namespace TSOS {
 
     // File Operations
     public createFile(filename: string): boolean {
-      // Step 1: Check if the file already exists
+      // Check if the file already exists
       if (this.findBlockByFileName(filename) !== -1) {
         console.error(`File '${filename}' already exists.`);
         return false;
       }
 
-      // Step 2: Find an empty block for metadata
+      // Find an empty block for metadata
       const metadataBlockIndex = this.findEmptyBlock();
       if (metadataBlockIndex === -1) {
         console.error("No empty blocks available for file creation.");
@@ -174,20 +170,20 @@ namespace TSOS {
       );
       this.writeBlock(metadataBlockIndex, placeholderMetadata);
 
-      // Step 3: Find an empty block for content
+      //Find an empty block for content
       const contentBlockIndex = this.findEmptyBlock();
       if (contentBlockIndex === -1) {
         console.error("No empty blocks available for content.");
         return false;
       }
 
-      // Step 4: Update metadata block to include pointer to content block
+      // Update metadata block to include pointer to content block
       const metadata = `${filename.padEnd(10, " ")}${contentBlockIndex
         .toString()
         .padStart(3, "0")}`;
       this.writeBlock(metadataBlockIndex, metadata.padEnd(this.blockSize, " "));
 
-      // Step 5: Initialize the content block with empty data
+      // Initialize the content block with empty data
       const initialContent = "---".padEnd(this.blockSize, " ");
       this.writeBlock(contentBlockIndex, initialContent);
 
@@ -283,7 +279,7 @@ namespace TSOS {
     }
 
     public writeToFile(filename: string, data: string): boolean {
-      // Step 1: Get the first content block index from findBlockByFileName
+      // Get the first content block index from findBlockByFileName
       const contentBlockIndex = this.findBlockByFileName(filename);
       if (contentBlockIndex === -1) {
         console.error(`Error: File '${filename}' not found.`);
@@ -294,7 +290,6 @@ namespace TSOS {
       let offset = 0;
 
       while (offset < data.length) {
-        // Extract a chunk of data to fit in the block (reserve space for the pointer)
         const chunkSize = this.blockSize - 3; // Reserve 3 bytes for the pointer
         const chunk = data.slice(offset, offset + chunkSize);
 
@@ -400,16 +395,6 @@ namespace TSOS {
         }
       }
       return -1;
-    }
-    private addFreeBlock(blockIndex: number): void {
-      const blockData = sessionStorage.getItem(`block${blockIndex}`);
-      if (blockData?.trim() !== "") {
-        console.warn(
-          `Block ${blockIndex} is not empty and cannot be marked as free.`
-        );
-      } else {
-        console.log(`Block ${blockIndex} is free (sessionStorage updated).`);
-      }
     }
   }
 }
