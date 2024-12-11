@@ -15,7 +15,7 @@ namespace TSOS {
       if (address < base || address > limit) {
         throw new Error(`Memory access violation at address ${address}`);
       }
-      console.log(`Writing value ${value.toString(16)} at address ${address}`);
+      //console.log(`Writing value ${value.toString(16)} at address ${address}`);
       this.memory.setByte(address, value);
     }
 

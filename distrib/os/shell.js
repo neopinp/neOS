@@ -415,17 +415,21 @@ var TSOS;
                     const program = programBytes.map((byte) => parseInt(byte, 16));
                     if (neOS.MemoryManager.isMemoryFull()) {
                         console.log("Memory is full. Attempting to store program on disk.");
-                        const programId = neOS.DiskDriver.allocateBlocksForProgram(program.map((byte) => byte.toString(16).padStart(2, "0")));
+                        // Generate a unique PID using MemoryManager.nextPID
+                        const pid = neOS.MemoryManager.nextPID++;
+                        const programId = neOS.DiskDriver.allocateBlocksForProgram(program.map((byte) => byte.toString(16).padStart(2, "0")), pid);
                         if (programId >= 0) {
                             const allocation = neOS.DiskDriver.programAllocation.find((entry) => entry.programId === programId);
                             const blocks = allocation ? allocation.blocks : [];
                             console.log(`Program stored on disk with Program ID ${programId} in blocks: [${blocks.join(", ")}]`);
-                            const newPCB = new TSOS.PCB(programId, 0, 0, 1, "Disk", -1);
+                            // Create PCB with the generated PID
+                            const newPCB = new TSOS.PCB(pid, 0, 0, 1, "Disk", -1);
                             newPCB.state = "Resident";
                             neOS.residentQueue.enqueue(newPCB);
                             neOS.ProcessList.push(newPCB);
                             TSOS.Control.updatePCBDisplay();
                             neOS.StdOut.advanceLine();
+                            neOS.StdOut.putText(`Program loaded to disk with PID ${pid}`);
                         }
                         else {
                             console.error("Disk is full. Could not store the program.");

@@ -47,7 +47,10 @@ var TSOS;
             return this.q.find(callback);
         }
         removeProcessByPid(queue, pid) {
-            queue.q = queue.q.filter(item => item.pid !== pid);
+            queue.q = queue.q.filter((item) => item.pid !== pid);
+        }
+        getAllProcesses() {
+            return this.q.map((process) => process.pid); // Replace with your queue's structure
         }
     }
     TSOS.Queue = Queue;

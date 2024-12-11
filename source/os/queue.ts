@@ -49,8 +49,10 @@ namespace TSOS {
       return this.q.find(callback);
     }
     public removeProcessByPid(queue: TSOS.Queue<any>, pid: number): void {
-      queue.q = queue.q.filter(item => item.pid !== pid);
+      queue.q = queue.q.filter((item) => item.pid !== pid);
     }
-    
+    getAllProcesses(): Array<number> {
+      return this.q.map((process) => process.pid); // Replace with your queue's structure
+    }
   }
 }

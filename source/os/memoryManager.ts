@@ -49,6 +49,18 @@ namespace TSOS {
         // Display memory contents after writing
         TSOS.Control.displayMemory();
 
+        // Find the index of the allocated partition
+        const assignedPartitionIndex = this.partitions.findIndex(
+          (p) => p.base === base && p.limit === limit
+        );
+
+        if (assignedPartitionIndex === -1) {
+          console.error(
+            "Failed to find the allocated partition in partitions."
+          );
+          return { pid: -1 };
+        }
+
         // Create or update the PCB
         const pcb =
           existingPCB || new TSOS.PCB(pid, base, limit, 1, "Memory", pid);
@@ -56,6 +68,7 @@ namespace TSOS {
         pcb.limit = limit;
         pcb.location = "Memory";
         pcb.state = "Resident";
+        pcb.partition = assignedPartitionIndex; // Use the partition index
 
         // Enqueue the PCB in the resident queue
         if (!existingPCB) {
@@ -202,6 +215,37 @@ namespace TSOS {
       console.log(`Memory freed for terminated process PID: ${pid}`);
       TSOS.Control.displayMemory(); // Update memory display
       TSOS.Control.updatePCBDisplay(); // Update the PCB display
+    }
+    public extractProgramFromMemory(
+      base: number,
+      limit: number
+    ): number[] | null {
+      const memoryArray = neOS.MemoryAccessor.getMemoryArray(); // Get the memory contents
+      if (base < 0 || limit >= memoryArray.length || base > limit) {
+        console.error("Invalid base or limit for extracting program data.");
+        return null;
+      }
+
+      let lastUsedAddress = base; // Initialize the last-used address to base
+
+      // Find the last non-zero address
+      for (let i = base; i <= limit; i++) {
+        const value = neOS.MemoryAccessor.read(i, base, limit);
+        if (value !== 0) {
+          lastUsedAddress = i;
+        }
+      }
+
+      const programData: number[] = [];
+
+      // Extract data up to the last-used address
+      for (let i = base; i <= lastUsedAddress; i++) {
+        const value = neOS.MemoryAccessor.read(i, base, limit);
+        programData.push(value);
+      }
+
+      console.log(`Extracted program data from memory: ${programData}`);
+      return programData;
     }
   }
 }

@@ -57,10 +57,13 @@ namespace TSOS {
 
         // Roll in the next process
         this.rollIn(nextProcess.pid);
+        
       }
+      console.log("Ready Queue before dequeuing:", neOS.readyQueue.getAllProcesses());
 
       // Dequeue the next process (now guaranteed to be in memory)
       const processToExecute = neOS.readyQueue.dequeue();
+      console.log(`Dequeued process PID: ${nextProcess.pid}`);
       if (processToExecute) {
         console.log(`Dequeued process PID: ${processToExecute.pid}`);
         neOS.CurrentProcess = processToExecute;
@@ -86,15 +89,29 @@ namespace TSOS {
       // Save the process context to the PCB
       victimProcess.saveContext(neOS.CPU);
 
-      // Serialize and save the process state to disk
-      const processState = JSON.stringify(victimProcess);
-      const programID = neOS.DiskDriver.allocateBlocksForProgram([
-        processState,
-      ]);
+      // Extract the program data from memory
+      const programData = neOS.MemoryManager.extractProgramFromMemory(
+        victimProcess.base,
+        victimProcess.limit
+      );
+
+      if (!programData) {
+        console.error(
+          `Failed to retrieve program data for PID: ${victimProcess.pid}`
+        );
+        return;
+      }
+
+      // Save only the program data to disk
+      const programID = neOS.DiskDriver.allocateBlocksForProgram(
+        programData.map((byte) => byte.toString(16).padStart(2, "0")),
+        victimProcess.pid
+      );
 
       if (programID !== -1) {
-        // Update the process location to "Disk"
+        // Update the process location and partition
         victimProcess.location = "Disk";
+        victimProcess.partition = -1;
 
         // Free the memory partition used by this process
         neOS.MemoryManager.freePartition(victimProcess.base);
@@ -113,7 +130,7 @@ namespace TSOS {
           );
         }
 
-        // Optionally update the PCB display to reflect the new state
+        // Update displays
         TSOS.Control.updatePCBDisplay();
         TSOS.Control.displayMemory();
       } else {
@@ -121,7 +138,7 @@ namespace TSOS {
           `Failed to roll out process PID: ${victimProcess.pid}. No disk space available.`
         );
 
-        // Handle failure (e.g., retry with another victim or terminate the process)
+        // Handle failure (e.g., terminate the process)
         victimProcess.state = "Terminated";
         TSOS.Control.updatePCBDisplay();
       }
@@ -130,34 +147,59 @@ namespace TSOS {
     public rollIn(programID: number): void {
       console.log(`Rolling in process with Program ID: ${programID}`);
 
-      // Retrieve the process data from disk
+      // Retrieve the program data from disk
       const programData = neOS.DiskDriver.retrieveProgram(programID);
       if (programData.length > 0) {
-        // Parse the saved process state
-        const processState = JSON.parse(programData[0]);
+        // Convert hex strings back to bytes
+        const programBytes: number[] = [];
+        programData.forEach((dataBlock) => {
+          const blockBytes =
+            dataBlock
+              .match(/.{1,2}/g)
+              ?.map((byte) => parseInt(byte, 16))
+              .filter((byte) => !isNaN(byte)) || [];
+          programBytes.push(...blockBytes);
+        });
 
-        // Extract the program bytes (excluding the state JSON)
-        const programBytes = programData
-          .slice(1)
-          .map((data) => parseInt(data, 16));
+        // Remove filtering of `00` bytes
+        const filteredProgramBytes = programBytes;
 
-        // Reuse the existing PCB
-        const existingPCB = Object.assign(
-          new PCB(0, 0, 0, 1, "Disk", -1),
-          processState
-        );
+        // Create a new PCB or reuse an existing one
+        const newPCB =
+          neOS.ProcessList.find((pcb) => pcb.pid === programID) ||
+          new PCB(programID, 0, 0, 1, "Memory", 0);
+
+        // Assign the current partition if needed
+          newPCB.partition = neOS.CurrentProcess.partition;
+        
 
         // Store the program into memory
         const result = neOS.MemoryManager.storeProgram(
-          programBytes,
-          existingPCB
+          filteredProgramBytes,
+          newPCB
         );
 
         if (result.pid !== -1) {
           console.log(
-            `Process PID: ${existingPCB.pid} rolled in with Base: ${existingPCB.base}, Limit: ${existingPCB.limit}`
+            `Process PID: ${newPCB.pid} rolled in with Base: ${newPCB.base}, Limit: ${newPCB.limit}`
           );
-          neOS.readyQueue.enqueue(existingPCB);
+
+          // Free the disk blocks used by the program
+          const success = neOS.DiskDriver.clearProgram(programID);
+          if (success) {
+            console.log(`Freed disk blocks for Program ID: ${programID}`);
+          } else {
+            console.error(
+              `Failed to free disk blocks for Program ID: ${programID}`
+            );
+          }
+
+          // Update the PCB to reflect the new location
+          newPCB.location = "Memory";
+
+          // Update displays
+          TSOS.Control.updatePCBDisplay();
+          TSOS.Control.displayMemory();
         } else {
           console.error(
             `Failed to roll in process with Program ID: ${programID}. No available memory.`

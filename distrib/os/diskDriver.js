@@ -39,16 +39,21 @@ var TSOS;
         }
         // Write to Disk
         writeBlock(index, data) {
+            const maxHexLength = this.blockSize * 2; // Each block holds 64 bytes = 128 hex characters
             if (index < 0 || index >= this.blockCount) {
                 console.error(`Invalid block index: ${index}`);
                 return false;
             }
-            if (data.length > this.blockSize) {
-                console.error(`Data exceeds block size. Block index: ${index}`);
+            if (data.length > maxHexLength) {
+                console.error(`Data exceeds block size. Block index: ${index}, Data length: ${data.length}, Expected: ${maxHexLength}`);
                 return false;
             }
-            sessionStorage.setItem(`block${index}`, data.padEnd(this.blockSize, " "));
-            console.log(`Block ${index} written. Data: "${data.trim()}"`);
+            // Pad and trim data to fit block size
+            const formattedData = data
+                .padEnd(maxHexLength, " ")
+                .slice(0, maxHexLength);
+            sessionStorage.setItem(`block${index}`, formattedData);
+            console.log(`Block ${index} written. Data: "${formattedData.trim()}"`);
             TSOS.Control.updateDiskDisplay();
             return true;
         }
@@ -71,36 +76,32 @@ var TSOS;
         }
         clearBlock(index) {
             if (index < 0 || index >= this.blockCount) {
-                console.error("Invalid block index");
+                console.error(`Invalid block index: ${index}`);
                 return false;
             }
-            sessionStorage.setItem(`block${index}`, "".padEnd(this.blockSize, " "));
+            sessionStorage.setItem(`block${index}`, "".padEnd(this.blockSize, " ")); // Reset block to empty
+            console.log(`Block ${index} cleared.`);
             return true;
         }
-        allocateBlocksForProgram(programData) {
-            const requiredBlocks = 5;
-            const availableBlocks = [];
-            // Find available blocks
-            for (let i = 0; i < this.blockCount; i++) {
-                if (this.isBlockEmpty(i)) {
-                    availableBlocks.push(i);
-                    if (availableBlocks.length === requiredBlocks)
-                        break;
-                }
-            }
-            if (availableBlocks.length < requiredBlocks) {
-                console.error("Not enough available blocks for the program.");
+        allocateBlocksForProgram(program, pid) {
+            console.log(`Allocating disk blocks for program with PID: ${pid}.`);
+            const blockCapacity = this.blockSize / 2; // Each block holds 64 bytes = 128 hex characters
+            const blockCount = Math.ceil(program.length / blockCapacity);
+            const freeBlocks = this.findFreeBlocks(blockCount);
+            if (freeBlocks.length < blockCount) {
+                console.error("Not enough free disk blocks available.");
                 return -1;
             }
-            const programId = neOS.MemoryManager.nextPID++;
-            this.programAllocation.push({ programId, blocks: availableBlocks });
-            // Write the program data into the allocated blocks
-            for (let i = 0; i < availableBlocks.length; i++) {
-                const data = programData[i] || ""; // If there's no data for a block, write an empty string
-                this.writeBlock(availableBlocks[i], data);
+            for (let i = 0; i < blockCount; i++) {
+                const chunk = program
+                    .slice(i * blockCapacity, (i + 1) * blockCapacity)
+                    .join("");
+                const paddedChunk = chunk.padEnd(blockCapacity * 2, "0");
+                this.writeBlock(freeBlocks[i], paddedChunk);
             }
-            TSOS.Control.updateDiskDisplay();
-            return programId;
+            this.programAllocation.push({ programId: pid, blocks: freeBlocks });
+            console.log(`Program stored on disk with PID ${pid} in blocks: [${freeBlocks.join(", ")}]`);
+            return pid;
         }
         retrieveProgram(programId) {
             const program = this.programAllocation.find((p) => p.programId === programId);
@@ -117,9 +118,9 @@ var TSOS;
                 return false;
             }
             const program = this.programAllocation[programIndex];
-            program.blocks.forEach((blockIndex) => this.clearBlock(blockIndex));
+            program.blocks.forEach((blockIndex) => this.clearBlock(blockIndex)); // Clear each block
             this.programAllocation.splice(programIndex, 1);
-            TSOS.Control.updateDiskDisplay();
+            console.log(`Program ID ${programId} cleared from disk.`);
             return true;
         }
         // File Operations
@@ -293,6 +294,19 @@ var TSOS;
             console.log(`List of files on disk: ${fileList}`);
             return fileList;
         }
+        findFreeBlocks(count) {
+            const freeBlocks = [];
+            for (let i = 0; i < this.blockCount; i++) {
+                const blockData = sessionStorage.getItem(`block${i}`);
+                if (!blockData || blockData.trim() === "") {
+                    freeBlocks.push(i);
+                    if (freeBlocks.length === count) {
+                        break; // Stop once we've found enough blocks
+                    }
+                }
+            }
+            return freeBlocks;
+        }
         findEmptyBlock() {
             for (let i = 0; i < this.blockCount; i++) {
                 const blockData = sessionStorage.getItem(`block${i}`);
@@ -301,6 +315,15 @@ var TSOS;
                 }
             }
             return -1;
+        }
+        addFreeBlock(blockIndex) {
+            const blockData = sessionStorage.getItem(`block${blockIndex}`);
+            if (blockData?.trim() !== "") {
+                console.warn(`Block ${blockIndex} is not empty and cannot be marked as free.`);
+            }
+            else {
+                console.log(`Block ${blockIndex} is free (sessionStorage updated).`);
+            }
         }
     }
     TSOS.DiskSystemDeviceDriver = DiskSystemDeviceDriver;
