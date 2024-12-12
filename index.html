@@ -43,8 +43,10 @@
     <script type="text/javascript" src="distrib/os/dispatcher.js"></script>
     <!-- Other Routines -->
     <script type="text/javascript" src="distrib/utils.js"></script>
+    <!-- Disk Driver -->
+    <script type="text/javascript" src="distrib/os/diskDriver.js"></script>
     <!-- Uncomment the line below to enable GLaDOS testing. -->
-    <script type="text/javascript" src="test\glados-ip3.js"></script>
+    <script type="text/javascript" src="test\glados-ip4.js"></script>
 
     <style>
       /* Style to center the text inside the table cells */
@@ -125,6 +127,25 @@
           Enable Single Step
         </button>
         <button class="normal_button" id="stepElement">step</button>
+        <div id="diskDisplay" style="height: 250px; width: 403px; margin-left: 25px">
+          <h3 style="margin-left: 35%">Hard Drive</h3>
+          >
+          <div id="scrollContainer">
+            <table id="diskTable" style="width: 403px;">
+              <thead>
+                <tr>
+                  <th>T/S/B</th>
+                  <th>IN USE</th>
+                  <th>NEXT</th>
+                  <th>DATA</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Rows will be dynamically generated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <!-- Top Row -->
@@ -258,6 +279,7 @@
         </div>
       </div>
     </div>
+    
 
     <p class="footerText" style="clear: both">
       <br />

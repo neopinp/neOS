@@ -20,16 +20,19 @@ namespace TSOS {
       return this.q.length == 0;
     }
 
-    public enqueue(element) {
+    public enqueue(element: T): void {
       this.q.push(element);
     }
 
-    public dequeue() {
+    public dequeue(): T | null {
       var retVal = null;
       if (this.q.length > 0) {
         retVal = this.q.shift();
       }
       return retVal;
+    }
+    public peek(): T | null {
+      return this.q.length > 0 ? this.q[0] : null;
     }
 
     public toString() {
@@ -46,8 +49,10 @@ namespace TSOS {
       return this.q.find(callback);
     }
     public removeProcessByPid(queue: TSOS.Queue<any>, pid: number): void {
-      queue.q = queue.q.filter(item => item.pid !== pid);
+      queue.q = queue.q.filter((item) => item.pid !== pid);
     }
-    
+    getAllProcesses(): Array<number> {
+      return this.q.map((process) => process.pid); // Replace with your queue's structure
+    }
   }
 }

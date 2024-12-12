@@ -69,7 +69,6 @@ h3 {
 
 /* Taskbar Styles */
 #taskbar {
-  position: fixed;
   bottom: 0;
   width: 100%;
   background-size: cover;
@@ -126,6 +125,7 @@ thead th {
   overflow: hidden;
   border: transparent;
   border-left: none;
+  margin-left: 8px;
 }
 
 #scrollContainer {
@@ -134,6 +134,7 @@ thead th {
   overflow-y: scroll; /* Vertical scroll for large memory content */
   padding-right: 10px;
   border-left: none;
+  overflow-x: hidden;
 }
 
 #scrollContainer table {
@@ -144,11 +145,6 @@ thead th {
 #scrollContainer::-webkit-scrollbar {
   width: 10px;
   background-color: black;
-}
-
-#scrollContainer::-webkit-scrollbar-thumb {
-  background-color: black;
-  border-radius: 10px;
 }
 
 #taHostLog::-webkit-scrollbar {
@@ -167,14 +163,14 @@ thead th {
 }
 
 #memoryTableWrapper {
-  height: 150px; /* Adjust to show a fixed number of rows */
+  height: 150px; 
   overflow-y: auto;
   overflow-x: hidden;
 }
 
 #memoryDisplayLabel {
   color: green;
-  text-align: center; /* Center the label */
+  text-align: center; 
   margin-left: 45%;
 
 }
@@ -212,6 +208,68 @@ thead th {
   color: green;
   background-color: black;
 }
+
+/* DISK DISPLAY */
+#diskTableContainer {
+  max-height: 300px; /* Adjust height as needed */
+  overflow-y: auto; /* Add vertical scrolling */
+  border: 2px dotted green;
+  
+}
+
+/* Disk table styling */
+#diskTable {
+  width: 100%; /* Ensure the table spans the container */
+  border-collapse: collapse; /* Remove space between borders */
+  table-layout: fixed; /* Fixed layout for consistent column widths */
+}
+
+/* Define column widths */
+#diskTable th:nth-child(1), /* T/S/B column */
+#diskTable th:nth-child(2), /* IN USE column */
+#diskTable th:nth-child(3)  /* NEXT column */ {
+  width: auto; /* Make these columns narrower */
+}
+
+#diskTable th:nth-child(4), /* DATA column */
+#diskTable td:nth-child(4) {
+  width: auto; /* Allocate more space for the DATA column */
+  white-space: nowrap; /* Prevent wrapping within the DATA column */
+  overflow: hidden; /* Prevent content overflow */
+  text-overflow: ellipsis; /* Add ellipsis (...) for overflowed text */
+}
+
+/* General table styles */
+#diskTable th, #diskTable td {
+  text-align: center;
+  border: 2px dotted green;
+  color: green;
+}
+#diskTable td {
+  background-color: black;
+  color: green;
+  text-align: center;
+  border-top: none; /* Remove the top border */
+  border-bottom: none; /* Transparent bottom border */
+}
+#diskTable th {
+  border-top: none;
+}
+
+
+
+
+
+#memoryTable td {
+  border-right: 2px dotted green; 
+  padding: 5px;
+  text-align: center;
+  vertical-align: middle;
+  color: green;
+  background-color: black;
+}
+
+
 #divPCBStatus th, #divPCBStatus td {
   border: none;
   border-left: 2px dotted green;
@@ -272,7 +330,7 @@ thead th {
 }
 
 #stepElement, #singleStep {
-  margin-left: 40%;
+  margin-left: 42%;
   margin-right: 20%;
   padding: 15px;
   border-radius: 10px;
@@ -287,3 +345,23 @@ thead th {
   margin-top: 30%;
 
 }
+
+/* General scrollbar styling for the entire webpage */
+html::-webkit-scrollbar {
+  width: 10px; /* Set the width of the scrollbar */
+  background-color: transparent; /* Background of the scrollbar track */
+}
+
+html::-webkit-scrollbar-thumb {
+  background-color: transparent; /* Color of the scrollbar thumb */
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background-color: green; /* Hover color for the scrollbar thumb */
+}
+
+/* Prevent horizontal scrolling */
+body {
+  overflow-x: hidden;
+}
+

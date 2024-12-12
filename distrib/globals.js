@@ -44,6 +44,7 @@ var neOS = {
     MemoryManager: null,
     SarcasticMode: false,
     krnKeyboardDriver: null,
+    DiskDriver: null,
     hardwareClockID: null,
     Glados: null,
     GLaDOS: null,

@@ -93,6 +93,8 @@ namespace TSOS {
         // Before saving context
         console.log(`Context switch: Saving PID ${neOS.CurrentProcess.pid}`);
         console.log(`Current PC: ${this.PC}, Base: ${neOS.CurrentProcess.base}`);
+        console.log("Ready Queue state during context switch:", neOS.readyQueue.getAllProcesses());
+
       
         // Save context and requeue the current process if not terminated
         if (neOS.CurrentProcess.state !== "Terminated") {
@@ -292,6 +294,7 @@ namespace TSOS {
           if (neOS.CurrentProcess) {
             console.log(`BRK: Process ${neOS.CurrentProcess.pid} terminating`);
             neOS.CurrentProcess.state = "Terminated";
+            neOS.Scheduler.handleTerminatedProcess(neOS.CurrentProcess);
 
             neOS.readyQueue.q = neOS.readyQueue.q.filter(
               (process: any) => process.pid !== neOS.CurrentProcess.pid

@@ -20,8 +20,8 @@ namespace TSOS {
       base: number,
       limit: number,
       priority: number = 1,
+      location: string,
       partition: number,
-      location: string = "Memory"
     ) {
       this.pid = pid;
       this.base = base;
@@ -60,7 +60,6 @@ namespace TSOS {
     public saveContext(cpu: Cpu): void {
       // Ensure PC is within valid range before subtracting base
       this.pc = cpu.PC;
-
       this.ir = cpu.instructionRegister;
       this.acc = cpu.Acc;
       this.xReg = cpu.Xreg;
@@ -84,7 +83,7 @@ namespace TSOS {
      * Load the PCB state into the CPU registers
      */
     public loadContext(cpu: Cpu): void {
-      cpu.PC = this.pc;
+      cpu.PC = this.pc
       cpu.instructionRegister = this.ir;
       cpu.Acc = this.acc;
       cpu.Xreg = this.xReg;
